@@ -3,8 +3,7 @@
 
 import numpy as np
 from grid import *
-from input import md_variables, grid_setting, a0
-from output_md import file_output_field, file_output_time, file_output_convergence, file_output_solute, file_output_energy, path
+from input import md_variables, grid_setting, a0, output_settings
 from indices import dict_indices_CoordTon
 from verlet import VerletPoisson, PrecondLinearConjGradPoisson, VerletSolutePart1, VerletSolutePart2
 import time
@@ -15,7 +14,22 @@ from tqdm import tqdm
 begin_time = time.time()
 start_initialization = time.time()
 
+# set output files
+if output_settings.print_field:
+    from output_md import file_output_field
 
+if output_settings.print_performance:
+    from output_md import file_output_performance
+
+if output_settings.print_solute:
+    from output_md import file_output_solute
+
+if output_settings.print_energy:
+    from output_md import file_output_energy
+
+if output_settings.print_temperature:
+    from output_md import file_output_temperature
+      
 
 # get variables from input
 delta = md_variables.delta
@@ -47,6 +61,9 @@ print('\nInitialization:',initialization, ' and preconditioning:', preconditioni
 print('\nParameters:\nh =', h, "\ndt =", dt, "\nstride =", stride, '\nL =', L, '\nomega =', omega)
 print('\nPotential:', md_variables.potential)
 print('\nElec:', elec, '\tNotElec: ', not_elec,'\n')
+print('\nPrint solute:', output_settings.print_solute, '\tPrint field: ', output_settings.print_field, 
+      '\nPrint energy:', output_settings.print_energy, '\tPrint temperature:', output_settings.print_temperature,
+      '\tPrint performance:', output_settings.print_temperature,'\n')
 
 ################################ STEP 0 Verlet ##########################################
 #########################################################################################
@@ -57,6 +74,7 @@ q_tot = 0
 for particle in grid.particles:
     particle.NearestNeigh()
     q_tot = q_tot + particle.charge
+
 print('Total charge q = ',q_tot)
 
 # set charges with the weight function
@@ -67,7 +85,7 @@ grid.indices7 = (DetIndices_7entries()).astype(int)
 
 # initialize the electrostatic field with CG                  
 if preconditioning == "Yes":
-    grid.phi_prev = PrecondLinearConjGradPoisson(- 4 * np.pi * grid.q / h, grid.indices7, tol=tol)
+    grid.phi_prev, _ = PrecondLinearConjGradPoisson(- 4 * np.pi * grid.q / h, grid.indices7, tol=tol)
 
 # AGGIUSTA
 #grid.LinkedCellInit(grid.particles[0].r_cutoff)
@@ -80,7 +98,7 @@ if not_elec:
     grid.ComputeForceNotElecBasic()
     #grid.ComputeForceNotElecLC()
     
-grid.Energy(iter=0, prev=True)
+grid.Energy(iter=0, prev=True, print_energy=output_settings.print_energy)
 
 ################################ STEP 1 Verlet ##########################################
 #########################################################################################
@@ -96,13 +114,10 @@ for particle in grid.particles:
 grid.SetCharges()
     
 if preconditioning == "Yes":
-    grid.phi = PrecondLinearConjGradPoisson(- 4 * np.pi * grid.q / h, grid.indices7, tol=tol, x0=grid.phi_prev)
-
-#grid.particles = VerletSolutePart2(grid.particles, grid.phi_prev)
+    grid.phi, _ = PrecondLinearConjGradPoisson(- 4 * np.pi * grid.q / h, grid.indices7, tol=tol, x0=grid.phi_prev)
 
 grid = VerletSolutePart2(grid)
-
-grid.Energy(iter=1)
+grid.Energy(iter=1, print_energy=output_settings.print_energy)
 
 ################################ FINE INIZIALIZZAZIONE ##########################################
 #########################################################################################
@@ -124,14 +139,7 @@ y = np.zeros(N_tot)
 for i in tqdm(range(N_steps)):
     #print('Step = ', i, ' t elapsed from init =', time.time() - end_initialization)
     # move the particles 
-    #old_pos = grid.particles[0].pos
-    #if i % 1 == 0:
-    #grid.linked_cell.update_lists(grid.particles) 
-
     grid.particles = VerletSolutePart1(grid.particles)
-
-    #if np.linalg.norm(grid.particles[0].pos - grid.particles[1].pos) < grid.particles[1].radius + grid.particles[0].radius:
-    #    print('BE CAREFUL! Particles are entering one another at step i =', i)
 
     # compute 8 nearest neighbors for any particle
     for particle in grid.particles:
@@ -142,43 +150,49 @@ for i in tqdm(range(N_steps)):
 
     # apply Verlet algorithm
     start_Verlet = time.time()
-    grid, y = VerletPoisson(grid, y=y)
+    grid, y, iter_conv = VerletPoisson(grid, y=y)
     end_Verlet = time.time()
 
-    #spline analysis
-    #if i == 0 and N == 100:
-    #    for n in range(N_tot):
-    #        file_output_phi.write(str(n) + ',' + str(grid.phi[n]) + '\n')
-    
-    #if N == 50:
-    #    spline_analysis(grid, 'new_data/test_spline/N100_nospline/Phi_N100.csv')
-    #grid.particles = VerletSolutePart2(grid.particles, grid.phi)
-
     grid = VerletSolutePart2(grid)
-    grid.Energy(iter=i + 2)
+    grid.Energy(print_energy=output_settings.print_energy, iter=i + 2)
 
     if i % stride == 0 and i >= steps_init:
-        for p in range(grid.N_p):
-            file_output_solute.write(str(grid.particles[p].charge) + ',' + str(i) + ',' + str(p+1) 
+        
+        if output_settings.print_solute:
+            for p in range(grid.N_p):
+                file_output_solute.write(str(grid.particles[p].charge) + ',' + str(i) + ',' + str(p+1) 
                                   + ',' + str(grid.particles[p].pos[0]) + ',' + str(grid.particles[p].pos[1]) + ',' + str(grid.particles[p].pos[2])
                                   + ','  + str(grid.particles[p].vel[0]) + ',' + str(grid.particles[p].vel[1]) + ',' + str(grid.particles[p].vel[2]) + '\n') 
                                   #+ ','  + str(grid.particles[p].force[0]) + ',' + str(grid.particles[p].force[1]) + ',' + str(grid.particles[p].force[2]) + '\n')
         
-        file_output_time.write(str(i) + ',' + str(end_Verlet - start_Verlet) + "\n") #+ ',' + str(end_Matrix - start_Matrix) + "\n")
-        field_x_MaZe = np.array([grid.phi[dict_indices_CoordTon[tuple([l, j, k])]] for l in range(N)])
-        for n in range(N):
-            #file_output_field.write(str(N) + ',' + str(i) + ',' + str(X[n] * a0) + ',' + str(field_x_MaZe[n] * V) + '\n')
-            file_output_field.write(str(i) + ',' + str(X[n] * a0) + ',' + str(field_x_MaZe[n] * V) + '\n')
+        if output_settings.print_performance:
+            file_output_performance.write(str(i) + ',' + str(end_Verlet - start_Verlet) + ',' + str(iter_conv) + "\n") #+ ',' + str(end_Matrix - start_Matrix) + "\n")
+        
+        if output_settings.print_field:
+            field_x_MaZe = np.array([grid.phi[dict_indices_CoordTon[tuple([l, j, k])]] for l in range(N)])
+            for n in range(N):
+                file_output_field.write(str(i) + ',' + str(X[n] * a0) + ',' + str(field_x_MaZe[n] * V) + '\n')
 
 
 # close output files
-file_output_energy.close()
-file_output_field.close()
-file_output_time.close()
-file_output_convergence.close()
-file_output_solute.close()
-#file_output_phi.close()
+file_output_performance.close()
 
+
+if output_settings.print_field:
+    file_output_field.close()
+
+if output_settings.print_performance:
+    file_output_performance.close()
+
+if output_settings.print_solute:
+    file_output_solute.close()
+
+if output_settings.print_energy:
+    file_output_energy.close()
+
+if output_settings.print_temperature:
+    file_output_temperature.close()
+      
 end_time = time.time()
 print('\nTotal time: {:.2f} s\n'.format(end_time - begin_time))
 

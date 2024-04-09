@@ -17,7 +17,7 @@ class GridSetting:
     eps = 1#80                  #dielectric constant
     k_b = 0#3.080 / a0 #1.74 * 1e-2       #Debye-Huckel factor - vedi formula da Klapper et al.
     k_bar = k_b * np.sqrt(eps)
-    input_filename = 'input_coord64.csv'
+    input_filename = 'input_files/input_coord64.csv'
     N_p = int(sys.argv[1]) 
 grid_setting = GridSetting()
 
@@ -30,7 +30,7 @@ class MDVariables:
     #m = 1.0                 # mass in atomic units
     stride = 1              # saves every stride steps
     dx = 1e-3
-    delta = np.array([-dx, 0., 0.]) #np.array([-0.01, 0., 0.]) # step size for particle 0 in the x, y and z directions [-0.01]
+    delta = np.array([-dx, 0., 0.]) # step size for particle 0 in the x, y and z directions [-0.01]
     tol = 1e-7
     omega = 1  #overrelaxation parameter
     initialization = 'CG'   # Can be 'CG' or 'none' - to do first two steps for Verlet
@@ -42,3 +42,17 @@ class MDVariables:
     kB = 3.1668 * 1e-6 #Eh/K
     kBT = kB * T #Eh
 md_variables = MDVariables()
+
+###################################################################################
+
+### Output settings ###
+
+class OutputSettings:
+    print_field = False
+    print_performance = False
+    print_solute = False
+    print_energy = True
+    print_temperature = True
+    path = '../data/test_github/'
+
+output_settings = OutputSettings()

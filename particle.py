@@ -37,10 +37,6 @@ class Particle:
             #parameters
             self.sigma = 3.00512 * 2 / a0   # given in Angs and converted in atomic units  #Ar = 3.400 / a0
             self.epsilon = 5.48 * 1e-4  #Hartree - corresponds to 0.0104 eV  #Ar = 3.82192993 * 1e-4
-            
-        
-        #self.n_neigh =  np.ceil(radius / h) + 1
-        #self.cube_indices = np.arange(-self.n_neigh, self.n_neigh + 1, 1, dtype=int)
 
     # find 8 nearest neighbours of the particle
     def NearestNeigh(self):
@@ -68,6 +64,8 @@ class Particle:
             phi_v = np.copy(grid.phi_prev)
         else:
             phi_v = np.copy(grid.phi)
+
+        print(np.shape(phi_v))
         
         for n in self.neigh[:4]:
             i,j,k = dict_indices_nToCoord[n]
@@ -76,13 +74,7 @@ class Particle:
             self.force[1] = self.force[1] - phi_v[n] * self.charge * g(diff[0]) * g_prime(diff[1]) * g(diff[2])
             self.force[2] = self.force[2] - phi_v[n] * self.charge * g(diff[0]) * g(diff[1]) * g_prime(diff[2]) 
 
-        '''
-        for n in self.neigh:
-            coord = dict_indices_nToCoord[n]
-            diff = self.pos - coord * h #r_alpha - r_i
-            self.force = self.force - phi_v[n] * self.charge * grad_g(diff[0],diff[1], diff[2])
-        '''
-        #print('FORCE BENOIT',self.force)
+        #print('FORCE 1198 PAPER',self.force)
 
 
     def ComputeForce_CubicSpline(self, grid, prev):
@@ -177,12 +169,12 @@ class Particle:
 
     def ComputeForce_FD(self, grid, prev):
         self.force = np.zeros(3)
-      
+       
         if prev == True:
-            phi_v = grid.phi_prev
+            phi_v = grid.phi_prev 
         else:
             phi_v = grid.phi
-
+        
         E_x = lambda i_p, j_p, k_p : (phi_v[(i_p - 1) % N + j_p * N + k_p * N * N] - phi_v[(i_p + 1) % N + j_p * N + k_p * N * N]) / (2 * h)
         E_y = lambda i_p, j_p, k_p : (phi_v[i_p + ((j_p - 1) % N) * N + k_p * N * N] - phi_v[i_p + ((j_p + 1) % N) * N + k_p * N * N]) / (2 * h)
         E_z = lambda i_p, j_p, k_p : (phi_v[i_p + j_p * N + ((k_p - 1) % N) * N * N] - phi_v[i_p + j_p * N + ((k_p + 1) % N) * N * N]) / (2 * h)
@@ -208,7 +200,6 @@ class Particle:
    
         return f_mag * r_cap
     
-    '''
     def ComputeLJPotential(self,particle):  
         r_diff = self.pos - particle.pos 
         r_mag = BoxScaleDistance(r_diff)
@@ -220,7 +211,6 @@ class Particle:
             V_mag = 0
    
         return V_mag
-    '''
 
     def ComputeLJForcePotentialPair(self, particle):
         r_diff = self.pos - particle.pos 
@@ -272,25 +262,7 @@ class Particle:
     def ComputeTFPotentialPair(self,particle):  
         r_diff = self.pos - particle.pos 
         r_mag = BoxScaleDistance(r_diff)
-        '''
-        if (self.charge == 1 and particle.charge == -1) or (self.charge == -1 and particle.charge == 1): # Na - Cl
-            A = 7.7527 * 1e-3 #Hartree = 20.3548 kJ/mol 
-            C = 0.2569 / a0**6 # = 674.4798 kj/mol * Ang^6 
-            D = 0.3188 / a0**8 # = 837.0777 kj/mol * Ang^8 
-            sigma_TF = 2.755 / a0
-   
-        elif self.charge == 1 and particle.charge == 1: # Na - Na
-            A = 9.6909 * 1e-3 #Hartree = 25.4435 kJ/mol 
-            C = 0.0385 / a0**6 # = 101.1719 kj/mol * Ang^6 
-            D = 0.0183 / a0**8 # = 48.1771 kj/mol * Ang^8 
-            sigma_TF = 2.340 / a0 # = 2.340 angs
-        
-        elif self.charge == -1 and particle.charge == -1: #Cl - Cl
-            A = 5.8145 * 1e-3 #Hartree = 15.2661 kJ/mol 
-            C = 2.6607 / a0**6 # = 6985.6841 kj/mol * Ang^6 
-            D = 5.3443 / a0**8 # = 14,031.5897 kj/mol * Ang^8 
-            sigma_TF = 3.170 / a0 # = 3.170 angs
-        '''
+
         A, C, D, sigma_TF = self.dict[self.charge + particle.charge]
 
         if r_mag <= self.r_cutoff: 
@@ -305,26 +277,6 @@ class Particle:
         r = BoxScale(r_diff)
         r_mag = BoxScaleDistance(r_diff)
         r_cap = r / r_mag
-        
-        '''
-        if (self.charge == 1 and particle.charge == -1) or (self.charge == -1 and particle.charge == 1): # Na - Cl
-            A = 7.7527 * 1e-3 #Hartree = 20.3548 kJ/mol 
-            C = 0.2569 / a0**6 # = 674.4798 kj/mol * Ang^6 
-            D = 0.3188 / a0**8 # = 837.0777 kj/mol * Ang^8 
-            sigma_TF = 2.755 / a0
-            
-        elif self.charge == 1 and particle.charge == 1: # Na - Na
-            A = 9.6909 * 1e-3 #Hartree = 25.4435 kJ/mol 
-            C = 0.0385 / a0**6 # = 101.1719 kj/mol * Ang^6 
-            D = 0.0183 / a0**8 # = 48.1771 kj/mol * Ang^8 
-            sigma_TF = 2.340 / a0 # 2.340 angs
-
-        elif self.charge == -1 and particle.charge == -1: #Cl - Cl
-            A = 5.8145 * 1e-3 #Hartree = 15.2661 kJ/mol 
-            C = 2.6607 / a0**6 # = 6985.6841 kj/mol * Ang^6 
-            D = 5.3443 / a0**8 # = 14,031.5897 kj/mol * Ang^8 
-            sigma_TF = 3.170 / a0 # 3.170 angs
-        '''
 
         A, C, D, sigma_TF = self.dict[self.charge + particle.charge]
 
@@ -375,112 +327,6 @@ class Particle:
                 force += self.ComputeTFForcePair(particle)
                 
         return force, pot
-    '''  
-        # Coulomb force
-        for n in self.neigh:
-            for m in grid.particles[id].neigh:
-                coord_n = dict_indices_nToCoord[n]
-                coord_m = dict_indices_nToCoord[m]
-                diff = (coord_n - coord_m) * h #r_alpha - r_i
-                for d in diff:
-                    d = d - L * np.round(d / L)
-                dist = np.sqrt(np.dot(diff,diff))
-                if dist != 0:
-                    force = force + grid.q[n] * grid.q[m] * diff / (dist**3)
-
-        #print(force[0], self.force[0])
-        print(force)
-
-    def ComputeInitialNeighField(self):
-        # find the closest grid point to the center of the solute
-        i, j, k = np.ceil(self.pos / h).astype(int)
-       
-       # store the values of the neighbours directly as the n indices
-        n_list = np.zeros(len(self.cube_indices)**3)
-        counter = 0
-
-        # sum over the indices of the cube, computed starting from the number of neighbours per side that I want to include
-        for l in self.cube_indices:
-            for m in self.cube_indices:
-                for p in self.cube_indices:
-                    coord = tuple([ (i + l + N) % N, (j + m + N) % N, (k + p + N) % N])
-                    n_list[counter] = dict_indices_CoordTon[coord]
-                    counter = counter + 1
-        
-        return n_list
-    '''
-
-    
-''' 
-    def ComputeNeighField(self, old_list):
-        i, j, k = np.ceil(self.pos / h).astype(int)
-        indices = np.arange(-self.n_neigh, self.n_neigh + 1, 1, dtype=int)
-        n_list = np.zeros(len(indices)**3)
-        counter = 0
-
-        for l in indices:
-            for m in indices:
-                for p in indices:
-                    coord = tuple([ (i + l + N) % N, (j + m + N) % N, (k + p + N) % N])
-                    n_list[counter] = dict_indices_CoordTon[coord]
-                    counter = counter + 1
-      
-        n_all = np.unique(np.concatenate((old_list, n_list)))
-        
-        return n_all
-
-        
-# sorting algorithm
-def BubbleSort(arr, arrLead):
-    n = len(arrLead)
-    swapped = False
-    
-    for i in range(n-1):
-        for j in range(0, n-i-1):
- 
-            if arrLead[j] > arrLead[j + 1]:
-                swapped = True
-                arrLead[j], arrLead[j + 1] = arrLead[j + 1], arrLead[j]
-                arr[j], arr[j + 1] = arr[j + 1], arr[j]
-         
-        if not swapped:
-            return        
-
-# translate indices (i,j,k) to an index n = i + j * N + k * N * N
-def nFromIndices(indices):
-    i = indices[0] % N
-    j = indices[1] % N
-    k = indices[2] % N
-    n = i + j * N + k * N * N
-    return n
-
-
-# modulus function
-def NearbyInt(number):
-    if np.fabs(number) >= 0.5:
-        return 1.
-    elif np.fabs(number) < 0.5:
-        return 0.
-    else:
-        print("Error")
-
-
-
-def proper_round(num, dec=0):
-    num = str(num)[:str(num).index('.')+dec+2]
-    if num[-1]>='5':
-        return float(num[:-2-(not dec)]+str(int(num[-2-(not dec)])+1))
-    return float(num[:-1])
-
-def NearbyInt(x):
-    if np.size(x) == 1:
-       return int(proper_round(x))
-    else:
-        num = []
-        for i in x:
-           num.append(int(proper_round(i)))
-        return np.array(num)
-'''
 
 # distance with periodic boundary conditions
 def BoxScaleDistance(diff):
@@ -505,12 +351,7 @@ def g(x):
 
 # derivative of the weight function as defined in the paper Im et al. (1998)
 def g_prime(x):
-    #sgn_x = np.sign(x)
-    #print('NEW X:')
-    #print(x)
     x = x - L * np.rint(x / L)
-    #print(x)
-    #x = sgn_x * np.abs(x)
     
     if x < 0 and x > -h: 
         return 1 / h
@@ -522,13 +363,8 @@ def g_prime(x):
         return 0
 
 
-    
 
 def grad_g(x, y, z):
-    # Apply periodic boundary conditions
-    #x = x - L * np.rint(x / L)
-    #y = y - L * np.rint(y / L)
-    #z = z - L * np.rint(z / L)
     x = x / L
     x = x - np.rint(x)
     x = x * L
