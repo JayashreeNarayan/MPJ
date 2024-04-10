@@ -14,9 +14,6 @@ class GridSetting:
     N_tot = N * N * N        #number of grid points
     L = 13.27 / a0 #13.27 / a0 ###6.64 / a0 Np = 8 # 5.6 * 2 / a0   #box lenght
     h = L / N                #mesh size
-    eps = 1#80                  #dielectric constant
-    k_b = 0#3.080 / a0 #1.74 * 1e-2       #Debye-Huckel factor - vedi formula da Klapper et al.
-    k_bar = k_b * np.sqrt(eps)
     input_filename = 'input_files/input_coord64.csv'
     N_p = int(sys.argv[1]) 
 grid_setting = GridSetting()
