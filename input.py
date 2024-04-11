@@ -24,7 +24,6 @@ grid_setting = GridSetting()
 class MDVariables:
     N_steps = N_steps_input   
     dt = 10              # timestep for the solute evolution 
-    #m = 1.0                 # mass in atomic units
     stride = 1              # saves every stride steps
     dx = 1e-3
     delta = np.array([-dx, 0., 0.]) # step size for particle 0 in the x, y and z directions [-0.01]

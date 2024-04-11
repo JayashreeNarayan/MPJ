@@ -175,9 +175,6 @@ for i in tqdm(range(N_steps)):
 
 
 # close output files
-file_output_performance.close()
-
-
 if output_settings.print_field:
     file_output_field.close()
 

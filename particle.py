@@ -362,8 +362,6 @@ def g_prime(x):
     else:
         return 0
 
-
-
 def grad_g(x, y, z):
     x = x / L
     x = x - np.rint(x)
