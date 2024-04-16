@@ -67,7 +67,6 @@ print('\nPrint solute:', output_settings.print_solute, '\tPrint field: ', output
 
 ################################ STEP 0 Verlet ##########################################
 #########################################################################################
-# GIA SETTATO CONDIZIONI INIZIALI, I.E. PRIMO STEP DI VELOCITY VERLET
 
 q_tot = 0
 #compute 8 nearest neighbors for any particle
@@ -90,13 +89,20 @@ if preconditioning == "Yes":
 # AGGIUSTA
 #grid.LinkedCellInit(grid.particles[0].r_cutoff)
 
-for particle in grid.particles:
-    if elec:
-        particle.ComputeForce_FD(grid, prev=True)
+#for particle in grid.particles:
+#    particle.pos[1] = N / 2 * h
+#    particle.pos[2] = N / 2 * h
+#    print(particle.pos / h)
 
 if not_elec:
     grid.ComputeForceNotElecBasic()
     #grid.ComputeForceNotElecLC()
+
+for particle in grid.particles:
+    if elec:
+        #particle.ComputeForceNew(grid,prev=True)
+        #particle.ComputeForce(grid, prev=True, ddx=h/1000, ddy=h/1000, ddz=h/1000)
+        particle.ComputeForce_FD(grid, prev=True) 
     
 grid.Energy(iter=0, prev=True, print_energy=output_settings.print_energy)
 
@@ -104,6 +110,7 @@ grid.Energy(iter=0, prev=True, print_energy=output_settings.print_energy)
 #########################################################################################
 
 # Velocity Verlet for the solute
+old_pos = [p.pos for p in grid.particles]
 grid.particles = VerletSolutePart1(grid.particles)
 
 # compute 8 nearest neighbors for any particle
@@ -116,7 +123,7 @@ grid.SetCharges()
 if preconditioning == "Yes":
     grid.phi, _ = PrecondLinearConjGradPoisson(- 4 * np.pi * grid.q / h, grid.indices7, tol=tol, x0=grid.phi_prev)
 
-grid = VerletSolutePart2(grid)
+grid = VerletSolutePart2(grid, old_pos)
 grid.Energy(iter=1, print_energy=output_settings.print_energy)
 
 ################################ FINE INIZIALIZZAZIONE ##########################################
@@ -137,13 +144,15 @@ y = np.zeros(N_tot)
 
 # iterate over the number of steps (i.e times I move the particle 1)
 for i in tqdm(range(N_steps)):
-    #print('Step = ', i, ' t elapsed from init =', time.time() - end_initialization)
+    print('\nStep = ', i, ' t elapsed from init =', time.time() - end_initialization)
     # move the particles 
+    old_pos = [p.pos for p in grid.particles]
     grid.particles = VerletSolutePart1(grid.particles)
 
     # compute 8 nearest neighbors for any particle
     for particle in grid.particles:
         particle.NearestNeigh()
+        #print(particle.pos / h)
    
     # set charges with the weight function
     grid.SetCharges()
@@ -153,7 +162,7 @@ for i in tqdm(range(N_steps)):
     grid, y, iter_conv = VerletPoisson(grid, y=y)
     end_Verlet = time.time()
 
-    grid = VerletSolutePart2(grid)
+    grid = VerletSolutePart2(grid, old_pos)
     grid.Energy(print_energy=output_settings.print_energy, iter=i + 2)
 
     if i % stride == 0 and i >= steps_init:

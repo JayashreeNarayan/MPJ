@@ -55,7 +55,7 @@ class Particle:
     # move the particle of a vector delta
     def Move(self, delta):
         self.pos = self.pos + delta
-
+        
     # compute the force acting on the particle
     def ComputeForce(self, grid, prev):
         self.force = np.zeros(3)
@@ -65,18 +65,15 @@ class Particle:
         else:
             phi_v = np.copy(grid.phi)
 
-        print(np.shape(phi_v))
-        
-        for n in self.neigh[:4]:
+        #Qa = self.charge
+        for n in self.neigh:
             i,j,k = dict_indices_nToCoord[n]
             diff = self.pos - np.array([i,j,k]) * h #r_alpha - r_i
             self.force[0] = self.force[0] - phi_v[n] * self.charge * g_prime(diff[0]) * g(diff[1]) * g(diff[2])
             self.force[1] = self.force[1] - phi_v[n] * self.charge * g(diff[0]) * g_prime(diff[1]) * g(diff[2])
             self.force[2] = self.force[2] - phi_v[n] * self.charge * g(diff[0]) * g(diff[1]) * g_prime(diff[2]) 
 
-        #print('FORCE 1198 PAPER',self.force)
-
-
+    '''
     def ComputeForce_CubicSpline(self, grid, prev):
         self.force = np.zeros(3)
       
@@ -165,7 +162,7 @@ class Particle:
 
         
         #print('FORCE SPLINE',self.force,'\n') 
-
+    '''
 
     def ComputeForce_FD(self, grid, prev):
         self.force = np.zeros(3)
@@ -185,7 +182,7 @@ class Particle:
             self.force[1] = self.force[1] + grid.q[n] * E_y(i,j,k) 
             self.force[2] = self.force[2] + grid.q[n] * E_z(i,j,k) 
         
-        #print('FORCE DIFF',self.force,'\n') 
+        print('FORCE DIFF',self.force,'\n') 
     
     
     def ComputeLJForcePair(self,particle):  
@@ -352,54 +349,13 @@ def g(x):
 # derivative of the weight function as defined in the paper Im et al. (1998)
 def g_prime(x):
     x = x - L * np.rint(x / L)
-    
-    if x < 0 and x > -h: 
+    if x < 0:
         return 1 / h
     elif x == 0:
         return 0
-    elif x > 0 and x < h:
-        return - 1 / h
     else:
-        return 0
-
-def grad_g(x, y, z):
-    x = x / L
-    x = x - np.rint(x)
-    x = x * L
+        return - 1 / h
     
-    y = y / L
-    y = y - np.rint(y)
-    y = y * L
-
-    z = z / L
-    z = z - np.rint(z)
-    z = z * L
-    
-    #y = y % L
-    #z = z % L
-    
-    # Partial derivative with respect to x
-    dg_dx = 0
-    if x > 0:
-        dg_dx = -(1 - abs(y) / h) * (1 - abs(z) / h) / h
-    elif x < 0:
-        dg_dx = (1 - abs(y) / h) * (1 - abs(z) / h) / h
-
-    # Partial derivative with respect to y
-    dg_dy = 0
-    if y > 0:
-        dg_dy = -(1 - abs(x) / h) * (1 - abs(z) / h) / h
-    elif y < 0:
-        dg_dy = (1 - abs(x) / h) * (1 - abs(z) / h) / h
-
-    # Partial derivative with respect to z
-    dg_dz = 0
-    if z > 0:
-        dg_dz = -(1 - abs(x) / h) * (1 - abs(y) / h) / h
-    elif z < 0:
-        dg_dz = (1 - abs(x) / h) * (1 - abs(y) / h) / h
-
-    return np.array((dg_dx, dg_dy, dg_dz))
 
 def LJPotential(r, epsilon, sigma):  
         V_mag = 4 * epsilon * ((sigma/r)**12 - (sigma/r)**6)
@@ -413,3 +369,5 @@ def j_vec(j):
 
 def k_vec(k):
     return  np.array([k - 2, k - 1, k, k + 1, k + 2])
+
+

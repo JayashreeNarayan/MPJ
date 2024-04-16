@@ -27,24 +27,21 @@ def VerletSolutePart1(particles, dt=dt):
     return particles
 
 
-def VerletSolutePart2(grid, dt=dt, prev=False):
+def VerletSolutePart2(grid, old_pos, dt=dt, prev=False):
     grid.potential_notelec = 0
     if not_elec:
         #grid.ComputeForceNotEleLC() #TF or LJ
         grid.ComputeForceNotElecBasic()
     
     tot_force = 0
-    for particle in grid.particles:
- 
+    for i,particle in enumerate(grid.particles):
         if elec:
             #particle.ComputeForce(grid, prev=prev)
-            #particle.ComputeForce_CubicSpline(grid, prev=prev)
-            #particle.ComputeForce_ParticlePos(grid, prev=prev)
             particle.ComputeForce_FD(grid, prev=prev)
-
+            
 
         particle.vel = particle.vel + 0.5 * ((particle.force + particle.force_notelec) / particle.mass) * dt
-        tot_force = tot_force + particle.force + particle.force_notelec
+        #tot_force = tot_force + particle.force + particle.force_notelec
     
     #print('tot force = ', tot_force)
     return grid
