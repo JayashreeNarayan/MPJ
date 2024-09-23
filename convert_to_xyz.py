@@ -2,7 +2,7 @@ import csv
 import numpy as np
 
 a0 = 0.529177210903 #Angstrom
-n = 64 
+n =250 # 64
 
 def convert_csv_to_xyz(input_csv_file, output_xyz_file):
     # Dictionary to map charges to element symbols
@@ -13,7 +13,7 @@ def convert_csv_to_xyz(input_csv_file, output_xyz_file):
         with open(output_xyz_file, 'w') as xyz_file:
             num_particles = 0
             for row in csv_reader:
-                charge = int(row['charge'])
+                charge = int(float(row['charge']))
                 element = charge_to_element.get(charge, 'X')  # Default to 'X' if charge is neither 1 nor -1
                 x, y, z = float(row['x']),float(row['y']),float(row['z']) 
                 if num_particles % n == 0:
@@ -24,9 +24,12 @@ def convert_csv_to_xyz(input_csv_file, output_xyz_file):
                 xyz_file.write(line)
                 num_particles += 1
 
-            print(f"Conversion completed. {num_particles / 64} steps written to {output_xyz_file}")
+            print(f"Conversion completed. {num_particles / n} steps written to {output_xyz_file}")
 
 # Example usage:
-input_csv_file = '../data/test_github/solute_N50.csv'
-output_xyz_file = '../data/test_github/data_N50.xyz'
+#path = '../data/dati_parigi/test_gr/50K_steps/dt_10_omega1/'
+path = '../data/paper/diffusion/production/cluster/gamma_1e-3_init_10K/parallel/merged_removing_random/'
+#path = '../data/dati_parigi/gr_paper_sara/equilibration/test_OVRVO/'
+input_csv_file = path + 'merged_solute_N100.csv'
+output_xyz_file = path + 'data_N100.xyz'
 convert_csv_to_xyz(input_csv_file, output_xyz_file)

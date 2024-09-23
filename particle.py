@@ -1,5 +1,5 @@
 import numpy as np
-from input import grid_setting, a0, md_variables
+from input import grid_setting, a0, md_variables, output_settings
 import math
 from indices import dict_indices_CoordTon, dict_indices_nToCoord, GetDictTF
 from scipy.interpolate import CubicSpline, LinearNDInterpolator, interpn, make_interp_spline
@@ -10,13 +10,15 @@ N = grid_setting.N
 N_tot = grid_setting.N_tot
 kBT = md_variables.kBT
 potential_info = md_variables.potential
+restart = output_settings.restart
+input_restart_filename = grid_setting.input_restart_filename
 
 # Particle class
 class Particle:
     def __init__(self, charge, mass, radius, pos):
         self.mass = mass
         self.pos = pos              # position of the particle
-        self.vel = np.array([np.random.normal(loc = 0.0, scale = np.sqrt(kBT / self.mass)) for i in range(3)])                                  # velocity of the particle
+        self.vel = np.zeros(3)                            # velocity of the particle
         self.charge = charge        # charge of the particle
         self.radius = radius        # radius of the particle
         self.neigh = np.zeros(8)    # 8 nearest neighbours of the particle
@@ -31,13 +33,14 @@ class Particle:
             self.dict = GetDictTF()
         
         elif potential_info == 'LJ':
-            self.r_cutoff = 2.5 * self.sigma
-            self.ComputeForceNotElec = self.ComputeLJForce
-            
             #parameters
             self.sigma = 3.00512 * 2 / a0   # given in Angs and converted in atomic units  #Ar = 3.400 / a0
             self.epsilon = 5.48 * 1e-4  #Hartree - corresponds to 0.0104 eV  #Ar = 3.82192993 * 1e-4
 
+            self.r_cutoff = 2.5 * self.sigma
+            self.ComputeForceNotElec = self.ComputeLJForce
+            
+            
     # find 8 nearest neighbours of the particle
     def NearestNeigh(self):
         indices = [math.floor(self.pos[i] / h)  for i in range(3)]
@@ -50,7 +53,7 @@ class Particle:
                      neigh_indices.append(n_pos)
         
         self.neigh = np.array(neigh_indices).astype(int)
-                             
+
 
     # move the particle of a vector delta
     def Move(self, delta):
@@ -72,6 +75,8 @@ class Particle:
             self.force[0] = self.force[0] - phi_v[n] * self.charge * g_prime(diff[0]) * g(diff[1]) * g(diff[2])
             self.force[1] = self.force[1] - phi_v[n] * self.charge * g(diff[0]) * g_prime(diff[1]) * g(diff[2])
             self.force[2] = self.force[2] - phi_v[n] * self.charge * g(diff[0]) * g(diff[1]) * g_prime(diff[2]) 
+
+        print(self.force)
 
     '''
     def ComputeForce_CubicSpline(self, grid, prev):
@@ -176,13 +181,23 @@ class Particle:
         E_y = lambda i_p, j_p, k_p : (phi_v[i_p + ((j_p - 1) % N) * N + k_p * N * N] - phi_v[i_p + ((j_p + 1) % N) * N + k_p * N * N]) / (2 * h)
         E_z = lambda i_p, j_p, k_p : (phi_v[i_p + j_p * N + ((k_p - 1) % N) * N * N] - phi_v[i_p + j_p * N + ((k_p + 1) % N) * N * N]) / (2 * h)
 
+        q_tot = 0
         for n in self.neigh:
             i,j,k = dict_indices_nToCoord[n]
             self.force[0] = self.force[0] + grid.q[n] * E_x(i,j,k) 
             self.force[1] = self.force[1] + grid.q[n] * E_y(i,j,k) 
             self.force[2] = self.force[2] + grid.q[n] * E_z(i,j,k) 
-        
-        print('FORCE DIFF',self.force,'\n') 
+            q_tot = q_tot + grid.q[n]
+
+            '''
+            diff = self.pos - np.array([i,j,k]) * h 
+            q_n = self.charge * g(diff[0]) * g(diff[1]) * g(diff[2]) 
+            self.force[0] = self.force[0] + q_n * E_x(i,j,k) 
+            self.force[1] = self.force[1] + q_n * E_y(i,j,k) 
+            self.force[2] = self.force[2] + q_n * E_z(i,j,k) 
+            '''
+        #print(q_tot)
+        #print('FORCE DIFF',self.force,'\n') 
     
     
     def ComputeLJForcePair(self,particle):  
@@ -190,6 +205,7 @@ class Particle:
         r = BoxScale(r_diff)
         r_mag = BoxScaleDistance(r_diff)
         r_cap = r / r_mag
+        
         if r_mag <= self.r_cutoff: 
             f_mag = 24 * self.epsilon / r_mag * (2 * (self.sigma/r_mag)**12 - (self.sigma/r_mag)**6)
         else:
@@ -245,10 +261,11 @@ class Particle:
         r_cap = r / r_mag
         
         A, C, D, sigma_TF = self.dict[self.charge + particle.charge]
+        f_shift = self.B * A * np.exp(self.B * (sigma_TF - self.r_cutoff)) - 6 * C / self.r_cutoff**7 - 8 * D / self.r_cutoff**9 
 
         if r_mag <= self.r_cutoff: 
         #già incluso with linked cell, prendo solo quelli da calcolare
-            f_mag = self.B * A * np.exp(self.B * (sigma_TF - r_mag)) - 6 * C / r_mag**7 - 8 * D / r_mag**9 
+            f_mag = self.B * A * np.exp(self.B * (sigma_TF - r_mag)) - 6 * C / r_mag**7 - 8 * D / r_mag**9 - f_shift
         else:
         #    print('Hola')
             f_mag = 0
@@ -261,29 +278,36 @@ class Particle:
         r_mag = BoxScaleDistance(r_diff)
 
         A, C, D, sigma_TF = self.dict[self.charge + particle.charge]
+        V_shift = A * np.exp(self.B * (sigma_TF - self.r_cutoff)) - C / self.r_cutoff**6 - D / self.r_cutoff**8
 
         if r_mag <= self.r_cutoff: 
-            V_mag = A * np.exp(self.B * (sigma_TF - r_mag)) - C / r_mag**6 - D / r_mag**8
+            V_mag = A * np.exp(self.B * (sigma_TF - r_mag)) - C / r_mag**6 - D / r_mag**8 #- V_shift
         else:
             V_mag = 0
    
         return V_mag
     
+
     def ComputeTFForcePotentialPair(self,particle):  
         r_diff = self.pos - particle.pos 
         r = BoxScale(r_diff)
         r_mag = BoxScaleDistance(r_diff)
         r_cap = r / r_mag
-
+        
         A, C, D, sigma_TF = self.dict[self.charge + particle.charge]
+        V_shift = A * np.exp(self.B * (sigma_TF - self.r_cutoff)) - C / self.r_cutoff**6 - D / self.r_cutoff**8
+        alpha = A * self.B * np.exp(self.B * (sigma_TF - self.r_cutoff)) - 6 * C / self.r_cutoff**7 - 8 * D / self.r_cutoff**9
+        beta = - V_shift - alpha * self.r_cutoff
 
+        #f_shift = self.B * A * np.exp(self.B * (sigma_TF - self.r_cutoff)) - 6 * C / self.r_cutoff**7 - 8 * D / self.r_cutoff**9 
+        
         if r_mag <= self.r_cutoff: 
-            #già incluso with linked cell, prendo solo quelli da calcolare
-            f_mag = self.B * A * np.exp(self.B * (sigma_TF - r_mag)) - 6 * C / r_mag**7 - 8 * D / r_mag**9 
-            V_mag = A * np.exp(self.B * (sigma_TF - r_mag)) - C / r_mag**6 - D / r_mag**8
+            f_mag = self.B * A * np.exp(self.B * (sigma_TF - r_mag)) - 6 * C / r_mag**7 - 8 * D / r_mag**9 - alpha
+            V_mag = A * np.exp(self.B * (sigma_TF - r_mag)) - C / r_mag**6 - D / r_mag**8 + alpha * r_mag + beta #- V_shift
         else:
             f_mag = 0
-            V_mag = 0
+            V_mag = 0.
+            
         #print(f_mag * r_cap, V_mag)
         return f_mag * r_cap, V_mag
     
@@ -296,6 +320,18 @@ class Particle:
                 continue
             else:
                 force += self.ComputeTFForcePair(particle)
+        #print('FORCE TF',self.force_TF)
+        self.force_notelec = force
+
+    
+    def ComputeLJForce(self, particles):
+        force = np.zeros(3)
+
+        for particle in particles:
+            if(particle == self):
+                continue
+            else:
+                force += self.ComputeLJForcePair(particle)
         #print('FORCE TF',self.force_TF)
         self.force_notelec = force
 
@@ -314,7 +350,6 @@ class Particle:
     def ComputeTFForcePotential(self, particles):
         pot = 0
         force = np.zeros(3)
-
 
         for particle in particles:
             if(particle == self):
@@ -360,6 +395,7 @@ def g_prime(x):
 def LJPotential(r, epsilon, sigma):  
         V_mag = 4 * epsilon * ((sigma/r)**12 - (sigma/r)**6)
         return V_mag
+
 
 def i_vec(i):
     return  np.array([i - 2, i - 1, i, i + 1, i + 2])

@@ -19,12 +19,14 @@ N_p = grid_setting.N_p
 h = grid_setting.h
 L = grid_setting.L
 input_filename = grid_setting.input_filename
+input_restart_filename = grid_setting.input_restart_filename
 dt = md_variables.dt
 potential_info = md_variables.potential
 elec = md_variables.elec
 not_elec = md_variables.not_elec
 T = md_variables.T
 kB = md_variables.kB
+kBT = md_variables.kBT
 
 amu_to_kg = 1.66054 * 1e-27 
 m_e = 9.1093837 * 1e-31 #kg
@@ -34,16 +36,30 @@ offset_update = np.array([[h/2, 0, 0], [h/2, 0, 0], [0, h/2, 0], [0, h/2, 0], [0
 
 class Grid:
     def __init__(self):
-        df = pd.read_csv(input_filename)
         #print(df.head())
         self.N_p = grid_setting.N_p
         self.particles = []
-        for i in range(self.N_p):
-            self.particles.append(Particle(df['charge'][i],           #charge given in electronic charge units
+        
+        if output_settings.restart == False:
+            df = pd.read_csv(input_filename)
+            for i in range(self.N_p):
+                self.particles.append(Particle(df['charge'][i],           #charge given in electronic charge units
                                            df['mass'][i] * conv_mass, #mass given in amu and converted in au
                                            (df['radius'][i] / a0),      #radius given in Angs and converted to au
-                                           (np.array([df['x'][i], df['y'][i], df['z'][i]])) / a0))                                  
-        
+                                           (np.array([df['x'][i], df['y'][i], df['z'][i]])) / a0)) 
+            for j in range(self.N_p):
+                self.particles[j].vel = np.array([np.random.normal(loc = 0.0, scale = np.sqrt(kBT / self.particles[j].mass)) for i in range(3)])                             
+        else:
+            df = pd.read_csv(input_restart_filename)
+            print('Read from file:' + input_restart_filename)
+            for i in range(self.N_p):
+                self.particles.append(Particle(df['charge'][i],           #charge given in electronic charge units
+                                           df['mass'][i] * conv_mass, #mass given in amu and converted in au
+                                           (df['radius'][i] / a0),      #radius given in Angs and converted to au
+                                           (np.array([df['x'][i], df['y'][i], df['z'][i]])) / a0)) 
+            for j in range(self.N_p):
+                self.particles[j].vel = np.array([df['vx'][j], df['vy'][j], df['vz'][j]])
+
         self.q = np.array(np.zeros(N_tot))            # charge vector - q for every grid point
         self.phi = np.array(np.zeros(N_tot))          # electrostatic field updated with MaZe
         self.phi_prev = np.array(np.zeros(N_tot))     # electrostatic field for step t - 1 Verlet
@@ -166,7 +182,7 @@ class Grid:
 
         q_tot = 0
         q_tot_expected = 0
-        
+
         for particle in self.particles:
             q_tot_expected = q_tot_expected + particle.charge
 
@@ -176,22 +192,23 @@ class Grid:
                 #diff = BoxScale(diff)
                 self.q[n] += particle.charge * g(diff[0]) * g(diff[1]) * g(diff[2])
                 #print(self.q[n], g(diff[0]), g(diff[1]), g(diff[2]))
-                q_tot = q_tot + self.q[n]
+            
+        for n in range(N_tot):
+            q_tot = q_tot + self.q[n]
 
         if q_tot + 1e-6 < q_tot_expected:
             print('Error: change initial position, charge is not preserved - q_tot =', q_tot) 
-
+            
 
     def Energy(self, iter, print_energy, prev=False):
-        
         if prev == False:
             phi_v = self.phi
         else:
             phi_v = self.phi_prev
 
         # electrostatic potential
+        potential = 0
         if elec:
-            potential = 0
             pot1 = 0
 
             for p in self.particles:
@@ -202,12 +219,24 @@ class Grid:
                     #potential = potential + p.charge * phi_v[n] * g(diff[0])* g(diff[1])* g(diff[2])
                     pot1 = pot1 + 0.5 * q_n * phi_v[n]
                     potential = potential + 0.5 * self.q[n] * phi_v[n]
-        
+                    
+        '''
+        if not_elec:
+            pe = 0
+            for p1 in range(self.N_p):
+                for p2 in range(p1+1, self.N_p):
+                    pair_potential = self.particles[p1].ComputeTFPotentialPair(self.particles[p2]) 
+                    pe += pair_potential
+                
+            self.potential_notelec = pe
+        '''
+
         # kinetic E
         kinetic = 0
             
         for p in self.particles:
             kinetic = kinetic + 0.5 * p.mass * np.dot(p.vel, p.vel)
+        
         #print('potential = ', potential, ' TF = ', self.potential_notelec)
         if elec and not_elec:
             pot_tot = self.potential_notelec + potential
@@ -216,10 +245,9 @@ class Grid:
         elif not_elec and elec == False:
             pot_tot = self.potential_notelec
 
-
         self.energy = kinetic + pot_tot
         if print_energy:
-            file_output_energy.write(str(iter * dt) + ',' +  str(self.energy) + ',' +  str(kinetic) + ',' + str(pot_tot) + '\n')#+ potential) + '\n')
+            file_output_energy.write(str(iter) + ',' +  str(self.energy) + ',' +  str(kinetic) + ',' + str(potential) + ',' + str(self.potential_notelec) + '\n')#+ potential) + '\n')
 
 
     def Temperature(self, iter, print_temperature):
@@ -227,7 +255,7 @@ class Grid:
         self.temperature = np.sum(mi_vi2) / (3 * N_p * kB)
         
         if print_temperature:
-            file_output_temperature.write(str(iter * dt) + ',' +  str(self.temperature) + '\n')
+            file_output_temperature.write(str(iter) + ',' +  str(self.temperature) + '\n')
 
 
 
@@ -270,5 +298,5 @@ def DetIndices_7entries():
             index[n][0] = n - N * N # k - 1
         else:
             index[n][0] = i + j * N + (N - 1) * N * N
-      
+    index = index.astype(int) 
     return index

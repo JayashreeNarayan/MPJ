@@ -2,40 +2,13 @@ import numpy as np
 import sys
 
 
+N_p_input = int(sys.argv[1]) 
 N_input = int(sys.argv[2]) 
 N_steps_input = int(sys.argv[3]) 
+L_input = float(sys.argv[4]) 
+
 a0 = 0.529177210903 #Angstrom 
-
-###################################################################################
-
-### Grid and box settings ###
-class GridSetting:
-    N = N_input              #number of grid points per size
-    N_tot = N * N * N        #number of grid points
-    L = 13.27 / a0 #13.27 / a0 ###6.64 / a0 Np = 8 # 5.6 * 2 / a0   #box lenght
-    h = L / N                #mesh size
-    input_filename = 'input_files/input_coord2.csv'
-    N_p = int(sys.argv[1]) 
-grid_setting = GridSetting()
-
-###################################################################################
-
-### MD variables ###
-class MDVariables:
-    N_steps = N_steps_input   
-    dt = 1            # timestep for the solute evolution 
-    stride = 1              # saves every stride steps
-    tol = 1e-7
-    omega = 1  #overrelaxation parameter
-    initialization = 'CG'   # Can be 'CG' or 'none' - to do first two steps for Verlet
-    preconditioning = 'Yes' #Yes or No
-    elec = True
-    not_elec = False 
-    potential = 'TF' #TF or LJ
-    T = 1539 # K
-    kB = 3.1668 * 1e-6 #Eh/K
-    kBT = kB * T #Eh
-md_variables = MDVariables()
+t_au = 2.4188843265857 * 1e-2 #fs = 1 a.u. of time 
 
 ###################################################################################
 
@@ -45,9 +18,50 @@ class OutputSettings:
     print_field = False
     print_performance = False
     print_solute = True
-    print_energy = False
-    print_temperature = False
-    print_tot_force = True
-    path = '../data/test_github/'
-
+    print_energy = True
+    print_temperature = True
+    print_tot_force = False
+    print_iters = False
+    path = 'test_init/' 
+    debug = False
+    restart = True
+    generate_restart_file = False
 output_settings = OutputSettings()
+
+###################################################################################
+
+### Grid and box settings ###
+class GridSetting:
+    N = N_input              #number of grid points per size
+    N_tot = N * N * N        #number of grid points
+    L = L_input / a0  #20.9/ a0  #6.64 / a0 Np = 8 # 5.6 * 2 / a0   #box lenght
+    h = L / N                #mesh size
+    path = '../data/paper/diffusion/production/cluster/gamma_1e-3_init_10K/series/run_30/output/'
+    input_restart_filename = path + 'restart_N' + str(N) + '_step9999.csv'
+    input_filename = 'input_files_new/input_coord' + str(N_p_input) + '.csv' 
+    N_p = N_p_input
+grid_setting = GridSetting()
+
+###################################################################################
+
+### MD variables ###
+class MDVariables:
+    N_steps = N_steps_input 
+    init_steps = 0
+    dt = 0.25 / t_au        # timestep for the solute evolution given in fs and converted in a.u.
+    stride = 1              # saves every stride steps
+    tol = 1e-7
+    omega = 1 #overrelaxation parameter
+    initialization = 'CG'   # Can be 'CG' or 'none' - to do first two steps for Verlet
+    preconditioning = 'Yes' #Yes or No
+    elec = True
+    not_elec = True
+    potential = 'TF' #TF or LJ
+    thermostat = False
+    integrator = 'OVRVO'
+    gamma = 1e-3#1e-2 # OVRVO parameter
+    T = 1550 # K
+    kB = 3.1668 * 1e-6 #Eh/K
+    kBT = kB * T #Eh
+md_variables = MDVariables()
+
