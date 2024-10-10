@@ -1,8 +1,10 @@
-from input import grid_setting, md_variables
+from input import grid_setting, md_variables, output_settings
 import numpy as np
 import time 
+from math import exp, tanh
+from concurrent.futures import ThreadPoolExecutor
+debug = output_settings.debug
 #from scipy.sparse import linalg
-
 
 h = grid_setting.h
 L = grid_setting.L
@@ -17,43 +19,140 @@ not_elec = md_variables.not_elec
 N_p = grid_setting.N_p
 T = md_variables.T
 kB = md_variables.kB
+kBT = md_variables.kBT
+gamma_inpt = md_variables.gamma
 
-def VerletSolutePart1(particles, dt=dt):
+
+if output_settings.print_iters:
+    from output_md import file_output_iters
+
+def VerletSolutePart1(particles, dt=dt, thermostat=False):
+    if thermostat == True:
+        mi_vi2 = [p.mass * np.dot(p.vel, p.vel) for p in particles]
+        T_exp = np.sum(mi_vi2) / (3 * N_p * kB)
+        #print('T measured =', T_exp)
+        lambda_scaling = np.sqrt(T / T_exp)
+
     for particle in particles:
-        #particle.vel = particle.vel * lambda_scaling
+        if thermostat == True:
+            particle.vel = particle.vel * lambda_scaling
         particle.vel = particle.vel + 0.5 * ((particle.force + particle.force_notelec) / particle.mass) * dt
         particle.pos = particle.pos + particle.vel * dt 
         particle.pos = particle.pos - L * np.floor(particle.pos / L)   
     return particles
 
 
-def VerletSolutePart2(grid, old_pos, dt=dt, prev=False):
+def VerletSolutePart2(grid, dt=dt, prev=False):
     grid.potential_notelec = 0
     if not_elec:
         #grid.ComputeForceNotEleLC() #TF or LJ
         grid.ComputeForceNotElecBasic()
     
-    tot_force = 0
-    for i,particle in enumerate(grid.particles):
+    #tot_force = 0
+    for particle in grid.particles:
         if elec:
             #particle.ComputeForce(grid, prev=prev)
+            #particle.ComputeForce(grid, prev=prev)
             particle.ComputeForce_FD(grid, prev=prev)
-            
-
         particle.vel = particle.vel + 0.5 * ((particle.force + particle.force_notelec) / particle.mass) * dt
         #tot_force = tot_force + particle.force + particle.force_notelec
-    
+        # berendsen
+
     #print('tot force = ', tot_force)
     return grid
 
+### OVRVO ###
+     
+### Solves the equations for the O-block ###
+def O_block(v, m, gamma):
+    c1 = exp(-gamma*dt)
+    rnd = np.random.multivariate_normal(mean = (0.0, 0.0, 0.0), cov = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    v_t_dt = np.sqrt(c1) * v + np.sqrt((1 - c1) * kBT / m) * rnd
+    return v_t_dt
 
+### Solves the equations for the V-block ###
+def V_block(v, F, m, gamma):
+    if gamma == 0:
+        c2 = 1
+    else:
+        c2 = np.sqrt(2 /(gamma * dt) * tanh(0.5 * gamma * dt)) 
+    
+    v_t_dt = v + 0.5 * c2 * dt * F / m #F is the force
+    return v_t_dt
+
+### Solves the equations for the R-block ###
+def R_block(x,v, gamma):
+    #print(gamma)
+    if gamma == 0:
+        c2 = 1
+    else:
+        c2 = np.sqrt(2 /(gamma * dt) * tanh(0.5 * gamma * dt)) 
+
+    x_t_dt = x + c2 * dt * v
+    x_t_dt = x_t_dt - L * np.floor(x_t_dt / L)   
+    return x_t_dt
+
+def OVRVO_part1(particles, thermostat=False):
+    if thermostat:
+        gamma_sim = gamma_inpt
+    else:
+        gamma_sim = 0
+        
+    for p in particles:
+        p.vel = O_block(p.vel, p.mass, gamma_sim)
+        p.vel = V_block(p.vel,p.force + p.force_notelec, p.mass, gamma_sim)
+        p.pos = R_block(p.pos,p.vel, gamma_sim)
+    
+    return particles
+
+def OVRVO_part2(grid, prev=False, thermostat=False):
+    if thermostat:
+        gamma_sim = gamma_inpt
+    else:
+        gamma_sim = 0
+        
+    if not_elec:
+        #grid.ComputeForceNotEleLC() #TF or LJ
+        grid.ComputeForceNotElecBasic()
+            
+    for p in grid.particles:
+        if elec:
+            p.ComputeForce_FD(grid, prev=prev)
+        p.vel = V_block(p.vel, p.force + p.force_notelec, p.mass, gamma_sim)
+        p.vel = O_block(p.vel, p.mass, gamma_sim)
+    
+    return grid.particles
 
 def MatrixVectorProduct_7entries_1(v, index):
     M = np.array([1,1,1,-6,1,1,1])    
     v_matrix = v[index]
+
     result = np.dot(v_matrix,M)
 
     return result
+
+#PARALLEL
+'''
+def MatrixVectorProduct_7entries_1_row(v, index_row, M):
+    # Extract the relevant elements from v for the given row
+    v_row = v[index_row]
+    # Compute the dot product for the row
+    result = np.dot(v_row, M)
+    return result
+
+def MatrixVectorProduct_7entries_1_parallel(v, index):
+    M = np.array([1, 1, 1, -6, 1, 1, 1])  
+    
+    # Use ThreadPoolExecutor for parallelization
+    with ThreadPoolExecutor() as executor:
+        # Submit tasks for each row
+        futures = [executor.submit(MatrixVectorProduct_7entries_1_row, v, index_row, M) for index_row in index]
+        
+        # Collect results in the order they were submitted
+        result = np.array([future.result() for future in futures])
+
+    return result
+'''
 
 #apply Verlet algorithm to compute the updated value of the field phi, with LCG + SHAKE
 def VerletPoisson(grid,y):
@@ -67,12 +166,24 @@ def VerletPoisson(grid,y):
     sigma_p = omega * (grid.q / h + matrixmult / (4 * np.pi)) # M @ grid.phi for row-by-column product
 
     # apply LCG
-    y, iter_conv = PrecondLinearConjGradPoisson(sigma_p, grid.indices7, x0=y) #riduce di 1/3 il numero di iterazioni necessarie a convergere
+    y_new, iter_conv = PrecondLinearConjGradPoisson(sigma_p, grid.indices7, x0=y) #riduce di 1/3 il numero di iterazioni necessarie a convergere
     
     # scale the field with the constrained 'force' term
-    grid.phi = grid.phi - y / omega
+    grid.phi = grid.phi - y_new / omega * (4 * np.pi)
+
+    if debug:
+        matrixmult1 = MatrixVectorProduct_7entries_1(y_new, grid.indices7)
+        print('LCG precision     :',np.max(np.abs(matrixmult1 - sigma_p)))
+        
+        matrixmult1_old = MatrixVectorProduct_7entries_1(y_new / omega, grid.indices7)
+        print('LCG precision orig:',np.max(np.abs(matrixmult1_old - sigma_p / omega)))
     
-    return grid, y, iter_conv
+        matrixmult2 = MatrixVectorProduct_7entries_1(grid.phi, grid.indices7)
+        sigma_p1 = grid.q / h + matrixmult2 / (4 * np.pi) # M @ grid.phi for row-by-column product
+    
+        print('max of constraint: ', np.max(np.abs(sigma_p1)),'\n')
+    
+    return grid, y_new, iter_conv
 
 
 def PrecondLinearConjGradPoisson(b, index, x0 = np.zeros(N_tot), tol=tol):
@@ -114,3 +225,58 @@ def MatrixVectorProduct_7entries(M, v, index):
 
     return result
 
+
+#apply Verlet algorithm to compute the updated value of the field phi, with LCG + SHAKE
+def VerletPoissonBerendsen(grid,eta):
+    omega = md_variables.omega
+    # compute provisional update for the field phi
+    tmp = np.copy(grid.phi)
+    grid.phi = 2 * grid.phi - grid.phi_prev
+    grid.phi_prev = np.copy(tmp)
+
+    # apply SHAKE
+    const_inv = 1 / 42
+    stop_iteration =  False
+    iter = 0
+    
+    #M_eta = MatrixVectorProduct_7entries_1(eta, grid.indices7)
+    #grid.phi = grid.phi + M_eta
+
+    # compute the constraint with the provisional value of the field phi
+    M_phi = MatrixVectorProduct_7entries_1(grid.phi, grid.indices7)
+    sigma_p = grid.q / h + M_phi / (4 * np.pi) # M @ grid.phi for row-by-column product
+
+    while(stop_iteration == False):	
+        iter = iter + 1
+        delta_eta =  -(4 * np.pi)**2 * const_inv * sigma_p * omega
+        #delta_eta =  -(4 * np.pi) * const_inv * sigma_p * omega
+        eta = eta + delta_eta
+        
+        M_delta_eta = MatrixVectorProduct_7entries_1(delta_eta, grid.indices7)
+        grid.phi = grid.phi + M_delta_eta / (4 * np.pi) 
+        #grid.phi = grid.phi + M_delta_eta
+        
+        M_phi = MatrixVectorProduct_7entries_1(grid.phi, grid.indices7)
+        sigma_p = grid.q / h + M_phi / (4 * np.pi) # M @ grid.phi for row-by-column product
+        #print(iter, np.max(np.abs(sigma_p)))
+                
+        if output_settings.print_iters:
+            file_output_iters.write(str(iter) + ',' + str(np.max(np.abs(sigma_p))) + ',' + str(np.linalg.norm(np.abs(sigma_p))) + "\n") #+ ',' + str(end_Matrix - start_Matrix) + "\n")
+             
+        #if np.linalg.norm(sigma_p) < tol: # MAX OR NORM?
+        if np.max(np.abs(sigma_p)) < tol :
+            stop_iteration = True
+
+        #if iter % 1000 == 0:
+        #    omega = omega - 0.1
+            
+    
+    print('iter=',iter)
+
+    if debug:
+        matrixmult2 = MatrixVectorProduct_7entries_1(grid.phi, grid.indices7)
+        sigma_p1 = grid.q / h + matrixmult2 / (4 * np.pi) # M @ grid.phi for row-by-column product
+    
+        print('max of constraint: ', np.max(np.abs(sigma_p1)))
+        print('norm of constraint: ', np.linalg.norm(sigma_p),'\n')
+    return grid, eta, iter

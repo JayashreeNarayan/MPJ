@@ -1,12 +1,20 @@
-import numpy as np
 import sys
+
+# Check if the correct number of arguments is provided
+if len(sys.argv) != 5:
+    print("\nUsage: python your_script.py <N_p> <N> <N_steps> <L>")
+    print("Where:")
+    print("<N_p>        : Number of particles (integer)")
+    print("<N>          : Number of grid points per side (integer)")
+    print("<N_steps>    : Number of steps to perform (integer)")
+    print("<L>          : Length of the side of the box (float, Angstrom)\n")
+    sys.exit(1)  # Exit the script with an error code
 
 
 N_p_input = int(sys.argv[1]) 
 N_input = int(sys.argv[2]) 
 N_steps_input = int(sys.argv[3]) 
 L_input = float(sys.argv[4]) 
-
 a0 = 0.529177210903 #Angstrom 
 t_au = 2.4188843265857 * 1e-2 #fs = 1 a.u. of time 
 
@@ -22,7 +30,7 @@ class OutputSettings:
     print_temperature = True
     print_tot_force = False
     print_iters = False
-    path = 'test_init/' 
+    path = '../data/paper/dt_study/CI/complete/third_sim/'
     debug = False
     restart = True
     generate_restart_file = False
@@ -48,6 +56,7 @@ grid_setting = GridSetting()
 class MDVariables:
     N_steps = N_steps_input 
     init_steps = 0
+    thermostat = False
     dt = 0.25 / t_au        # timestep for the solute evolution given in fs and converted in a.u.
     stride = 1              # saves every stride steps
     tol = 1e-7
@@ -57,9 +66,8 @@ class MDVariables:
     elec = True
     not_elec = True
     potential = 'TF' #TF or LJ
-    thermostat = False
     integrator = 'OVRVO'
-    gamma = 1e-3#1e-2 # OVRVO parameter
+    gamma = 1e-3 # OVRVO parameter
     T = 1550 # K
     kB = 3.1668 * 1e-6 #Eh/K
     kBT = kB * T #Eh

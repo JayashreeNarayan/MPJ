@@ -135,12 +135,12 @@ k = int(grid.particles[0].pos[2] / h)
 end_initialization = time.time()
 print("\nInitialization time: {:.2f} s \n".format(end_initialization - start_initialization))
 
-if output_settings.restart and thermostat == False:
+if output_settings.restart == True and thermostat == False:
     init_steps = 0
-elif thermostat:
+else:
     init_steps = md_variables.init_steps
     
-print('Number of initialization steps:', init_steps)
+print('Number of initialization steps:', init_steps,'\n')
 
 y = np.zeros(N_tot) 
 
@@ -197,7 +197,7 @@ for i in tqdm(range(N_steps)):
     
             
     if i % stride == 0 and i >= init_steps:
-        if counter == 0:
+        if counter == 0 and thermostat == True:
             print('End of thermostatting')
             thermostat = False
             counter = counter + 1
