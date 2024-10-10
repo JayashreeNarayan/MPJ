@@ -1,14 +1,14 @@
 import numpy as np
-filename = 'input_coord64.csv'
+filename = 'input_files/input_coord1000.csv'
 
 # Define the dimensions of the box
-L = 13.27#6.64#13.27#5.6 * 2
+L = 46.04#19.92#21.02#16.72#6.64#13.27#5.6 * 2
 
 # Number of particles
-num_particles = 64
+num_particles = 1000
 
 # Calculate the number of particles per dimension
-num_per_dim = 4
+num_per_dim = 10
 
 # Calculate the spacing between particles
 spacing = L / num_per_dim

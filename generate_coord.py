@@ -1,11 +1,11 @@
 import numpy as np
-filename = 'input_coord250.csv'
+filename = 'input_coord216.csv'
 
 # Define the dimensions of the box
-L = 20.9#6.64#13.27#5.6 * 2
+L = 21.08#20.9#13.27#5.6 * 2
 
 # Calculate the number of particles per dimension
-num_per_dim = 5
+num_per_dim = 6
 
 # Calculate the spacing between particles
 spacing = L / (num_per_dim)
