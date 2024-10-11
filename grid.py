@@ -247,7 +247,8 @@ class Grid:
 
         self.energy = kinetic + pot_tot
         if print_energy:
-            file_output_energy.write(str(iter) + ',' +  str(self.energy) + ',' +  str(kinetic) + ',' + str(potential) + ',' + str(self.potential_notelec) + '\n')#+ potential) + '\n')
+            #file_output_energy.write(str(iter) + ',' +  str(self.energy) + ',' +  str(kinetic) + ',' + str(potential) + ',' + str(self.potential_notelec) + '\n')#+ potential) + '\n')
+            file_output_energy.write(str(iter) + ',' +  str(kinetic) + ',' + str(self.potential_notelec) + '\n')#+ potential) + '\n')
 
 
     def Temperature(self, iter, print_temperature):
