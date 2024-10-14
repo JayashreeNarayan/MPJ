@@ -30,9 +30,9 @@ class OutputSettings:
     print_temperature = True
     print_tot_force = False
     print_iters = False
-    path = '../data/paper/dt_study/CI/complete/third_sim/'
+    path = 'Outputs/'
     debug = False
-    restart = True
+    restart = False
     generate_restart_file = False
 output_settings = OutputSettings()
 

@@ -25,7 +25,7 @@ if output_settings.print_solute:
     from output_md import file_output_solute
 
 if output_settings.print_energy:
-    from output_md import file_output_energy
+    from output_md import file_output_energy 
 
 if output_settings.print_temperature:
     from output_md import file_output_temperature
