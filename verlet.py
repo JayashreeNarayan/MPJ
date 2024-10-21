@@ -191,7 +191,7 @@ def PrecondLinearConjGradPoisson(b, index, x0 = np.zeros(N_tot), tol=tol):
     x = x0
     r = MatrixVectorProduct_7entries_1(x, index) - b
     
-    v = P_inv * r 
+    v = P_inv * r  # same as y in book
     p = -v
     
     r_new = np.array(np.ones(N_tot))
