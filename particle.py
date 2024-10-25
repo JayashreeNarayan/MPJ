@@ -15,10 +15,10 @@ input_restart_filename = grid_setting.input_restart_filename
 
 # Particle class
 class Particle:
-    def __init__(self, charge, mass, radius, pos):
-        self.mass = mass
+    def __init__(self, charge, mass, radius, pos): # the particles can be anywhere in the grid, its molten salt - grid points is not the same as particle spots
+        self.mass = mass            # mass of particle 
         self.pos = pos              # position of the particle
-        self.vel = np.zeros(3)                            # velocity of the particle
+        self.vel = np.zeros(3)      # velocity of the particle
         self.charge = charge        # charge of the particle
         self.radius = radius        # radius of the particle
         self.neigh = np.zeros(8)    # 8 nearest neighbours of the particle
@@ -43,7 +43,7 @@ class Particle:
             
     # find 8 nearest neighbours of the particle
     def NearestNeigh(self):
-        indices = [math.floor(self.pos[i] / h)  for i in range(3)]
+        indices = [math.floor(self.pos[i] / h)  for i in range(3)] # nearest indices from the particle's position -> i.e those that charge will be spread to
         neigh_indices = []        
         
         for i in range(indices[0], indices[0] + 2):
