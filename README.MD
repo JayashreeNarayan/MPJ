@@ -1,0 +1,2 @@
+- get_L_N.py tells you what you can send as inputs
+- main_maze_md.py is the main file to run with inputs according to those templates in the above file

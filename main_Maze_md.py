@@ -10,7 +10,6 @@ import time
 from tqdm import tqdm
 from restart import generate_restart
 
-
 begin_time = time.time()
 start_initialization = time.time()
 
