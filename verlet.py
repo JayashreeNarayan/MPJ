@@ -123,7 +123,7 @@ def OVRVO_part2(grid, prev=False, thermostat=False):
     
     return grid.particles
 
-@profile
+#@profile
 def MatrixVectorProduct_7entries_1(v, index):
     M = np.array([1,1,1,-6,1,1,1])    
     v_matrix = v[index]
