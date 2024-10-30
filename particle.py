@@ -371,7 +371,7 @@ def BoxScale(diff):
     diff = diff - L * np.rint(diff / L)
     return diff
 
-# weight function as defined in the paper Im et al. (1998)
+# weight function as defined in the paper Im et al. (1998) - eqn 24
 def g(x):
     x = x - L * np.rint(x / L)
     x = np.abs(x)
@@ -381,7 +381,7 @@ def g(x):
     else:
         return 0
 
-# derivative of the weight function as defined in the paper Im et al. (1998)
+# derivative of the weight function as defined in the paper Im et al. (1998) - eqn 27
 def g_prime(x):
     x = x - L * np.rint(x / L)
     if x < 0:
@@ -396,7 +396,7 @@ def LJPotential(r, epsilon, sigma):
         V_mag = 4 * epsilon * ((sigma/r)**12 - (sigma/r)**6)
         return V_mag
 
-
+# all possible neighbouring grid points
 def i_vec(i):
     return  np.array([i - 2, i - 1, i, i + 1, i + 2])
 
