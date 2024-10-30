@@ -126,7 +126,7 @@ class Grid:
         self.potential_notelec = pe
     
 
-    def ComputeForcesTFBasic(self):
+    def ComputeForcesTFBasic(self): # 
         for p in self.particles:
             p.force_notelec = np.zeros(3)
         pe = 0

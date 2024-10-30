@@ -56,7 +56,7 @@ print('\nSimulation with N =', N, 'with N_steps =', N_steps, 'and tol =', md_var
 #for i, particle in enumerate(grid.particles):
 #    print('Position particle', i + 1, '=', particle.pos)
 #    print('Velocity particle', i + 1, '=', particle.vel)
-print('\nInitialization:',initialization, ' and preconditioning:', preconditioning)
+print('\nInitialization is done with CG and preconditioning:', preconditioning)
 print('\nParameters:\nh =', h, "\ndt =", dt, "\nstride =", stride, '\nL =', L, '\nomega =', omega, '\ngamma =', md_variables.gamma)
 print('\nPotential:', md_variables.potential)
 print('\nElec:', elec, '\tNotElec: ', not_elec,'\n')

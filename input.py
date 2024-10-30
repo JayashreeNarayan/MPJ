@@ -10,11 +10,6 @@ if len(sys.argv) != 5:
     print("<L>          : Length of the side of the box (float, Angstrom)\n")
     sys.exit(1)  # Exit the script with an error code
 
-
-N_p_input = int(sys.argv[1]) 
-N_input = int(sys.argv[2]) 
-N_steps_input = int(sys.argv[3]) 
-L_input = float(sys.argv[4]) 
 a0 = 0.529177210903 #Angstrom 
 t_au = 2.4188843265857 * 1e-2 #fs = 1 a.u. of time 
 
@@ -40,28 +35,28 @@ output_settings = OutputSettings()
 
 ### Grid and box settings ###
 class GridSetting:
-    N = N_input              #number of grid points per size
+    N = int(sys.argv[2])              #number of grid points per size
     N_tot = N * N * N        #number of grid points
-    L = L_input / a0  #20.9/ a0  #6.64 / a0 Np = 8 # 5.6 * 2 / a0   #box lenght
+    L = float(sys.argv[4])  / a0  #20.9/ a0  #6.64 / a0 Np = 8 # 5.6 * 2 / a0   #box lenght
     h = L / N                #mesh size
     path = '../data/paper/diffusion/production/cluster/gamma_1e-3_init_10K/series/run_30/output/'
     input_restart_filename = path + 'restart_N' + str(N) + '_step9999.csv'
-    input_filename = 'input_files_new/input_coord' + str(N_p_input) + '.csv' 
-    N_p = N_p_input
+    input_filename = 'input_files_new/input_coord' + str(int(sys.argv[1])) + '.csv' 
+    N_p = int(sys.argv[1])
 grid_setting = GridSetting()
 
 ###################################################################################
 
 ### MD variables ###
 class MDVariables:
-    N_steps = N_steps_input 
+    N_steps = int(sys.argv[3])  
     init_steps = 0
     thermostat = False
     dt = 0.25 / t_au        # timestep for the solute evolution given in fs and converted in a.u.
     stride = 1              # saves every stride steps
     tol = 1e-7
-    omega = 1 #overrelaxation parameter
-    initialization = 'CG'   # Can be 'CG' or 'none' - to do first two steps for Verlet
+    omega = 1 #overrelaxation parameter # REMOVE
+    initialization = 'CG'   # always CG
     preconditioning = 'Yes' #Yes or No
     elec = True
     not_elec = True

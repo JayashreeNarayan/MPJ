@@ -7,7 +7,7 @@ a0 = 0.529177210903 #Angstrom
 
 
 # translate index n = i + j * N + k * N * N  to a set of indices (i,j,k)
-def nToGridCoord(n, N):
+def nToGridCoord(n, N): # COULD BE INVERTED FROM I,J,K TO n - COULD BE OPT
     i = n % N
     j = ((n - i) / N) % N
     k = ((n - i) / N - j) / N
@@ -23,7 +23,7 @@ def nToGridCoord(n, N):
 dict_indices_nToCoord = { n : nToGridCoord(n, N) for n in range(N_tot)} 
 dict_indices_CoordTon = { tuple(nToGridCoord(n, N)): n  for n in range(N_tot)} 
 
-def GetDictTF():
+def GetDictTF(): # get dictionary of TF params
     charge_totNaNa = 2
     charge_totNaCl = 0
     charge_totClCl = -2

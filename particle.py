@@ -17,20 +17,20 @@ input_restart_filename = grid_setting.input_restart_filename
 class Particle:
     def __init__(self, charge, mass, radius, pos): # the particles can be anywhere in the grid, its molten salt - grid points is not the same as particle spots
         self.mass = mass            # mass of particle 
-        self.pos = pos              # position of the particle
-        self.vel = np.zeros(3)      # velocity of the particle
+        self.pos = pos              # position of the particle in an array (3D)
+        self.vel = np.zeros(3)      # velocity of the particle in an array (3D)
         self.charge = charge        # charge of the particle
         self.radius = radius        # radius of the particle
         self.neigh = np.zeros(8)    # 8 nearest neighbours of the particle
-        self.force = np.zeros(3)    # force acting on the particle
+        self.force = np.zeros(3)    # force acting on the particle, electrostatic 
         self.force_notelec = np.zeros(3) # TF or LJ
 
         if potential_info == 'TF':
-            self.r_cutoff = 0.5 * L
+            self.r_cutoff = 0.5 * L # limit to where the force acts
             self.ComputeForceNotElec = self.ComputeTFForce
             #parameters
-            self.B = 3.1546 * a0
-            self.dict = GetDictTF()
+            self.B = 3.1546 * a0 # Mouhat 2013 
+            self.dict = GetDictTF() # all the TF parameters
         
         elif potential_info == 'LJ':
             #parameters
@@ -60,10 +60,10 @@ class Particle:
         self.pos = self.pos + delta
         
     # compute the force acting on the particle
-    def ComputeForce(self, grid, prev):
+    def ComputeForce(self, grid, prev): #IGNORE
         self.force = np.zeros(3)
  
-        if prev == True:
+        if prev == True: # this occurs only for the first step in verlet
             phi_v = np.copy(grid.phi_prev)
         else:
             phi_v = np.copy(grid.phi)
@@ -72,7 +72,7 @@ class Particle:
         for n in self.neigh:
             i,j,k = dict_indices_nToCoord[n]
             diff = self.pos - np.array([i,j,k]) * h #r_alpha - r_i
-            self.force[0] = self.force[0] - phi_v[n] * self.charge * g_prime(diff[0]) * g(diff[1]) * g(diff[2])
+            self.force[0] = self.force[0] - phi_v[n] * self.charge * g_prime(diff[0]) * g(diff[1]) * g(diff[2]) 
             self.force[1] = self.force[1] - phi_v[n] * self.charge * g(diff[0]) * g_prime(diff[1]) * g(diff[2])
             self.force[2] = self.force[2] - phi_v[n] * self.charge * g(diff[0]) * g(diff[1]) * g_prime(diff[2]) 
 
@@ -169,7 +169,7 @@ class Particle:
         #print('FORCE SPLINE',self.force,'\n') 
     '''
 
-    def ComputeForce_FD(self, grid, prev):
+    def ComputeForce_FD(self, grid, prev): # defn of the force from notes poisson, computer force on the particle
         self.force = np.zeros(3)
        
         if prev == True:
@@ -184,7 +184,7 @@ class Particle:
         q_tot = 0
         for n in self.neigh:
             i,j,k = dict_indices_nToCoord[n]
-            self.force[0] = self.force[0] + grid.q[n] * E_x(i,j,k) 
+            self.force[0] = self.force[0] + grid.q[n] * E_x(i,j,k) # cumulative sum
             self.force[1] = self.force[1] + grid.q[n] * E_y(i,j,k) 
             self.force[2] = self.force[2] + grid.q[n] * E_z(i,j,k) 
             q_tot = q_tot + grid.q[n]
@@ -200,7 +200,7 @@ class Particle:
         #print('FORCE DIFF',self.force,'\n') 
     
     
-    def ComputeLJForcePair(self,particle):  
+    def ComputeLJForcePair(self,particle):  # computes LJ force for couple of particles (self particle and a particle given in input
         r_diff = self.pos - particle.pos 
         r = BoxScale(r_diff)
         r_mag = BoxScaleDistance(r_diff)
@@ -213,7 +213,7 @@ class Particle:
    
         return f_mag * r_cap
     
-    def ComputeLJPotential(self,particle):  
+    def ComputeLJPotential(self,particle):  # potential between particles
         r_diff = self.pos - particle.pos 
         r_mag = BoxScaleDistance(r_diff)
         c_shift = -LJPotential(self.r_cutoff_LJ, self.epsilon, self.sigma)
@@ -225,7 +225,7 @@ class Particle:
    
         return V_mag
 
-    def ComputeLJForcePotentialPair(self, particle):
+    def ComputeLJForcePotentialPair(self, particle): # potential and force in the same function, between 2 particles
         r_diff = self.pos - particle.pos 
         r = BoxScale(r_diff)
         r_mag = BoxScaleDistance(r_diff)
@@ -242,7 +242,7 @@ class Particle:
         return f_mag * r_cap, V_mag
     
     
-    def ComputeLJForcePotential(self, particles):
+    def ComputeLJForcePotential(self, particles): # total force on particle self.
         self.force_potential = np.zeros(3)
 
         for particle in particles:
@@ -253,14 +253,14 @@ class Particle:
 
         self.force_notelec = force
     
-    
+    '''
     def ComputeTFForcePair(self,particle):  
         r_diff = self.pos - particle.pos 
         r = BoxScale(r_diff)
         r_mag = BoxScaleDistance(r_diff)
         r_cap = r / r_mag
         
-        A, C, D, sigma_TF = self.dict[self.charge + particle.charge]
+        A, C, D, sigma_TF = self.dict[self.charge + particle.charge] # takes the charge value from the dictionary and unpacks
         f_shift = self.B * A * np.exp(self.B * (sigma_TF - self.r_cutoff)) - 6 * C / self.r_cutoff**7 - 8 * D / self.r_cutoff**9 
 
         if r_mag <= self.r_cutoff: 
@@ -286,7 +286,7 @@ class Particle:
             V_mag = 0
    
         return V_mag
-    
+    '''
 
     def ComputeTFForcePotentialPair(self,particle):  
         r_diff = self.pos - particle.pos 
@@ -312,7 +312,7 @@ class Particle:
         return f_mag * r_cap, V_mag
     
 
-    def ComputeTFForce(self, particles):
+    def ComputeTFForce(self, particles): # total force acting on particle self
         force = np.zeros(3)
 
         for particle in particles:
@@ -361,7 +361,7 @@ class Particle:
         return force, pot
 
 # distance with periodic boundary conditions
-def BoxScaleDistance(diff):
+def BoxScaleDistance(diff): # 
     diff = diff - L * np.rint(diff / L)
     distance = np.sqrt(np.dot(diff, diff))
     return distance
