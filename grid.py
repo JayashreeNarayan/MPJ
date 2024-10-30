@@ -38,9 +38,9 @@ class Grid:
     def __init__(self):
         #print(df.head())
         self.N_p = grid_setting.N_p
-        self.particles = []
+        self.particles = [] # list of class instances of class particle
         
-        if output_settings.restart == False:
+        if output_settings.restart == False: 
             df = pd.read_csv(input_filename)
             for i in range(self.N_p):
                 self.particles.append(Particle(df['charge'][i],           #charge given in electronic charge units
@@ -48,7 +48,7 @@ class Grid:
                                            (df['radius'][i] / a0),      #radius given in Angs and converted to au
                                            (np.array([df['x'][i], df['y'][i], df['z'][i]])) / a0)) 
             for j in range(self.N_p):
-                self.particles[j].vel = np.array([np.random.normal(loc = 0.0, scale = np.sqrt(kBT / self.particles[j].mass)) for i in range(3)])                             
+                self.particles[j].vel = np.array([np.random.normal(loc = 0.0, scale = np.sqrt(kBT / self.particles[j].mass)) for i in range(3)]) # creating a velocity variable in each of the particle classes instances                      
         else:
             df = pd.read_csv(input_restart_filename)
             print('Read from file:' + input_restart_filename)
