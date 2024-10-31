@@ -324,7 +324,7 @@ class Particle:
         self.force_notelec = force
 
     
-    def ComputeLJForce(self, particles):
+    def ComputeLJForce(self, particles): 
         force = np.zeros(3)
 
         for particle in particles:
@@ -361,13 +361,12 @@ class Particle:
         return force, pot
 
 # distance with periodic boundary conditions
-def BoxScaleDistance(diff): # 
+def BoxScaleDistance(diff): # returns a number - smallest distance between 2 neightbouring particles - to enforce PBC
     diff = diff - L * np.rint(diff / L)
     distance = np.sqrt(np.dot(diff, diff))
     return distance
 
-
-def BoxScale(diff):
+def BoxScale(diff): # returns a vector - smallest distance between 2 neightbouring particles - to enforce PBC
     diff = diff - L * np.rint(diff / L)
     return diff
 
@@ -391,7 +390,6 @@ def g_prime(x):
     else:
         return - 1 / h
     
-
 def LJPotential(r, epsilon, sigma):  
         V_mag = 4 * epsilon * ((sigma/r)**12 - (sigma/r)**6)
         return V_mag

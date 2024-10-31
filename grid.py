@@ -40,14 +40,14 @@ class Grid:
         self.N_p = grid_setting.N_p
         self.particles = [] # list of class instances of class particle
         
-        if output_settings.restart == False: 
-            df = pd.read_csv(input_filename)
+        if output_settings.restart == False: # if False then it starts from a good initial config (BCC lattice) - i.e from an input file.
+            df = pd.read_csv(input_filename) # from file
             for i in range(self.N_p):
                 self.particles.append(Particle(df['charge'][i],           #charge given in electronic charge units
                                            df['mass'][i] * conv_mass, #mass given in amu and converted in au
                                            (df['radius'][i] / a0),      #radius given in Angs and converted to au
                                            (np.array([df['x'][i], df['y'][i], df['z'][i]])) / a0)) 
-            for j in range(self.N_p):
+            for j in range(self.N_p): # not from file - generating on the go
                 self.particles[j].vel = np.array([np.random.normal(loc = 0.0, scale = np.sqrt(kBT / self.particles[j].mass)) for i in range(3)]) # creating a velocity variable in each of the particle classes instances                      
         else:
             df = pd.read_csv(input_restart_filename)
@@ -76,7 +76,7 @@ class Grid:
             self.ComputeForceNotElecLC = self.ComputeForcesLJLinkedcell
             self.ComputeForceNotElecBasic = self.ComputeForcesLJBasic
       
-    def LinkedCellInit(self,cutoff):
+    def LinkedCellInit(self,cutoff): # review together, not working rn - list to make neighbours and implement TF properly 
         self.linked_cell = LinkedCell(cutoff, L, self.N_p)
         self.linked_cell.update_lists(self.particles)
     
@@ -275,10 +275,10 @@ def DetIndices_7entries():
         else:
             index[n][4] = j * N + k * N * N # i + 1 
 
-        if j != N - 1:
-            index[n][5] = n + N # j + 1
+        if j != N - 1: 
+            index[n][5] = n + N # j + 1, normal
         else:
-            index[n][5] = i + k * N * N
+            index[n][5] = i + k * N * N # wrapping
   
         if k != N - 1:
             index[n][6] = n + N * N
@@ -286,9 +286,9 @@ def DetIndices_7entries():
             index[n][6] = i + j * N
 
         if i != 0: 
-            index[n][2] = n - 1
+            index[n][2] = n - 1 # this is the normal case - if i!=0
         else:
-            index[n][2] = N - 1 + j * N + k * N * N
+            index[n][2] = N - 1 + j * N + k * N * N # if i==0, then we need to wrap
 
         if j != 0: 
             index[n][1] = n - N
