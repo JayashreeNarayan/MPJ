@@ -80,12 +80,9 @@ print('Total charge q = ',q_tot)
 # set charges with the weight function
 grid.SetCharges()
 
-#initialize matrix indices
-grid.indices7 = (DetIndices_7entries()).astype(int)
-
 # initialize the electrostatic field with CG                  
 if preconditioning == "Yes":
-    grid.phi_prev, _ = PrecondLinearConjGradPoisson(- 4 * np.pi * grid.q / h, grid.indices7, tol=tol)
+    grid.phi_prev, _ = PrecondLinearConjGradPoisson(- 4 * np.pi * grid.q / h, tol=tol)
 
 # AGGIUSTA
 #grid.LinkedCellInit(grid.particles[0].r_cutoff)
@@ -116,7 +113,7 @@ for p, particle in enumerate(grid.particles):
 grid.SetCharges()
     
 if preconditioning == "Yes":
-    grid.phi, _ = PrecondLinearConjGradPoisson(- 4 * np.pi * grid.q / h, grid.indices7, tol=tol, x0=grid.phi_prev)
+    grid.phi, _ = PrecondLinearConjGradPoisson(- 4 * np.pi * grid.q / h, tol=tol, x0=grid.phi_prev)
 
 if md_variables.integrator == 'OVRVO':
     grid.particles = OVRVO_part2(grid, thermostat = thermostat)
