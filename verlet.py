@@ -124,6 +124,7 @@ def OVRVO_part2(grid, prev=False, thermostat=False):
     return grid.particles
 
 #@profile
+'''
 def MatrixVectorProduct_7entries_1(v, index):
     M = np.array([1,1,1,-6,1,1,1])    
     v_matrix = v[index]
@@ -131,6 +132,19 @@ def MatrixVectorProduct_7entries_1(v, index):
     result = np.dot(v_matrix,M)
 
     return result
+'''
+
+def MatrixVectorProduct(v):
+    app = np.copy(v).reshape((N, N, N))
+
+    res = np.zeros((N, N, N))
+
+    res -= app * 6
+    for idx in (-1, 1):
+        for ax in range(3):
+            res += np.roll(app, idx, axis=ax)
+
+    return res.flatten()
 
 #PARALLEL
 '''
@@ -163,23 +177,23 @@ def VerletPoisson(grid,y):
     grid.phi_prev = np.copy(tmp)
 
     # compute the constraint with the provisional value of the field phi
-    matrixmult = MatrixVectorProduct_7entries_1(grid.phi, grid.indices7)
+    matrixmult = MatrixVectorProduct(grid.phi)
     sigma_p = omega * (grid.q / h + matrixmult / (4 * np.pi)) # M @ grid.phi for row-by-column product
 
     # apply LCG
-    y_new, iter_conv = PrecondLinearConjGradPoisson(sigma_p, grid.indices7, x0=y) #riduce di 1/3 il numero di iterazioni necessarie a convergere
+    y_new, iter_conv = PrecondLinearConjGradPoisson(sigma_p, x0=y) #riduce di 1/3 il numero di iterazioni necessarie a convergere
     
     # scale the field with the constrained 'force' term
     grid.phi = grid.phi - y_new / omega * (4 * np.pi)
 
     if debug:
-        matrixmult1 = MatrixVectorProduct_7entries_1(y_new, grid.indices7)
+        matrixmult1 = MatrixVectorProduct(y_new)
         print('LCG precision     :',np.max(np.abs(matrixmult1 - sigma_p)))
         
-        matrixmult1_old = MatrixVectorProduct_7entries_1(y_new / omega, grid.indices7)
+        matrixmult1_old = MatrixVectorProduct(y_new / omega)
         print('LCG precision orig:',np.max(np.abs(matrixmult1_old - sigma_p / omega)))
     
-        matrixmult2 = MatrixVectorProduct_7entries_1(grid.phi, grid.indices7)
+        matrixmult2 = MatrixVectorProduct(grid.phi)
         sigma_p1 = grid.q / h + matrixmult2 / (4 * np.pi) # M @ grid.phi for row-by-column product
     
         print('max of constraint: ', np.max(np.abs(sigma_p1)),'\n')
@@ -187,10 +201,10 @@ def VerletPoisson(grid,y):
     return grid, y_new, iter_conv
 
 
-def PrecondLinearConjGradPoisson(b, index, x0 = np.zeros(N_tot), tol=tol):
+def PrecondLinearConjGradPoisson(b, x0 = np.zeros(N_tot), tol=tol):
     P_inv = - 1 / 6
     x = x0
-    r = MatrixVectorProduct_7entries_1(x, index) - b
+    r = MatrixVectorProduct(x) - b
     
     v = P_inv * r  # same as y in book
     p = -v
@@ -200,7 +214,7 @@ def PrecondLinearConjGradPoisson(b, index, x0 = np.zeros(N_tot), tol=tol):
 
     while np.linalg.norm(r_new) > tol:
         iter = iter + 1
-        Ap = MatrixVectorProduct_7entries_1(p, index) # A @ d for row-by-column product
+        Ap = MatrixVectorProduct(p) # A @ d for row-by-column product
 
         #Ap = A @ p
         alpha = np.dot(r, v) / np.dot(p, Ap)
@@ -240,11 +254,11 @@ def VerletPoissonBerendsen(grid,eta):
     stop_iteration =  False
     iter = 0
     
-    #M_eta = MatrixVectorProduct_7entries_1(eta, grid.indices7)
+    #M_eta = MatrixVectorProduct(eta)
     #grid.phi = grid.phi + M_eta
 
     # compute the constraint with the provisional value of the field phi
-    M_phi = MatrixVectorProduct_7entries_1(grid.phi, grid.indices7)
+    M_phi = MatrixVectorProduct(grid.phi)
     sigma_p = grid.q / h + M_phi / (4 * np.pi) # M @ grid.phi for row-by-column product
 
     while(stop_iteration == False):	
@@ -253,11 +267,11 @@ def VerletPoissonBerendsen(grid,eta):
         #delta_eta =  -(4 * np.pi) * const_inv * sigma_p * omega
         eta = eta + delta_eta
         
-        M_delta_eta = MatrixVectorProduct_7entries_1(delta_eta, grid.indices7)
+        M_delta_eta = MatrixVectorProduct(delta_eta)
         grid.phi = grid.phi + M_delta_eta / (4 * np.pi) 
         #grid.phi = grid.phi + M_delta_eta
         
-        M_phi = MatrixVectorProduct_7entries_1(grid.phi, grid.indices7)
+        M_phi = MatrixVectorProduct(grid.phi)
         sigma_p = grid.q / h + M_phi / (4 * np.pi) # M @ grid.phi for row-by-column product
         #print(iter, np.max(np.abs(sigma_p)))
                 
@@ -275,7 +289,7 @@ def VerletPoissonBerendsen(grid,eta):
     print('iter=',iter)
 
     if debug:
-        matrixmult2 = MatrixVectorProduct_7entries_1(grid.phi, grid.indices7)
+        matrixmult2 = MatrixVectorProduct(grid.phi)
         sigma_p1 = grid.q / h + matrixmult2 / (4 * np.pi) # M @ grid.phi for row-by-column product
     
         print('max of constraint: ', np.max(np.abs(sigma_p1)))
