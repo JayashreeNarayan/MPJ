@@ -1,3 +1,4 @@
+import os
 from input import grid_setting, md_variables, output_settings
 import numpy as np
 import time 
@@ -5,6 +6,8 @@ from math import exp, tanh
 from concurrent.futures import ThreadPoolExecutor
 debug = output_settings.debug
 #from scipy.sparse import linalg
+
+from profiling import profile
 
 h = grid_setting.h
 L = grid_setting.L
@@ -134,6 +137,7 @@ def MatrixVectorProduct_7entries_1(v, index):
     return result
 '''
 
+@profile
 def MatrixVectorProduct_roll(v):
     v = v.reshape((N, N, N))
     res = -6 * np.copy(v)
@@ -142,6 +146,7 @@ def MatrixVectorProduct_roll(v):
             res += np.roll(v, idx, axis=ax)
     return res.flatten()
 
+@profile
 def MatrixVectorProduct_manual(v):
     v = v.reshape((N, N, N))
     res = -6 * np.copy(v)
@@ -181,7 +186,7 @@ else:
     conv_3d = torch.nn.Conv3d(1, 1, 3, padding=1, bias=False, padding_mode='circular')
     conv_3d.weight.data = kernel_3d.unsqueeze(0).unsqueeze(0)
 
-    # @profile
+    @profile
     def MatrixVectorProduct_torch3d(v, *args):
         v = v.reshape((N, N, N))
         v = torch.tensor(v, dtype=torch.float64)
@@ -201,7 +206,7 @@ else:
 
     conv_2d.weight.data = kernel_2d.unsqueeze(0).unsqueeze(0)
 
-    # @profile
+    @profile
     def MatrixVectorProduct_torch2d(v, *args):
         v = v.reshape((N, N, N))
         res = torch.tensor(v, dtype=torch.float64)
@@ -218,6 +223,18 @@ else:
 
         return res.flatten()
     
+maze_mmul = os.environ.get('MAZE_MMUL', 'manual')
+if maze_mmul == 'roll':
+    MatrixVectorProduct_7entries_1 = MatrixVectorProduct_roll
+elif maze_mmul == 'manual':
+    MatrixVectorProduct_7entries_1 = MatrixVectorProduct_manual
+elif maze_mmul == 'torch3d':
+    MatrixVectorProduct_7entries_1 = MatrixVectorProduct_torch3d
+elif maze_mmul == 'torch2d':
+    MatrixVectorProduct_7entries_1 = MatrixVectorProduct_torch2d
+else:
+    raise ValueError(f'Unknown MAZE_MMUL value: {maze_mmul}')
+
 MatrixVectorProduct = MatrixVectorProduct_manual
 
 #PARALLEL
@@ -274,7 +291,7 @@ def VerletPoisson(grid,y):
     
     return grid, y_new, iter_conv
 
-
+@profile
 def PrecondLinearConjGradPoisson(b, x0 = np.zeros(N_tot), tol=tol):
     P_inv = - 1 / 6
     x = x0
