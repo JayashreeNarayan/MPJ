@@ -72,9 +72,9 @@ class Particle:
         for n in self.neigh:
             i,j,k = dict_indices_nToCoord[n]
             diff = self.pos - np.array([i,j,k]) * h #r_alpha - r_i
-            self.force[0] = self.force[0] - phi_v[n] * self.charge * g_prime(diff[0]) * g(diff[1]) * g(diff[2]) 
-            self.force[1] = self.force[1] - phi_v[n] * self.charge * g(diff[0]) * g_prime(diff[1]) * g(diff[2])
-            self.force[2] = self.force[2] - phi_v[n] * self.charge * g(diff[0]) * g(diff[1]) * g_prime(diff[2]) 
+            self.force[0] -= phi_v[n] * self.charge * g_prime(diff[0]) * g(diff[1]) * g(diff[2]) 
+            self.force[1] -= phi_v[n] * self.charge * g(diff[0]) * g_prime(diff[1]) * g(diff[2])
+            self.force[2] -= phi_v[n] * self.charge * g(diff[0]) * g(diff[1]) * g_prime(diff[2]) 
 
         print(self.force)
 
