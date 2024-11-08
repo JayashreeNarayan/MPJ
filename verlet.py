@@ -4,7 +4,6 @@ import time
 from math import exp, tanh
 from concurrent.futures import ThreadPoolExecutor
 debug = output_settings.debug
-#from scipy.sparse import linalg
 
 h = grid_setting.h
 L = grid_setting.L
@@ -45,20 +44,13 @@ def VerletSolutePart1(particles, dt=dt, thermostat=False):
 def VerletSolutePart2(grid, dt=dt, prev=False):
     grid.potential_notelec = 0
     if not_elec:
-        #grid.ComputeForceNotEleLC() #TF or LJ
         grid.ComputeForceNotElecBasic()
-    
-    #tot_force = 0
+
     for particle in grid.particles:
         if elec:
-            #particle.ComputeForce(grid, prev=prev)
-            #particle.ComputeForce(grid, prev=prev)
             particle.ComputeForce_FD(grid, prev=prev)
         particle.vel = particle.vel + 0.5 * ((particle.force + particle.force_notelec) / particle.mass) * dt
-        #tot_force = tot_force + particle.force + particle.force_notelec
         # berendsen
-
-    #print('tot force = ', tot_force)
     return grid
 
 ### OVRVO ###
@@ -123,18 +115,7 @@ def OVRVO_part2(grid, prev=False, thermostat=False):
     
     return grid.particles
 
-#@profile
-'''
-def MatrixVectorProduct_7entries_1(v, index):
-    M = np.array([1,1,1,-6,1,1,1])    
-    v_matrix = v[index]
-
-    result = np.dot(v_matrix,M)
-
-    return result
-'''
-
-def MatrixVectorProduct(v):
+def MatrixVectorProduct(v): # added by davide
     app = np.copy(v).reshape((N, N, N))
 
     res = np.zeros((N, N, N))
@@ -145,29 +126,6 @@ def MatrixVectorProduct(v):
             res += np.roll(app, idx, axis=ax)
 
     return res.flatten()
-
-#PARALLEL
-'''
-def MatrixVectorProduct_7entries_1_row(v, index_row, M):
-    # Extract the relevant elements from v for the given row
-    v_row = v[index_row]
-    # Compute the dot product for the row
-    result = np.dot(v_row, M)
-    return result
-
-def MatrixVectorProduct_7entries_1_parallel(v, index):
-    M = np.array([1, 1, 1, -6, 1, 1, 1])  
-    
-    # Use ThreadPoolExecutor for parallelization
-    with ThreadPoolExecutor() as executor:
-        # Submit tasks for each row
-        futures = [executor.submit(MatrixVectorProduct_7entries_1_row, v, index_row, M) for index_row in index]
-        
-        # Collect results in the order they were submitted
-        result = np.array([future.result() for future in futures])
-
-    return result
-'''
 
 #apply Verlet algorithm to compute the updated value of the field phi, with LCG + SHAKE
 def VerletPoisson(grid,y):
@@ -231,8 +189,6 @@ def PrecondLinearConjGradPoisson(b, x0 = np.zeros(N_tot), tol=tol):
 
     return x, iter
 
-
-
 # alternative function for matrix-vector product
 def MatrixVectorProduct_7entries(M, v, index):
     v_matrix = v[index]
@@ -253,9 +209,6 @@ def VerletPoissonBerendsen(grid,eta):
     const_inv = 1 / 42
     stop_iteration =  False
     iter = 0
-    
-    #M_eta = MatrixVectorProduct(eta)
-    #grid.phi = grid.phi + M_eta
 
     # compute the constraint with the provisional value of the field phi
     M_phi = MatrixVectorProduct(grid.phi)

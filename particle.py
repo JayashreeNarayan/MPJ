@@ -78,97 +78,6 @@ class Particle:
 
         print(self.force)
 
-    '''
-    def ComputeForce_CubicSpline(self, grid, prev):
-        self.force = np.zeros(3)
-      
-        if prev == True:
-            phi_v = grid.phi_prev
-        else:
-            phi_v = grid.phi
-
-        #grad_phi_neigh = np.gradient(phi_neigh,h)
-        for n in self.neigh:
-            i,j,k = dict_indices_nToCoord[n]
-            q_n = grid.q[n]
-            # x component of the force
-            i_vec = np.array([i - 2, i - 1, i, i + 1, i + 2])
-            #i_vec = np.array([i - 1, i, i + 1])
-            
-            phi_x = np.array([phi_v[p % N + j * N + k * N * N] for p in i_vec])
-            #phi_x = phi_v[i_vec % N + j * N + k * N * N]
-
-            cs_x = CubicSpline(i_vec, phi_x)
-            self.force[0] = self.force[0] + q_n * cs_x(i, 1)  
-            
-            # y component of the force
-            j_vec = np.array([j - 2, j - 1, j, j + 1, j + 2])
-            #j_vec = np.array([j - 1, j, j + 1])
-            phi_y = np.array([phi_v[i + (p % N) * N + k * N * N] for p in j_vec])
-            #phi_y = phi_v[i + (j_vec % N) * N + k * N * N] 
-
-            cs_y = CubicSpline(j_vec, phi_y)
-            self.force[1] = self.force[1] + q_n * cs_y(j, 1)
-
-            # z component of the force
-            k_vec = np.array([k - 2, k - 1, k, k + 1, k + 2])
-            #k_vec = np.array([k - 1, k, k + 1])
-            phi_z = np.array([phi_v[i + j * N + (p % N) * N * N] for p in k_vec])
-            #phi_z = phi_v[i + j * N + (k_vec % N) * N * N] 
-
-            cs_z = CubicSpline(k_vec, phi_z)
-            self.force[2] = self.force[2] + q_n * cs_z(k, 1)
-        
-        #print('FORCE SPLINE',self.force,'\n') 
-
-    def ComputeForce_ParticlePos(self, grid, prev):
-        self.force = np.zeros(3)
-      
-        if prev == True:
-            phi_v = grid.phi_prev
-        else:
-            phi_v = grid.phi
-        
-        phi_vec = np.array([phi_v[n] for n in self.neigh])
-
-        i_vec = np.zeros(2)
-        j_vec = np.zeros(2)
-        k_vec = np.zeros(2)
-
-        i_vec[0], j_vec[0], k_vec[0] = dict_indices_nToCoord[self.neigh[0]]
-        i_vec[1] = i_vec[0] + 1
-        j_vec[1] = j_vec[0] + 1
-        k_vec[1] = k_vec[0] + 1
-
-        x_vec = i_vec * h
-        y_vec = j_vec * h
-        z_vec = k_vec * h
-
-        X, Y, Z = np.meshgrid(x_vec, y_vec, z_vec)
-        #points = np.column_stack((X.flatten(), Y.flatten(), Z.flatten()))
-        points = np.array([X.flatten(), Y.flatten(), Z.flatten()]).T
-        #interp_func = LinearNDInterpolator(points, phi_vec)
-        #phi_pos = interp_func(self.pos)
-        #force_pos = interp_func(self.pos,1)
-        # Creazione dell'interpolatore spline cubico
-        spline = make_interp_spline(points, phi_vec)
-
-        # Ora puoi valutare la funzione interpolata in un punto arbitrario, ad esempio in (0.5, 0.5, 0.5)
-        interp_value = spline(self.pos)
-
-        # Puoi anche calcolare la derivata della funzione interpolata in un punto arbitrario
-        spline_derivative = spline.derivative()
-
-        # Ora puoi valutare la derivata in un punto arbitrario, ad esempio in (0.5, 0.5, 0.5)
-        interp_derivative_value = spline_derivative(self.pos)
-
-        print("Valore interpolato in (0.5, 0.5, 0.5):", interp_value)
-        print("Derivata interpolata in (0.5, 0.5, 0.5):", interp_derivative_value)
-
-        
-        #print('FORCE SPLINE',self.force,'\n') 
-    '''
-
     def ComputeForce_FD(self, grid, prev): # defn of the force from notes poisson, computer force on the particle
         self.force = np.zeros(3)
        
@@ -188,16 +97,6 @@ class Particle:
             self.force[1] = self.force[1] + grid.q[n] * E_y(i,j,k) 
             self.force[2] = self.force[2] + grid.q[n] * E_z(i,j,k) 
             q_tot = q_tot + grid.q[n]
-
-            '''
-            diff = self.pos - np.array([i,j,k]) * h 
-            q_n = self.charge * g(diff[0]) * g(diff[1]) * g(diff[2]) 
-            self.force[0] = self.force[0] + q_n * E_x(i,j,k) 
-            self.force[1] = self.force[1] + q_n * E_y(i,j,k) 
-            self.force[2] = self.force[2] + q_n * E_z(i,j,k) 
-            '''
-        #print(q_tot)
-        #print('FORCE DIFF',self.force,'\n') 
     
     
     def ComputeLJForcePair(self,particle):  # computes LJ force for couple of particles (self particle and a particle given in input
@@ -253,41 +152,6 @@ class Particle:
 
         self.force_notelec = force
     
-    '''
-    def ComputeTFForcePair(self,particle):  
-        r_diff = self.pos - particle.pos 
-        r = BoxScale(r_diff)
-        r_mag = BoxScaleDistance(r_diff)
-        r_cap = r / r_mag
-        
-        A, C, D, sigma_TF = self.dict[self.charge + particle.charge] # takes the charge value from the dictionary and unpacks
-        f_shift = self.B * A * np.exp(self.B * (sigma_TF - self.r_cutoff)) - 6 * C / self.r_cutoff**7 - 8 * D / self.r_cutoff**9 
-
-        if r_mag <= self.r_cutoff: 
-        #già incluso with linked cell, prendo solo quelli da calcolare
-            f_mag = self.B * A * np.exp(self.B * (sigma_TF - r_mag)) - 6 * C / r_mag**7 - 8 * D / r_mag**9 - f_shift
-        else:
-        #    print('Hola')
-            f_mag = 0
-   
-        return f_mag * r_cap
-    
-    
-    def ComputeTFPotentialPair(self,particle):  
-        r_diff = self.pos - particle.pos 
-        r_mag = BoxScaleDistance(r_diff)
-
-        A, C, D, sigma_TF = self.dict[self.charge + particle.charge]
-        V_shift = A * np.exp(self.B * (sigma_TF - self.r_cutoff)) - C / self.r_cutoff**6 - D / self.r_cutoff**8
-
-        if r_mag <= self.r_cutoff: 
-            V_mag = A * np.exp(self.B * (sigma_TF - r_mag)) - C / r_mag**6 - D / r_mag**8 #- V_shift
-        else:
-            V_mag = 0
-   
-        return V_mag
-    '''
-
     def ComputeTFForcePotentialPair(self,particle):  
         r_diff = self.pos - particle.pos 
         r = BoxScale(r_diff)

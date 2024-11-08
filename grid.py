@@ -219,17 +219,6 @@ class Grid:
                     #potential = potential + p.charge * phi_v[n] * g(diff[0])* g(diff[1])* g(diff[2])
                     pot1 = pot1 + 0.5 * q_n * phi_v[n]
                     potential = potential + 0.5 * self.q[n] * phi_v[n]
-                    
-        '''
-        if not_elec:
-            pe = 0
-            for p1 in range(self.N_p):
-                for p2 in range(p1+1, self.N_p):
-                    pair_potential = self.particles[p1].ComputeTFPotentialPair(self.particles[p2]) 
-                    pe += pair_potential
-                
-            self.potential_notelec = pe
-        '''
 
         # kinetic E
         kinetic = 0
@@ -257,47 +246,3 @@ class Grid:
         
         if print_temperature:
             file_output_temperature.write(str(iter) + ',' +  str(self.temperature) + '\n')
-
-
-
-
-def DetIndices_7entries():
-    index = np.zeros((N_tot, 7))
-
-    for n in range(N_tot):
-        index[n][3] = n
-
-        i, j, k = dict_indices_nToCoord[n]
-
-           
-        if i != N - 1:
-            index[n][4] = n + 1 #  i + 1
-        else:
-            index[n][4] = j * N + k * N * N # i + 1 
-
-        if j != N - 1: 
-            index[n][5] = n + N # j + 1, normal
-        else:
-            index[n][5] = i + k * N * N # wrapping
-  
-        if k != N - 1:
-            index[n][6] = n + N * N
-        else:
-            index[n][6] = i + j * N
-
-        if i != 0: 
-            index[n][2] = n - 1 # this is the normal case - if i!=0
-        else:
-            index[n][2] = N - 1 + j * N + k * N * N # if i==0, then we need to wrap
-
-        if j != 0: 
-            index[n][1] = n - N
-        else:
-            index[n][1] = i + (N - 1) * N + k * N * N
-
-        if k != 0:
-            index[n][0] = n - N * N # k - 1
-        else:
-            index[n][0] = i + j * N + (N - 1) * N * N
-    index = index.astype(int) 
-    return index
