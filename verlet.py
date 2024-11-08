@@ -134,17 +134,91 @@ def MatrixVectorProduct_7entries_1(v, index):
     return result
 '''
 
-def MatrixVectorProduct(v):
-    app = np.copy(v).reshape((N, N, N))
-
-    res = np.zeros((N, N, N))
-
-    res -= app * 6
+def MatrixVectorProduct_roll(v):
+    v = v.reshape((N, N, N))
+    res = -6 * np.copy(v)
     for idx in (-1, 1):
         for ax in range(3):
-            res += np.roll(app, idx, axis=ax)
+            res += np.roll(v, idx, axis=ax)
+    return res.flatten()
+
+def MatrixVectorProduct_manual(v):
+    v = v.reshape((N, N, N))
+    res = -6 * np.copy(v)
+    res[1:,:,:] += v[:-1,:,:]
+    res[:-1,:,:] += v[1:,:,:]
+    res[-1,:,:] += v[0,:,:]
+    res[0,:,:] += v[-1,:,:]
+
+    res[:,1:,:] += v[:,:-1,:]
+    res[:,:-1,:] += v[:,1:,:]
+    res[:,-1,:] += v[:,0,:]
+    res[:,0,:] += v[:,-1,:]
+
+    res[:,:,1:] += v[:,:,:-1]
+    res[:,:,:-1] += v[:,:,1:]
+    res[:,:,-1] += v[:,:,0]
+    res[:,:,0] += v[:,:,-1]
 
     return res.flatten()
+
+try:
+    import torch
+except ImportError:
+    pass
+else:
+    kernel_3d = np.zeros((3,3,3), dtype=np.float64)
+    kernel_3d[1,1,1] = -6
+    kernel_3d[0, 1, 1] = 1
+    kernel_3d[2, 1, 1] = 1
+    kernel_3d[1, 0, 1] = 1
+    kernel_3d[1, 2, 1] = 1
+    kernel_3d[1, 1, 0] = 1
+    kernel_3d[1, 1, 2] = 1
+
+    kernel_3d = torch.tensor(kernel_3d, dtype=torch.float64)
+
+    conv_3d = torch.nn.Conv3d(1, 1, 3, padding=1, bias=False, padding_mode='circular')
+    conv_3d.weight.data = kernel_3d.unsqueeze(0).unsqueeze(0)
+
+    # @profile
+    def MatrixVectorProduct_torch3d(v, *args):
+        v = v.reshape((N, N, N))
+        v = torch.tensor(v, dtype=torch.float64)
+        v = conv_3d(v.unsqueeze(0).unsqueeze(0)).squeeze().squeeze()
+        return v.detach().numpy().flatten()
+        
+    kernel_2d = np.zeros((3,3), dtype=np.float64)
+    kernel_2d[1, 1] = -6
+    kernel_2d[0, 1] = 1
+    kernel_2d[2, 1] = 1
+    kernel_2d[1, 0] = 1
+    kernel_2d[1, 2] = 1
+
+    kernel_2d = torch.tensor(kernel_2d, dtype=torch.float64)
+
+    conv_2d = torch.nn.Conv2d(N, N, 3, padding=1, bias=False, padding_mode='circular')
+
+    conv_2d.weight.data = kernel_2d.unsqueeze(0).unsqueeze(0)
+
+    # @profile
+    def MatrixVectorProduct_torch2d(v, *args):
+        v = v.reshape((N, N, N))
+        res = torch.tensor(v, dtype=torch.float64)
+        res = conv_2d(res.unsqueeze(1)).squeeze(1)
+
+        res = res.detach().numpy()
+
+        # res += np.roll(v, -1, axis=0)
+        # res += np.roll(v, 1, axis=0)
+        res[1:,:,:] += v[:-1,:,:]
+        res[:-1,:,:] += v[1:,:,:]
+        res[-1,:,:] += v[0,:,:]
+        res[0,:,:] += v[-1,:,:]
+
+        return res.flatten()
+    
+MatrixVectorProduct = MatrixVectorProduct_manual
 
 #PARALLEL
 '''
