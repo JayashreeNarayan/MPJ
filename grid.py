@@ -80,7 +80,6 @@ class Grid:
     def LinkedCellInit(self,cutoff): # review together, not working rn - list to make neighbours and implement TF properly 
         self.linked_cell = LinkedCell(cutoff, L, self.N_p)
         self.linked_cell.update_lists(self.particles)
-    
 
     def ComputeForcesLJBasic(self):
         pe = 0
