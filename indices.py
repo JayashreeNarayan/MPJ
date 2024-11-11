@@ -20,8 +20,8 @@ def nToGridCoord(n, N): # COULD BE INVERTED FROM I,J,K TO n - COULD BE OPT
         print(n, '!=', i + j * N + k * N * N)
         print(coord)
 
-dict_indices_nToCoord = { n : nToGridCoord(n, N) for n in range(N_tot)} 
-dict_indices_CoordTon = { tuple(nToGridCoord(n, N)): n  for n in range(N_tot)} 
+# dict_indices_nToCoord = { n : nToGridCoord(n, N) for n in range(N_tot)} 
+# dict_indices_CoordTon = { tuple(nToGridCoord(n, N)): n  for n in range(N_tot)} 
 
 def GetDictTF(): # get dictionary of TF params
     charge_totNaNa = 2
