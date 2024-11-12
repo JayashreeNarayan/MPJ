@@ -89,7 +89,7 @@ class Particle:
         else:
             phi_v = grid.phi
         
-        E_x = lambda i_p, j_p, k_p : (phi_v[(i_p - 1),j_p, k_p] - phi_v[(i_p + 1) % N, j_p, k_p]) / (2 * h)
+        E_x = lambda i_p, j_p, k_p : (phi_v[(i_p - 1) % N,j_p, k_p] - phi_v[(i_p + 1) % N, j_p, k_p]) / (2 * h)
         E_y = lambda i_p, j_p, k_p : (phi_v[i_p, ((j_p - 1) % N), k_p ] - phi_v[i_p, ((j_p + 1) % N), k_p]) / (2 * h)
         E_z = lambda i_p, j_p, k_p : (phi_v[i_p, j_p, ((k_p - 1) % N)] - phi_v[i_p, j_p, ((k_p + 1) % N)]) / (2 * h)
 
