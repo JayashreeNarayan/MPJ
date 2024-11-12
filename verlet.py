@@ -142,7 +142,7 @@ def MatrixVectorProduct_roll(v):  # added by davide
     return res.flatten()
 
 @profile
-def MatrixVectorProduct_manual(v, ijk=False):
+def MatrixVectorProduct_manual(v):
     v = v.reshape((N, N, N))
     res = -6 * np.copy(v)
 
@@ -292,7 +292,7 @@ def VerletPoisson(grid,y):
 def PrecondLinearConjGradPoisson(b, x0 = np.zeros((N,N,N)), tol=tol):
     P_inv = - 1 / 6
     x = x0.reshape(N,N,N)
-    r = MatrixVectorProduct(x, ijk=True) - b.reshape(N,N,N)
+    r = MatrixVectorProduct(x) - b.reshape(N,N,N)
 
     # np.save('b.npy', b)
     # np.save('x0.npy', x0)
@@ -306,7 +306,7 @@ def PrecondLinearConjGradPoisson(b, x0 = np.zeros((N,N,N)), tol=tol):
 
     while np.linalg.norm(r_new) > tol:
         iter = iter + 1
-        Ap = MatrixVectorProduct(p, ijk=True) # A @ d for row-by-column product
+        Ap = MatrixVectorProduct(p) # A @ d for row-by-column product
 
         #Ap = A @ p
         # r_dot_v = np.dot(r, v)
