@@ -27,7 +27,7 @@ class OutputSettings:
     print_iters = False
     path = 'Outputs/'
     debug = False
-    restart = False
+    restart = True
     generate_restart_file = False
 output_settings = OutputSettings()
 
@@ -39,7 +39,7 @@ class GridSetting:
     N_tot = N * N * N        #number of grid points
     L = float(sys.argv[4])  / a0  #20.9/ a0  #6.64 / a0 Np = 8 # 5.6 * 2 / a0   #box lenght
     h = L / N                #mesh size
-    path = '../data/paper/diffusion/production/cluster/gamma_1e-3_init_10K/series/run_30/output/'
+    path = './restart_files/'
     input_restart_filename = path + 'restart_N' + str(N) + '_step9999.csv'
     input_filename = 'input_files_new/input_coord' + str(int(sys.argv[1])) + '.csv' 
     N_p = int(sys.argv[1])
