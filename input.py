@@ -18,12 +18,12 @@ t_au = 2.4188843265857 * 1e-2 #fs = 1 a.u. of time
 ### Output settings ###
 
 class OutputSettings:
-    print_field = False
+    print_field = True
     print_performance = False
     print_solute = True
     print_energy = True
     print_temperature = True
-    print_tot_force = False
+    print_tot_force = True
     print_iters = False
     path = 'Outputs/'
     debug = False
