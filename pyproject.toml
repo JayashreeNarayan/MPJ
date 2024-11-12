@@ -55,6 +55,7 @@ release = [
 
 [project.scripts]
 maze_poisson_md = "maze_poisson.scripts.main_Maze_md:main"
+maze_poisson = "maze_poisson.scripts.main_Maze:main"
 
 [tool.flit.module]
 name = "maze_poisson"
