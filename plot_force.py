@@ -126,5 +126,5 @@ path = 'test_momentum/species_scaling/dt_0.1/'
 #plot_force(path, 100, 0.1)
 #plot_force_allN(path, [50, 100], 0.1)
 
-path = 'test_momentum/species_scaling/tol_1e-10/'
+path = 'Outputs/'
 plot_force(path, N, 0.25)
