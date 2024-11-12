@@ -179,7 +179,7 @@ for i in tqdm(range(N_steps)):
     if output_settings.print_tot_force:
         tot_force = np.zeros(3)
       
-        for j, particle in enumerate(grid.particles):
+        for j_, particle in enumerate(grid.particles):
             tot_force = tot_force + particle.force + particle.force_notelec
             
             if np.linalg.norm(particle.force_notelec) > 0.:
