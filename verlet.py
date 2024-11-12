@@ -4,6 +4,8 @@ import numpy as np
 import time 
 from math import exp, tanh
 from concurrent.futures import ThreadPoolExecutor
+from scipy.linalg import blas
+
 debug = output_settings.debug
 #from scipy.sparse import linalg
 
@@ -140,9 +142,10 @@ def MatrixVectorProduct_roll(v):  # added by davide
     return res.flatten()
 
 @profile
-def MatrixVectorProduct_manual(v):
+def MatrixVectorProduct_manual(v, ijk=False):
     v = v.reshape((N, N, N))
     res = -6 * np.copy(v)
+
     res[1:,:,:] += v[:-1,:,:]
     res[:-1,:,:] += v[1:,:,:]
     res[-1,:,:] += v[0,:,:]
@@ -158,73 +161,73 @@ def MatrixVectorProduct_manual(v):
     res[:,:,-1] += v[:,:,0]
     res[:,:,0] += v[:,:,-1]
 
-    return res.flatten()
+    return res
 
-try:
-    import torch
-except ImportError:
-    pass
-else:
-    kernel_3d = np.zeros((3,3,3), dtype=np.float64)
-    kernel_3d[1,1,1] = -6
-    kernel_3d[0, 1, 1] = 1
-    kernel_3d[2, 1, 1] = 1
-    kernel_3d[1, 0, 1] = 1
-    kernel_3d[1, 2, 1] = 1
-    kernel_3d[1, 1, 0] = 1
-    kernel_3d[1, 1, 2] = 1
+# try:
+#     import torch
+# except ImportError:
+#     pass
+# else:
+#     kernel_3d = np.zeros((3,3,3), dtype=np.float64)
+#     kernel_3d[1,1,1] = -6
+#     kernel_3d[0, 1, 1] = 1
+#     kernel_3d[2, 1, 1] = 1
+#     kernel_3d[1, 0, 1] = 1
+#     kernel_3d[1, 2, 1] = 1
+#     kernel_3d[1, 1, 0] = 1
+#     kernel_3d[1, 1, 2] = 1
 
-    kernel_3d = torch.tensor(kernel_3d, dtype=torch.float64)
+#     kernel_3d = torch.tensor(kernel_3d, dtype=torch.float64)
 
-    conv_3d = torch.nn.Conv3d(1, 1, 3, padding=1, bias=False, padding_mode='circular')
-    conv_3d.weight.data = kernel_3d.unsqueeze(0).unsqueeze(0)
+#     conv_3d = torch.nn.Conv3d(1, 1, 3, padding=1, bias=False, padding_mode='circular')
+#     conv_3d.weight.data = kernel_3d.unsqueeze(0).unsqueeze(0)
 
-    @profile
-    def MatrixVectorProduct_torch3d(v, *args):
-        v = v.reshape((N, N, N))
-        v = torch.tensor(v, dtype=torch.float64)
-        v = conv_3d(v.unsqueeze(0).unsqueeze(0)).squeeze().squeeze()
-        return v.detach().numpy().flatten()
+#     @profile
+#     def MatrixVectorProduct_torch3d(v):
+#         v = v.reshape((N, N, N))
+#         v = torch.tensor(v, dtype=torch.float64)
+#         v = conv_3d(v.unsqueeze(0).unsqueeze(0)).squeeze().squeeze()
+#         return v.detach().numpy().flatten()
         
-    kernel_2d = np.zeros((3,3), dtype=np.float64)
-    kernel_2d[1, 1] = -6
-    kernel_2d[0, 1] = 1
-    kernel_2d[2, 1] = 1
-    kernel_2d[1, 0] = 1
-    kernel_2d[1, 2] = 1
+#     kernel_2d = np.zeros((3,3), dtype=np.float64)
+#     kernel_2d[1, 1] = -6
+#     kernel_2d[0, 1] = 1
+#     kernel_2d[2, 1] = 1
+#     kernel_2d[1, 0] = 1
+#     kernel_2d[1, 2] = 1
 
-    kernel_2d = torch.tensor(kernel_2d, dtype=torch.float64)
+#     kernel_2d = torch.tensor(kernel_2d, dtype=torch.float64)
 
-    conv_2d = torch.nn.Conv2d(N, N, 3, padding=1, bias=False, padding_mode='circular')
+#     conv_2d = torch.nn.Conv2d(N, N, 3, padding=1, bias=False, padding_mode='circular')
 
-    conv_2d.weight.data = kernel_2d.unsqueeze(0).unsqueeze(0)
+#     conv_2d.weight.data = kernel_2d.unsqueeze(0).unsqueeze(0)
 
-    @profile
-    def MatrixVectorProduct_torch2d(v, *args):
-        v = v.reshape((N, N, N))
-        res = torch.tensor(v, dtype=torch.float64)
-        res = conv_2d(res.unsqueeze(1)).squeeze(1)
+#     @profile
+#     def MatrixVectorProduct_torch2d(v):
+#         v = v.reshape((N, N, N))
+#         res = torch.tensor(v, dtype=torch.float64)
+#         res = conv_2d(res.unsqueeze(1)).squeeze(1)
 
-        res = res.detach().numpy()
+#         res = res.detach().numpy()
 
-        # res += np.roll(v, -1, axis=0)
-        # res += np.roll(v, 1, axis=0)
-        res[1:,:,:] += v[:-1,:,:]
-        res[:-1,:,:] += v[1:,:,:]
-        res[-1,:,:] += v[0,:,:]
-        res[0,:,:] += v[-1,:,:]
+#         # res += np.roll(v, -1, axis=0)
+#         # res += np.roll(v, 1, axis=0)
+#         res[1:,:,:] += v[:-1,:,:]
+#         res[:-1,:,:] += v[1:,:,:]
+#         res[-1,:,:] += v[0,:,:]
+#         res[0,:,:] += v[-1,:,:]
 
-        return res.flatten()
+#         return res.flatten()
     
 maze_mmul = os.environ.get('MAZE_MMUL', 'manual')
 if maze_mmul == 'roll':
     MatrixVectorProduct_7entries_1 = MatrixVectorProduct_roll
 elif maze_mmul == 'manual':
     MatrixVectorProduct_7entries_1 = MatrixVectorProduct_manual
-elif maze_mmul == 'torch3d':
-    MatrixVectorProduct_7entries_1 = MatrixVectorProduct_torch3d
-elif maze_mmul == 'torch2d':
-    MatrixVectorProduct_7entries_1 = MatrixVectorProduct_torch2d
+# elif maze_mmul == 'torch3d':
+#     MatrixVectorProduct_7entries_1 = MatrixVectorProduct_torch3d
+# elif maze_mmul == 'torch2d':
+#     MatrixVectorProduct_7entries_1 = MatrixVectorProduct_torch2d
 else:
     raise ValueError(f'Unknown MAZE_MMUL value: {maze_mmul}')
 
@@ -254,11 +257,12 @@ def MatrixVectorProduct_7entries_1_parallel(v, index):
 '''
 
 #apply Verlet algorithm to compute the updated value of the field phi, with LCG + SHAKE
+@profile
 def VerletPoisson(grid,y):
     # compute provisional update for the field phi
     tmp = np.copy(grid.phi)
     grid.phi = 2 * grid.phi - grid.phi_prev
-    grid.phi_prev = np.copy(tmp)
+    grid.phi_prev = tmp
 
     # compute the constraint with the provisional value of the field phi
     matrixmult = MatrixVectorProduct(grid.phi)
@@ -268,7 +272,7 @@ def VerletPoisson(grid,y):
     y_new, iter_conv = PrecondLinearConjGradPoisson(sigma_p, x0=y) #riduce di 1/3 il numero di iterazioni necessarie a convergere
     
     # scale the field with the constrained 'force' term
-    grid.phi = grid.phi - y_new / omega * (4 * np.pi)
+    grid.phi -= y_new / omega * (4 * np.pi)
 
     if debug:
         matrixmult1 = MatrixVectorProduct(y_new)
@@ -285,33 +289,51 @@ def VerletPoisson(grid,y):
     return grid, y_new, iter_conv
 
 @profile
-def PrecondLinearConjGradPoisson(b, x0 = np.zeros(N_tot), tol=tol):
+def PrecondLinearConjGradPoisson(b, x0 = np.zeros((N,N,N)), tol=tol):
     P_inv = - 1 / 6
-    x = x0
-    r = MatrixVectorProduct(x) - b
+    x = x0.reshape(N,N,N)
+    r = MatrixVectorProduct(x, ijk=True) - b.reshape(N,N,N)
+
+    # np.save('b.npy', b)
+    # np.save('x0.npy', x0)
+    # print(tol)
     
     v = P_inv * r  # same as y in book
     p = -v
     
-    r_new = np.array(np.ones(N_tot))
+    r_new = np.ones((N,N,N))
     iter = 0
 
     while np.linalg.norm(r_new) > tol:
         iter = iter + 1
-        Ap = MatrixVectorProduct(p) # A @ d for row-by-column product
+        Ap = MatrixVectorProduct(p, ijk=True) # A @ d for row-by-column product
 
         #Ap = A @ p
-        alpha = np.dot(r, v) / np.dot(p, Ap)
-        x = x + alpha * p
+        # r_dot_v = np.dot(r, v)
+        # r_dot_v = np.sum(r * v)
+        r_dot_v = blas.ddot(r, v, N_tot)
+        # alpha = r_dot_v / np.dot(p, Ap)
+        # alpha = r_dot_v / np.sum(p * Ap)
+        alpha = r_dot_v / blas.ddot(p, Ap, N_tot)
+        x = blas.daxpy(p, x , N_tot, alpha)
+        # x += alpha * p
         
-        r_new = r + alpha * Ap
-        v_new =  P_inv * r_new  
+        # r_new = r + alpha * Ap
+        r_new = blas.daxpy(Ap, r, N_tot, alpha)
+        v_new =  P_inv * r_new
 
-        beta = np.dot(r_new, v_new) / np.dot(r, v)
-        p = -v_new + beta * p
+        # beta = np.dot(r_new, v_new) / r_dot_v
+        # beta = np.sum(r_new * v_new) / r_dot_v
+        beta = blas.ddot(r_new, v_new, N_tot) / r_dot_v
+        # p = -v_new + beta * p
+        p = blas.daxpy(p, -v_new, N_tot, beta)
         
         r = r_new
         v = v_new
+
+    # np.save('x.npy', x)
+    # print(iter)
+    # raise
 
     return x, iter
 

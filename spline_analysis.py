@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from indices import dict_indices_nToCoord, nToGridCoord
+from indices import nToGridCoord
 from scipy.interpolate import CubicSpline
 from input import grid_setting
 import math
@@ -41,8 +41,8 @@ def spline_analysis(grid, output_file):
     err = 0
 
     for l, particle in enumerate(grid.particles):
-        for l_n, n in enumerate(particle.neigh):
-            i, j, k = dict_indices_nToCoord[n]
+        for l_n, (i,j,k) in enumerate(particle.neigh):
+            # i, j, k = dict_indices_nToCoord[n]
             i_vec = np.array([i - 2, i - 1, i, i + 1, i + 2]) 
             #i_vec = np.array([i - 1, i, i + 1])
             

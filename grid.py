@@ -1,7 +1,7 @@
 from input import grid_setting, a0, md_variables, output_settings
 from particle import Particle, g
 import numpy as np
-from indices import dict_indices_nToCoord
+# from indices import dict_indices_nToCoord
 import pandas as pd
 from linkedcell import LinkedCell
 
@@ -60,10 +60,11 @@ class Grid:
             for j in range(self.N_p):
                 self.particles[j].vel = np.array([df['vx'][j], df['vy'][j], df['vz'][j]])
 
-        self.q = np.array(np.zeros(N_tot))            # charge vector - q for every grid point
-        self.phi = np.array(np.zeros(N_tot))          # electrostatic field updated with MaZe
-        self.phi_prev = np.array(np.zeros(N_tot))     # electrostatic field for step t - 1 Verlet
-        self.indices7 = np.zeros((N_tot, 7))
+        self.shape = (N,N,N)
+        self.q = np.zeros(self.shape, dtype=float)          # charge vector - q for every grid point
+        self.phi = np.zeros(self.shape, dtype=float)          # electrostatic field updated with MaZe
+        self.phi_prev = np.zeros(self.shape, dtype=float)     # electrostatic field for step t - 1 Verlet
+        # self.indices7 = np.zeros((N_tot, 7))
         self.linked_cell = None
         self.energy = 0
         self.temperature = T
@@ -177,7 +178,7 @@ class Grid:
 
     # update charges with a weight function that spreads it on the grid
     def SetCharges(self):
-        self.q = np.array(np.zeros(N_tot))
+        self.q = np.zeros(self.shape, dtype=float)
 
         q_tot = 0
         q_tot_expected = 0
@@ -185,15 +186,17 @@ class Grid:
         for particle in self.particles:
             q_tot_expected = q_tot_expected + particle.charge
 
-            for n in particle.neigh:
-                coord = dict_indices_nToCoord[n]
-                diff = particle.pos - coord * h
+            for i,j,k in particle.neigh:
+                # coord = dict_indices_nToCoord[n]
+                diff = particle.pos - np.array([i,j,k]) * h
                 #diff = BoxScale(diff)
-                self.q[n] += particle.charge * g(diff[0]) * g(diff[1]) * g(diff[2])
+                self.q[i,j,k] += particle.charge * g(diff[0]) * g(diff[1]) * g(diff[2])
                 #print(self.q[n], g(diff[0]), g(diff[1]), g(diff[2]))
             
-        for n in range(N_tot):
-            q_tot = q_tot + self.q[n]
+
+        q_tot = np.sum(self.q)
+        # for n in range(N_tot):
+        #     q_tot = q_tot + self.q[n]
 
         if q_tot + 1e-6 < q_tot_expected:
             print('Error: change initial position, charge is not preserved - q_tot =', q_tot) 
@@ -211,13 +214,13 @@ class Grid:
             pot1 = 0
 
             for p in self.particles:
-                for n in p.neigh:
-                    coord = dict_indices_nToCoord[n]
-                    diff = p.pos - coord * h
+                for i,j,k in p.neigh:
+                    # coord = dict_indices_nToCoord[n]
+                    diff = p.pos - np.array([i,j,k]) * h
                     q_n = p.charge * g(diff[0]) * g(diff[1]) * g(diff[2])
                     #potential = potential + p.charge * phi_v[n] * g(diff[0])* g(diff[1])* g(diff[2])
-                    pot1 = pot1 + 0.5 * q_n * phi_v[n]
-                    potential = potential + 0.5 * self.q[n] * phi_v[n]
+                    pot1 = pot1 + 0.5 * q_n * phi_v[i,j,k]
+                    potential = potential + 0.5 * self.q[i,j,k] * phi_v[i,j,k]
 
         # kinetic E
         kinetic = 0

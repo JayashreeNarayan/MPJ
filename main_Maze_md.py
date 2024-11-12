@@ -4,7 +4,7 @@
 import numpy as np
 from grid import *
 from input import md_variables, grid_setting, a0, output_settings
-from indices import dict_indices_CoordTon
+# from indices import dict_indices_CoordTon
 from verlet import VerletPoisson, VerletPoissonBerendsen, PrecondLinearConjGradPoisson, VerletSolutePart1, VerletSolutePart2, OVRVO_part1, OVRVO_part2
 import time
 from tqdm import tqdm
@@ -211,7 +211,7 @@ for i in tqdm(range(N_steps)):
             file_output_performance.write(str(i - init_steps) + ',' + str(end_Verlet - start_Verlet) + ',' + str(iter_conv) + "\n") #+ ',' + str(end_Matrix - start_Matrix) + "\n")
                     
         if output_settings.print_field and elec:
-            field_x_MaZe = np.array([grid.phi[dict_indices_CoordTon[tuple([l, j, k])]] for l in range(N)])
+            field_x_MaZe = np.array([grid.phi[l, j, k] for l in range(N)])
             for n in range(N):
                 file_output_field.write(str(i - init_steps) + ',' + str(X[n] * a0) + ',' + str(field_x_MaZe[n] * V) + '\n')
 
