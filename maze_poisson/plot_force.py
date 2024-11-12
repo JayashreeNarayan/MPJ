@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
+N =100
+
 def plot_force(folder, N, dt):
     df = pd.read_csv(folder + '/tot_force_N' + str(N) + '.csv')
 
@@ -124,6 +126,5 @@ path = 'test_momentum/species_scaling/dt_0.1/'
 #plot_force(path, 100, 0.1)
 #plot_force_allN(path, [50, 100], 0.1)
 
-path = 'test_momentum/species_scaling/tol_1e-10/'
-plot_force(path, 50, 0.25)
-plot_force(path, 100, 0.25)
+path = 'Outputs/'
+plot_force(path, N, 0.25)
