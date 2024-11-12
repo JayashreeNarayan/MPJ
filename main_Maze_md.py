@@ -179,13 +179,9 @@ for i in tqdm(range(N_steps)):
     if output_settings.print_tot_force:
         tot_force = np.zeros(3)
       
-        for j_, particle in enumerate(grid.particles):
+        for particle in grid.particles:
             tot_force = tot_force + particle.force + particle.force_notelec
             
-            if np.linalg.norm(particle.force_notelec) > 0.:
-                print('\nStep = ', i, ' t elapsed from init =', time.time() - end_initialization)
-                print(particle.force, particle.force_notelec)
-        
         file_output_tot_force.write(str(i) + ',' + str(tot_force[0]) + ',' + str(tot_force[1]) + ','+ str(tot_force[2]) + "\n") 
 
     grid.Energy(print_energy=output_settings.print_energy, iter=i)
