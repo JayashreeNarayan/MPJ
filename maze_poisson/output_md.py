@@ -1,5 +1,6 @@
 import os
-from input import grid_setting, output_settings
+
+from .input import grid_setting, output_settings
 
 N = grid_setting.N
 path = output_settings.path

@@ -1,6 +1,7 @@
-import pandas as pd
 import numpy as np
-from input import output_settings, a0, grid_setting
+import pandas as pd
+
+from .input import a0, grid_setting, output_settings
 
 
 def generate_restart():

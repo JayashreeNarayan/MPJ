@@ -1,15 +1,16 @@
-from input import grid_setting, a0, md_variables, output_settings
-from particle import Particle, g
 import numpy as np
 # from indices import dict_indices_nToCoord
 import pandas as pd
-from linkedcell import LinkedCell
+
+from .input import a0, grid_setting, md_variables, output_settings
+from .linkedcell import LinkedCell
+from .particle import Particle, g
 
 if output_settings.print_energy:
-    from output_md import file_output_energy
+    from .output_md import file_output_energy
 
 if output_settings.print_temperature:
-    from output_md import file_output_temperature
+    from .output_md import file_output_temperature
 
 
 # get input variables from input file

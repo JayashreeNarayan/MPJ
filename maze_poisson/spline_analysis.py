@@ -1,10 +1,12 @@
+import math
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from indices import nToGridCoord
 from scipy.interpolate import CubicSpline
-from input import grid_setting
-import math
-import matplotlib.pyplot as plt
+
+from .indices import nToGridCoord
+from .input import grid_setting
 
 N = grid_setting.N
 h = grid_setting.h

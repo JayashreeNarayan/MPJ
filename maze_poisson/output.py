@@ -1,4 +1,4 @@
-from input import grid_setting, md_variables
+from .input import grid_setting, md_variables
 
 N = grid_setting.N
 N_p = grid_setting.N_p

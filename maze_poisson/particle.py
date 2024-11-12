@@ -1,10 +1,12 @@
-import numpy as np
-from input import grid_setting, a0, md_variables, output_settings
 import math
-from indices import GetDictTF
-from scipy.interpolate import CubicSpline, LinearNDInterpolator, interpn, make_interp_spline
 
-from profiling import profile
+import numpy as np
+from scipy.interpolate import (CubicSpline, LinearNDInterpolator, interpn,
+                               make_interp_spline)
+
+from .indices import GetDictTF
+from .input import a0, grid_setting, md_variables, output_settings
+from .profiling import profile
 
 L = grid_setting.L
 h = grid_setting.h

@@ -1,5 +1,6 @@
-from input import grid_setting
 import numpy as np
+
+from .input import grid_setting
 
 N = grid_setting.N
 N_tot = grid_setting.N_tot

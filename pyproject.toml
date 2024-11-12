@@ -1,0 +1,102 @@
+[build-system]
+# build the package with [flit](https://flit.readthedocs.io)
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+# See https://www.python.org/dev/peps/pep-0621/
+name = "maze_poisson"
+dynamic = ["version"] # read from maze_poisson/__init__.py
+description = ""
+authors = [
+    { name = "" },
+]
+readme = "README.md"
+license = { file = "LICENSE.txt" }
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+keywords = ["MaZe", "Poisson", "molecular", "dynamics", "simulation", "analysis", "visualization"]
+requires-python = ">=3.8"
+dependencies = [
+    "numpy",
+    "scipy",
+    "matplotlib",
+    "pandas",
+    "tqdm",
+]
+
+# [project.urls]
+# Source = "https://github.com/XXX"
+
+[project.optional-dependencies]
+# fancy = [
+#     "tqdm",
+# ]
+tests = [
+    "pytest",
+    "pytest-cov",
+]
+pre-commit = [
+    "pre-commit",
+    "pylint",
+    "pylint-pytest",
+]
+release = [
+    "flit"
+]
+
+[project.scripts]
+maze_poisson_md = "maze_poisson.scripts.main_Maze_md:main"
+
+[tool.flit.module]
+name = "maze_poisson"
+
+[tool.flit.sdist]
+exclude = [
+    ".gitignore", ".github", ".pre-commit-config.yaml",
+    ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+DJANGO_SETTINGS_MODULE = "mysite.settings"
+log_cli = 1
+
+[tool.pylint.main]
+load-plugins = [
+    "pylint_pytest"
+]
+django-settings-module = "mysite.settings"
+
+[tool.pylint.messages_control]
+disable = [
+    "logging-fstring-interpolation",
+    "global-statement",
+    "broad-exception-caught",
+    "too-few-public-methods",
+]
+
+
+[tool.pylint.format]
+max-line-length = 120
+good-names = [
+    "_",
+    "l", "r", "b", "t",
+    "l1", "r1", "b1", "t1",
+    "l2", "r2", "b2", "t2",
+    "i", "j",
+    "k", "v",
+    "f",
+]
+
+[tool.pylint.design]
+max-args = 10
+max-locals = 20
+max-attributes = 12

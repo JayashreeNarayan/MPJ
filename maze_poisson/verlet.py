@@ -1,15 +1,16 @@
 import os
-from input import grid_setting, md_variables, output_settings
-import numpy as np
-import time 
+import time
 from math import exp, tanh
-from concurrent.futures import ThreadPoolExecutor
+
+import numpy as np
 from scipy.linalg import blas
+
+from .input import grid_setting, md_variables, output_settings
+from .profiling import profile
 
 debug = output_settings.debug
 #from scipy.sparse import linalg
 
-from profiling import profile
 
 h = grid_setting.h
 L = grid_setting.L
