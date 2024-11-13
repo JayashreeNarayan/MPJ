@@ -1,0 +1,13 @@
+grid_setting:
+  N: 100
+  L: 20.90
+  N_p: 250
+
+  input_file: input_files_new/input_coord250.csv
+  restart_file: restart_files/restart_N100_step9999.csv
+
+md_variables:
+  N_steps: 20
+
+output_settings: {}
+  # path: output_files
