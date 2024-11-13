@@ -2,79 +2,121 @@ import numpy as np
 # from indices import dict_indices_nToCoord
 import pandas as pd
 
-from .input import a0, grid_setting, md_variables, output_settings
+from .constants import a0, amu_to_kg
+# from .input import grid_setting, md_variables, output_settings
 from .linkedcell import LinkedCell
+from .output_md import OutputFiles, generate_output_files
 from .particle import Particle, g
 
-if output_settings.print_energy:
-    from .output_md import file_output_energy
-
-if output_settings.print_temperature:
-    from .output_md import file_output_temperature
-
-
 # get input variables from input file
-N = grid_setting.N
-N_tot = grid_setting.N_tot
-N_p = grid_setting.N_p
-h = grid_setting.h
-L = grid_setting.L
-input_filename = grid_setting.input_filename
-input_restart_filename = grid_setting.input_restart_filename
-dt = md_variables.dt
-potential_info = md_variables.potential
-elec = md_variables.elec
-not_elec = md_variables.not_elec
-T = md_variables.T
-kB = md_variables.kB
-kBT = md_variables.kBT
+# N = grid_setting.N
+# N_tot = grid_setting.N_tot
+# N_p = grid_setting.N_p
+# h = grid_setting.h
+# L = grid_setting.L
+# input_filename = grid_setting.input_filename
+# input_restart_filename = grid_setting.input_restart_filename
+
+# dt = md_variables.dt
+# potential_info = md_variables.potential
+# elec = md_variables.elec
+# not_elec = md_variables.not_elec
+# T = md_variables.T
+# kB = md_variables.kB
+# kBT = md_variables.kBT
 
 amu_to_kg = 1.66054 * 1e-27 
 m_e = 9.1093837 * 1e-31 #kg
 conv_mass = amu_to_kg / m_e
-offset_update = np.array([[h/2, 0, 0], [h/2, 0, 0], [0, h/2, 0], [0, h/2, 0], [0, 0, h/2], [0, 0, h/2], [0, 0, 0]])
+# offset_update = np.array([[h/2, 0, 0], [h/2, 0, 0], [0, h/2, 0], [0, h/2, 0], [0, 0, h/2], [0, 0, h/2], [0, 0, 0]])
 # grid class to represent the grid and the fields operating on it
 
 class Grid:
-    def __init__(self):
+    def __init__(self, grid_setting, md_variables, output_settings):
         #print(df.head())
+        self.grid_setting = grid_setting
+        self.md_variables = md_variables
+        self.output_settings = output_settings
+        self.debug = output_settings.debug
+
+        self.N = grid_setting.N
+        self.N_tot = grid_setting.N_tot
         self.N_p = grid_setting.N_p
+        self.h = grid_setting.h
+        self.L = grid_setting.L
+
+        self.potential_info = md_variables.potential
+        self.dt = md_variables.dt
+        self.elec = md_variables.elec
+        self.not_elec = md_variables.not_elec
+        self.kB = md_variables.kB
+        self.kBT = md_variables.kBT
+
+        self.offset_update = np.array([
+            [self.h/2, 0, 0],
+            [self.h/2, 0, 0],
+            [0, self.h/2, 0],
+            [0, self.h/2, 0],
+            [0, 0, self.h/2],
+            [0, 0, self.h/2],
+            [0, 0, 0]
+            ])
+        
+        self.output_files = generate_output_files(self)
+        
+        # self.file_output_energy = None
+        # if output_settings.print_energy:
+        #     self.file_output_energy = OutputFiles.file_output_energy
+
+        # self.file_output_temperature = None
+        # if output_settings.print_temperature:
+        #     self.file_output_temperature = OutputFiles.file_output_temperature
+
         self.particles = [] # list of class instances of class particle
         
         if output_settings.restart == False: # if False then it starts from a good initial config (BCC lattice) - i.e from an input file.
-            df = pd.read_csv(input_filename) # from file
+            df = pd.read_csv(grid_setting.input_file) # from file
             for i in range(self.N_p):
-                self.particles.append(Particle(df['charge'][i],           #charge given in electronic charge units
-                                           df['mass'][i] * conv_mass, #mass given in amu and converted in au
-                                           (df['radius'][i] / a0),      #radius given in Angs and converted to au
-                                           (np.array([df['x'][i], df['y'][i], df['z'][i]])) / a0)) 
+                self.particles.append(Particle(
+                    self,
+                    df['charge'][i],
+                    df['mass'][i] * conv_mass, #mass given in amu and converted in au
+                    df['radius'][i] / a0,      #radius given in Angs and converted to au
+                    np.array([df['x'][i], df['y'][i], df['z'][i]]) / a0
+                    )
+                )
             for j in range(self.N_p): # not from file - generating on the go
-                self.particles[j].vel = np.array([np.random.normal(loc = 0.0, scale = np.sqrt(kBT / self.particles[j].mass)) for i in range(3)]) # creating a velocity variable in each of the particle classes instances                      
+                self.particles[j].vel = np.array([np.random.normal(loc = 0.0, scale = np.sqrt(self.kBT / self.particles[j].mass)) for i in range(3)]) # creating a velocity variable in each of the particle classes instances                      
         else:
-            df = pd.read_csv(input_restart_filename)
-            print('Read from file:' + input_restart_filename)
+            df = pd.read_csv(grid_setting.restart_file)
+            print('RESTART from file:' + grid_setting.restart_file)
             for i in range(self.N_p):
-                self.particles.append(Particle(df['charge'][i],           #charge given in electronic charge units
-                                           df['mass'][i] * conv_mass, #mass given in amu and converted in au
-                                           (df['radius'][i] / a0),      #radius given in Angs and converted to au
-                                           (np.array([df['x'][i], df['y'][i], df['z'][i]])) / a0)) 
+                self.particles.append(
+                    Particle(
+                        self,
+                        df['charge'][i],           #charge given in electronic charge units
+                        df['mass'][i] * conv_mass, #mass given in amu and converted in au
+                        df['radius'][i] / a0,      #radius given in Angs and converted to au
+                        np.array([df['x'][i], df['y'][i], df['z'][i]]) / a0
+                    )
+                )
             for j in range(self.N_p):
                 self.particles[j].vel = np.array([df['vx'][j], df['vy'][j], df['vz'][j]])
 
-        self.shape = (N,N,N)
+        self.shape = (self.N,)*3
         self.q = np.zeros(self.shape, dtype=float)          # charge vector - q for every grid point
         self.phi = np.zeros(self.shape, dtype=float)          # electrostatic field updated with MaZe
         self.phi_prev = np.zeros(self.shape, dtype=float)     # electrostatic field for step t - 1 Verlet
         # self.indices7 = np.zeros((N_tot, 7))
         self.linked_cell = None
         self.energy = 0
-        self.temperature = T
+        self.temperature = md_variables.T
         self.potential_notelec = 0
         
-        if potential_info == 'TF':
+        if self.potential_info == 'TF':
             self.ComputeForceNotElecLC = self.ComputeForcesTFLinkedcell
             self.ComputeForceNotElecBasic = self.ComputeForcesTFBasic
-        elif potential_info == 'LJ':
+        elif self.potential_info == 'LJ':
             self.ComputeForceNotElecLC = self.ComputeForcesLJLinkedcell
             self.ComputeForceNotElecBasic = self.ComputeForcesLJBasic
       
@@ -179,6 +221,8 @@ class Grid:
 
     # update charges with a weight function that spreads it on the grid
     def SetCharges(self):
+        L = self.L
+        h = self.h
         self.q = np.zeros(self.shape, dtype=float)
 
         q_tot = 0
@@ -191,7 +235,7 @@ class Grid:
                 # coord = dict_indices_nToCoord[n]
                 diff = particle.pos - np.array([i,j,k]) * h
                 #diff = BoxScale(diff)
-                self.q[i,j,k] += particle.charge * g(diff[0]) * g(diff[1]) * g(diff[2])
+                self.q[i,j,k] += particle.charge * g(diff[0], L, h) * g(diff[1], L, h) * g(diff[2], L, h)
                 #print(self.q[n], g(diff[0]), g(diff[1]), g(diff[2]))
             
 
@@ -204,6 +248,8 @@ class Grid:
             
 
     def Energy(self, iter, print_energy, prev=False):
+        L = self.L
+        h = self.h
         if prev == False:
             phi_v = self.phi
         else:
@@ -211,14 +257,14 @@ class Grid:
 
         # electrostatic potential
         potential = 0
-        if elec:
+        if self.elec:
             pot1 = 0
 
             for p in self.particles:
                 for i,j,k in p.neigh:
                     # coord = dict_indices_nToCoord[n]
                     diff = p.pos - np.array([i,j,k]) * h
-                    q_n = p.charge * g(diff[0]) * g(diff[1]) * g(diff[2])
+                    q_n = p.charge * g(diff[0], L, h) * g(diff[1], L, h) * g(diff[2], L, h)
                     #potential = potential + p.charge * phi_v[n] * g(diff[0])* g(diff[1])* g(diff[2])
                     pot1 = pot1 + 0.5 * q_n * phi_v[i,j,k]
                     potential = potential + 0.5 * self.q[i,j,k] * phi_v[i,j,k]
@@ -230,22 +276,22 @@ class Grid:
             kinetic = kinetic + 0.5 * p.mass * np.dot(p.vel, p.vel)
         
         #print('potential = ', potential, ' TF = ', self.potential_notelec)
-        if elec and not_elec:
+        if self.elec and self.not_elec:
             pot_tot = self.potential_notelec + potential
-        elif elec and not_elec == False:
+        elif self.elec and self.not_elec == False:
             pot_tot = potential
-        elif not_elec and elec == False:
+        elif self.not_elec and self.elec == False:
             pot_tot = self.potential_notelec
 
         self.energy = kinetic + pot_tot
         if print_energy:
             #file_output_energy.write(str(iter) + ',' +  str(self.energy) + ',' +  str(kinetic) + ',' + str(potential) + ',' + str(self.potential_notelec) + '\n')#+ potential) + '\n')
-            file_output_energy.write(str(iter) + ',' +  str(kinetic) + ',' + str(self.potential_notelec) + '\n')#+ potential) + '\n')
+            self.output_files.file_output_energy.write(str(iter) + ',' +  str(kinetic) + ',' + str(self.potential_notelec) + '\n')#+ potential) + '\n')
 
 
     def Temperature(self, iter, print_temperature):
         mi_vi2 = [p.mass * np.dot(p.vel, p.vel) for p in self.particles]
-        self.temperature = np.sum(mi_vi2) / (3 * N_p * kB)
+        self.temperature = np.sum(mi_vi2) / (3 * self.N_p * self.kB)
         
         if print_temperature:
-            file_output_temperature.write(str(iter) + ',' +  str(self.temperature) + '\n')
+            self.output_files.file_output_temperature.write(str(iter) + ',' +  str(self.temperature) + '\n')

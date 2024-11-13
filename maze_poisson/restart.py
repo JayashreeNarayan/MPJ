@@ -1,10 +1,11 @@
 import numpy as np
 import pandas as pd
 
-from .input import a0, grid_setting, output_settings
+from.constants import a0
+# from .input import a0, grid_setting, output_settings
 
 
-def generate_restart():
+def generate_restart(grid_setting, output_settings):
     N_p = grid_setting.N_p
     N = grid_setting.N
     path = output_settings.path

@@ -4,22 +4,24 @@ import numpy as np
 from scipy.interpolate import (CubicSpline, LinearNDInterpolator, interpn,
                                make_interp_spline)
 
+from .constants import a0
 from .indices import GetDictTF
-from .input import a0, grid_setting, md_variables, output_settings
+# from .input import a0, grid_setting, md_variables, output_settings
 from .profiling import profile
 
-L = grid_setting.L
-h = grid_setting.h
-N = grid_setting.N
-N_tot = grid_setting.N_tot
-kBT = md_variables.kBT
-potential_info = md_variables.potential
-restart = output_settings.restart
-input_restart_filename = grid_setting.input_restart_filename
+# L = grid_setting.L
+# h = grid_setting.h
+# N = grid_setting.N
+# N_tot = grid_setting.N_tot
+# kBT = md_variables.kBT
+# potential_info = md_variables.potential
+# restart = output_settings.restart
+# input_restart_filename = grid_setting.input_restart_filename
 
 # Particle class
 class Particle:
-    def __init__(self, charge, mass, radius, pos): # the particles can be anywhere in the grid, its molten salt - grid points is not the same as particle spots
+    def __init__(self, grid, charge, mass, radius, pos): # the particles can be anywhere in the grid, its molten salt - grid points is not the same as particle spots
+        self.grid = grid
         self.mass = mass            # mass of particle 
         self.pos = pos              # position of the particle in an array (3D)
         self.vel = np.zeros(3)      # velocity of the particle in an array (3D)
@@ -29,14 +31,16 @@ class Particle:
         self.force = np.zeros(3)    # force acting on the particle, electrostatic 
         self.force_notelec = np.zeros(3) # TF or LJ
 
-        if potential_info == 'TF':
+        L = grid.L
+
+        if grid.potential_info == 'TF':
             self.r_cutoff = 0.5 * L # limit to where the force acts
             self.ComputeForceNotElec = self.ComputeTFForce
             #parameters
             self.B = 3.1546 * a0 # Mouhat 2013 
             self.dict = GetDictTF() # all the TF parameters
         
-        elif potential_info == 'LJ':
+        elif grid.potential_info == 'LJ':
             #parameters
             self.sigma = 3.00512 * 2 / a0   # given in Angs and converted in atomic units  #Ar = 3.400 / a0
             self.epsilon = 5.48 * 1e-4  #Hartree - corresponds to 0.0104 eV  #Ar = 3.82192993 * 1e-4
@@ -47,6 +51,9 @@ class Particle:
             
     # find 8 nearest neighbours of the particle
     def NearestNeigh(self):
+        N = self.grid.N
+        h = self.grid.h
+
         indices = [math.floor(self.pos[i] / h)  for i in range(3)] # nearest indices from the particle's position -> i.e those that charge will be spread to
         neigh_indices = []        
         
@@ -65,6 +72,8 @@ class Particle:
         
     # compute the force acting on the particle
     def ComputeForce(self, grid, prev): #IGNORE
+        L = grid.L
+        h = grid.h
         self.force = np.zeros(3)
  
         if prev == True: # this occurs only for the first step in verlet
@@ -76,14 +85,17 @@ class Particle:
         for i,j,k in self.neigh:
             # i,j,k = dict_indices_nToCoord[n]
             diff = self.pos - np.array([i,j,k]) * h #r_alpha - r_i
-            self.force[0] -= phi_v[i,j,k] * self.charge * g_prime(diff[0]) * g(diff[1]) * g(diff[2]) 
-            self.force[1] -= phi_v[i,j,k] * self.charge * g(diff[0]) * g_prime(diff[1]) * g(diff[2])
-            self.force[2] -= phi_v[i,j,k] * self.charge * g(diff[0]) * g(diff[1]) * g_prime(diff[2]) 
+            self.force[0] -= phi_v[i,j,k] * self.charge * g_prime(diff[0], L, h) * g(diff[1], L, h) * g(diff[2], L, h) 
+            self.force[1] -= phi_v[i,j,k] * self.charge * g(diff[0], L, h) * g_prime(diff[1], L, h) * g(diff[2], L, h)
+            self.force[2] -= phi_v[i,j,k] * self.charge * g(diff[0], L, h) * g(diff[1], L, h) * g_prime(diff[2], L, h) 
 
         print(self.force)
 
     @profile
     def ComputeForce_FD(self, grid, prev): # defn of the force from notes poisson, computer force on the particle
+        N = grid.N
+        h = grid.h
+
         self.force = np.zeros(3)
        
         if prev == True:
@@ -104,10 +116,10 @@ class Particle:
             q_tot = q_tot + grid.q[i,j,k]
     
     
-    def ComputeLJForcePair(self,particle):  # computes LJ force for couple of particles (self particle and a particle given in input
+    def ComputeLJForcePair(self, particle):  # computes LJ force for couple of particles (self particle and a particle given in input
         r_diff = self.pos - particle.pos 
-        r = BoxScale(r_diff)
-        r_mag = BoxScaleDistance(r_diff)
+        r = BoxScale(r_diff, self.grid.L)
+        r_mag = BoxScaleDistance(r_diff, self.grid.L)
         r_cap = r / r_mag
         
         if r_mag <= self.r_cutoff: 
@@ -119,7 +131,7 @@ class Particle:
     
     def ComputeLJPotential(self,particle):  # potential between particles
         r_diff = self.pos - particle.pos 
-        r_mag = BoxScaleDistance(r_diff)
+        r_mag = BoxScaleDistance(r_diff, self.grid.L)
         c_shift = -LJPotential(self.r_cutoff_LJ, self.epsilon, self.sigma)
         
         if r_mag <= self.r_cutoff_LJ: 
@@ -131,8 +143,8 @@ class Particle:
 
     def ComputeLJForcePotentialPair(self, particle): # potential and force in the same function, between 2 particles
         r_diff = self.pos - particle.pos 
-        r = BoxScale(r_diff)
-        r_mag = BoxScaleDistance(r_diff)
+        r = BoxScale(r_diff, self.grid.L)
+        r_mag = BoxScaleDistance(r_diff, self.grid.L)
         r_cap = r / r_mag
         c_shift = -LJPotential(self.r_cutoff, self.epsilon, self.sigma)
        
@@ -162,7 +174,7 @@ class Particle:
         r_diff = self.pos - particle.pos 
         # r = BoxScale(r_diff)
         # r_mag = BoxScaleDistance(r_diff)
-        r, r_mag = BoxScaleDistance2(r_diff)
+        r, r_mag = BoxScaleDistance2(r_diff, self.grid.L)
         r_cap = r / r_mag
         
         A, C, D, sigma_TF = self.dict[self.charge + particle.charge]
@@ -233,26 +245,26 @@ class Particle:
 
 # distance with periodic boundary conditions
 @profile
-def BoxScaleDistance(diff): # returns a number - smallest distance between 2 neightbouring particles - to enforce PBC
+def BoxScaleDistance(diff, L): # returns a number - smallest distance between 2 neightbouring particles - to enforce PBC
     diff = diff - L * np.rint(diff / L)
     # distance = np.sqrt(np.dot(diff, diff))
     distance = np.linalg.norm(diff)
     return distance
 
 @profile
-def BoxScaleDistance2(diff): # returns a number - smallest distance between 2 neightbouring particles - to enforce PBC
+def BoxScaleDistance2(diff, L): # returns a number - smallest distance between 2 neightbouring particles - to enforce PBC
     diff = diff - L * np.rint(diff / L)
     # distance = np.sqrt(np.dot(diff, diff))
     distance = np.linalg.norm(diff)
     return diff, distance
 
 @profile
-def BoxScale(diff): # returns a vector - smallest distance between 2 neightbouring particles - to enforce PBC
+def BoxScale(diff, L): # returns a vector - smallest distance between 2 neightbouring particles - to enforce PBC
     diff = diff - L * np.rint(diff / L)
     return diff
 
 # weight function as defined in the paper Im et al. (1998) - eqn 24
-def g(x):
+def g(x, L, h):
     x = x - L * np.rint(x / L)
     x = np.abs(x)
     
@@ -262,7 +274,7 @@ def g(x):
         return 0
 
 # derivative of the weight function as defined in the paper Im et al. (1998) - eqn 27
-def g_prime(x):
+def g_prime(x, L, h):
     x = x - L * np.rint(x / L)
     if x < 0:
         return 1 / h

@@ -6,43 +6,49 @@ import time
 import numpy as np
 from tqdm import tqdm
 
-from ..grid import *
-from ..input import a0, grid_setting, md_variables, output_settings
-from ..restart import generate_restart
-# from .indices import dict_indices_CoordTon
-from ..verlet import (OVRVO_part1, OVRVO_part2, PrecondLinearConjGradPoisson,
-                      VerletPoisson, VerletPoissonBerendsen, VerletSolutePart1,
-                      VerletSolutePart2)
+from ...constants import a0
+from ...grid import *
+# from ...input import a0, grid_setting, md_variables, output_settings
+from ...restart import generate_restart
+# from ...indices import dict_indices_CoordTon
+from ...verlet import (OVRVO_part1, OVRVO_part2, PrecondLinearConjGradPoisson,
+                       VerletPoisson, VerletPoissonBerendsen,
+                       VerletSolutePart1, VerletSolutePart2)
 
 
-def main():
+def main(grid_setting, output_settings, md_variables):
     begin_time = time.time()
     start_initialization = time.time()
 
     # set output files
-    if output_settings.print_field:
-        from ..output_md import file_output_field
+    # if output_settings.print_field:
+    #     from ...output_md import file_output_field
 
-    if output_settings.print_performance:
-        from ..output_md import file_output_performance
+    # if output_settings.print_performance:
+    #     from ...output_md import file_output_performance
 
-    if output_settings.print_solute:
-        from ..output_md import file_output_solute
+    # if output_settings.print_solute:
+    #     from ...output_md import file_output_solute
 
-    if output_settings.print_energy:
-        from ..output_md import file_output_energy 
+    # if output_settings.print_energy:
+    #     from ...output_md import file_output_energy 
 
-    if output_settings.print_temperature:
-        from ..output_md import file_output_temperature
+    # if output_settings.print_temperature:
+    #     from ...output_md import file_output_temperature
 
-    if output_settings.print_tot_force:
-        from ..output_md import file_output_tot_force
+    # if output_settings.print_tot_force:
+    #     from ...output_md import file_output_tot_force
 
 
     # get variables from input
     h = grid_setting.h
     L = grid_setting.L
     N = grid_setting.N
+    N_tot = grid_setting.N_tot
+    N_p = grid_setting.N_p
+
+    T = md_variables.T
+    not_elec = md_variables.not_elec
     N_steps = md_variables.N_steps
     stride = md_variables.stride
     initialization = md_variables.initialization
@@ -55,7 +61,9 @@ def main():
     tol = md_variables.tol
 
     # initialize grid by inserting particles in the system
-    grid = Grid()
+    grid = Grid(grid_setting, md_variables, output_settings)
+
+    ofiles = grid.output_files
 
     # print relevant info
     print('\nSimulation with N =', N, 'with N_steps =', N_steps, 'and tol =', md_variables.tol)
@@ -107,9 +115,9 @@ def main():
 
     # Velocity Verlet for the solute
     if md_variables.integrator == 'OVRVO':
-        grid.particles = OVRVO_part1(grid.particles, thermostat = thermostat)
+        grid.particles = OVRVO_part1(grid, thermostat = thermostat)
     else:
-        grid.particles = VerletSolutePart1(grid.particles, thermostat=thermostat)
+        grid.particles = VerletSolutePart1(grid, thermostat=thermostat)
 
     # compute 8 nearest neighbors for any particle
     for p, particle in enumerate(grid.particles):
@@ -144,7 +152,7 @@ def main():
         
     print('Number of initialization steps:', init_steps,'\n')
 
-    y = np.zeros(N_tot) 
+    y = np.zeros_like(grid.q) 
 
     ######################################### Verlet ############################################
     #############################################################################################
@@ -159,9 +167,9 @@ def main():
             old_pos.append(particle.pos)
 
         if md_variables.integrator == 'OVRVO':
-            grid.particles = OVRVO_part1(grid.particles, thermostat = thermostat)
+            grid.particles = OVRVO_part1(grid, thermostat = thermostat)
         else:
-            grid.particles = VerletSolutePart1(grid.particles, thermostat = thermostat)
+            grid.particles = VerletSolutePart1(grid, thermostat = thermostat)
 
         if elec:
             # compute 8 nearest neighbors for any particle
@@ -188,7 +196,7 @@ def main():
             for particle in grid.particles:
                 tot_force = tot_force + particle.force + particle.force_notelec
             
-            file_output_tot_force.write(str(i) + ',' + str(tot_force[0]) + ',' + str(tot_force[1]) + ','+ str(tot_force[2]) + "\n") 
+            ofiles.file_output_tot_force.write(str(i) + ',' + str(tot_force[0]) + ',' + str(tot_force[1]) + ','+ str(tot_force[2]) + "\n") 
 
         grid.Energy(print_energy=output_settings.print_energy, iter=i)
         grid.Temperature(print_temperature=output_settings.print_temperature, iter=i)
@@ -202,7 +210,7 @@ def main():
             
             if output_settings.print_solute:
                 for p in range(grid.N_p):
-                    file_output_solute.write(str(grid.particles[p].charge) + ',' + str(i - init_steps) + ',' + str(p) 
+                    ofiles.file_output_solute.write(str(grid.particles[p].charge) + ',' + str(i - init_steps) + ',' + str(p) 
                                     + ',' + str(grid.particles[p].pos[0]) + ',' + str(grid.particles[p].pos[1]) + ',' + str(grid.particles[p].pos[2]) # pos are printed in a.u., then converted to angs in the convert_to_xyz file
                                     + ','  + str(grid.particles[p].vel[0]) + ',' + str(grid.particles[p].vel[1]) + ',' + str(grid.particles[p].vel[2])  #vel are in a.u.
                                     + ','  + str(grid.particles[p].force[0]) + ',' + str(grid.particles[p].force[1]) + ',' + str(grid.particles[p].force[2]) + '\n')
@@ -210,34 +218,34 @@ def main():
                                     #+ ','  + str(grid.particles[p].force[0] + grid.particles[p].force_notelec[0]) + ',' + str(grid.particles[p].force[1]+ grid.particles[p].force_notelec[1]) + ',' + str(grid.particles[p].force[2]+ grid.particles[p].force_notelec[2]) + '\n')          
             
             if output_settings.print_performance and elec:
-                file_output_performance.write(str(i - init_steps) + ',' + str(end_Verlet - start_Verlet) + ',' + str(iter_conv) + "\n") #+ ',' + str(end_Matrix - start_Matrix) + "\n"
+                ofiles.file_output_performance.write(str(i - init_steps) + ',' + str(end_Verlet - start_Verlet) + ',' + str(iter_conv) + "\n") #+ ',' + str(end_Matrix - start_Matrix) + "\n"
                         
             if output_settings.print_field and elec:
                 field_x_MaZe = np.array([grid.phi[l, j, k] for l in range(N)])
                 for n in range(N):
-                    file_output_field.write(str(i - init_steps) + ',' + str(X[n] * a0) + ',' + str(field_x_MaZe[n] * V) + '\n')
+                    ofiles.file_output_field.write(str(i - init_steps) + ',' + str(X[n] * a0) + ',' + str(field_x_MaZe[n] * V) + '\n')
 
     # close output files
     if output_settings.print_field:
-        file_output_field.close()
+        ofiles.file_output_field.close()
 
     if output_settings.print_performance:
-        file_output_performance.close()
+        ofiles.file_output_performance.close()
 
     #if output_settings.print_iters:
     #    file_output_iters.close()
 
     if output_settings.print_solute:
-        file_output_solute.close()
+        ofiles.file_output_solute.close()
 
     if output_settings.print_energy:
-        file_output_energy.close()
+        ofiles.file_output_energy.close()
 
     if output_settings.print_temperature:
-        file_output_temperature.close()
+        ofiles.file_output_temperature.close()
 
     if output_settings.generate_restart_file:
-        restart_file = generate_restart()
+        restart_file = generate_restart(grid_setting, output_settings)
         print('Restart file generated: ', restart_file)
 
         

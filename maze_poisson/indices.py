@@ -1,10 +1,11 @@
 import numpy as np
 
-from .input import grid_setting
+# from .input import grid_setting
+from .constants import a0
 
-N = grid_setting.N
-N_tot = grid_setting.N_tot
-a0 = 0.529177210903 #Angstrom 
+# N = grid_setting.N
+# N_tot = grid_setting.N_tot
+# a0 = 0.529177210903 #Angstrom 
 
 
 # translate index n = i + j * N + k * N * N  to a set of indices (i,j,k)

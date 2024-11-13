@@ -1,3 +1,4 @@
+import inspect
 import os
 import time
 from math import exp, tanh
@@ -5,34 +6,42 @@ from math import exp, tanh
 import numpy as np
 from scipy.linalg import blas
 
-from .input import grid_setting, md_variables, output_settings
+# from .input import grid_setting, md_variables, output_settings
 from .profiling import profile
 
-debug = output_settings.debug
+# debug = output_settings.debug
 #from scipy.sparse import linalg
 
 
-h = grid_setting.h
-L = grid_setting.L
-N_tot = grid_setting.N_tot
-N = grid_setting.N
-tol = md_variables.tol
-dt = md_variables.dt
-omega = md_variables.omega
-preconditioning = md_variables.preconditioning
-elec = md_variables.elec
-not_elec = md_variables.not_elec
-N_p = grid_setting.N_p
-T = md_variables.T
-kB = md_variables.kB
-kBT = md_variables.kBT
-gamma_inpt = md_variables.gamma
+# h = grid_setting.h
+# L = grid_setting.L
+# N_tot = grid_setting.N_tot
+# N = grid_setting.N
+# tol = md_variables.tol
+# dt = md_variables.dt
+# omega = md_variables.omega
+# preconditioning = md_variables.preconditioning
+# elec = md_variables.elec
+# not_elec = md_variables.not_elec
+# N_p = grid_setting.N_p
+# T = md_variables.T
+# kB = md_variables.kB
+# kBT = md_variables.kBT
+# gamma_inpt = md_variables.gamma
 
 
-if output_settings.print_iters:
-    from output_md import file_output_iters
+# if output_settings.print_iters:
+#     from output_md import file_output_iters
 
-def VerletSolutePart1(particles, dt=dt, thermostat=False):
+def VerletSolutePart1(grid, dt=None, thermostat=False):
+    if dt is None:
+        dt = grid.dt
+    N_p = grid.N_p
+    kB = grid.kB
+    L = grid.L
+
+    particles = grid.particles
+
     if thermostat == True:
         mi_vi2 = [p.mass * np.dot(p.vel, p.vel) for p in particles]
         T_exp = np.sum(mi_vi2) / (3 * N_p * kB)
@@ -48,7 +57,10 @@ def VerletSolutePart1(particles, dt=dt, thermostat=False):
     return particles
 
 
-def VerletSolutePart2(grid, dt=dt, prev=False):
+def VerletSolutePart2(grid, dt=None, prev=False):
+    not_elec = grid.not_elec
+    elec = grid.elec
+
     grid.potential_notelec = 0
     if not_elec:
         grid.ComputeForceNotElecBasic()
@@ -63,14 +75,14 @@ def VerletSolutePart2(grid, dt=dt, prev=False):
 ### OVRVO ###
      
 ### Solves the equations for the O-block ###
-def O_block(v, m, gamma):
+def O_block(v, m, gamma, dt, kBT):
     c1 = exp(-gamma*dt)
     rnd = np.random.multivariate_normal(mean = (0.0, 0.0, 0.0), cov = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
     v_t_dt = np.sqrt(c1) * v + np.sqrt((1 - c1) * kBT / m) * rnd
     return v_t_dt
 
 ### Solves the equations for the V-block ###
-def V_block(v, F, m, gamma):
+def V_block(v, F, m, gamma, dt):
     if gamma == 0:
         c2 = 1
     else:
@@ -80,7 +92,7 @@ def V_block(v, F, m, gamma):
     return v_t_dt
 
 ### Solves the equations for the R-block ###
-def R_block(x,v, gamma):
+def R_block(x,v, gamma, dt, L):
     #print(gamma)
     if gamma == 0:
         c2 = 1
@@ -91,34 +103,42 @@ def R_block(x,v, gamma):
     x_t_dt = x_t_dt - L * np.floor(x_t_dt / L)   
     return x_t_dt
 
-def OVRVO_part1(particles, thermostat=False):
+def OVRVO_part1(grid, thermostat=False):
+    particles = grid.particles
     if thermostat:
-        gamma_sim = gamma_inpt
+        gamma_sim = grid.md_variables.gamma_inpt
     else:
         gamma_sim = 0
+
+    dt = grid.md_variables.dt
+    kBT = grid.md_variables.kBT
+    L = grid.L
         
     for p in particles:
-        p.vel = O_block(p.vel, p.mass, gamma_sim)
-        p.vel = V_block(p.vel,p.force + p.force_notelec, p.mass, gamma_sim)
-        p.pos = R_block(p.pos,p.vel, gamma_sim)
+        p.vel = O_block(p.vel, p.mass, gamma_sim, dt, kBT)
+        p.vel = V_block(p.vel,p.force + p.force_notelec, p.mass, gamma_sim, dt)
+        p.pos = R_block(p.pos,p.vel, gamma_sim, dt, L)
     
     return particles
 
 def OVRVO_part2(grid, prev=False, thermostat=False):
+    dt = grid.md_variables.dt
+    kBT = grid.md_variables.kBT
+
     if thermostat:
-        gamma_sim = gamma_inpt
+        gamma_sim = grid.md_variables.gamma_inpt
     else:
         gamma_sim = 0
         
-    if not_elec:
+    if grid.not_elec:
         #grid.ComputeForceNotEleLC() #TF or LJ
         grid.ComputeForceNotElecBasic()
             
     for p in grid.particles:
-        if elec:
+        if grid.elec:
             p.ComputeForce_FD(grid, prev=prev)
-        p.vel = V_block(p.vel, p.force + p.force_notelec, p.mass, gamma_sim)
-        p.vel = O_block(p.vel, p.mass, gamma_sim)
+        p.vel = V_block(p.vel, p.force + p.force_notelec, p.mass, gamma_sim, dt)
+        p.vel = O_block(p.vel, p.mass, gamma_sim, dt, kBT)
     
     return grid.particles
 
@@ -133,19 +153,23 @@ def MatrixVectorProduct_7entries_1(v, index):
     return result
 '''
 
-@profile
-def MatrixVectorProduct_roll(v):  # added by davide
-    v = v.reshape((N, N, N))
-    res = -6 * np.copy(v)
-    for idx in (-1, 1):
-        for ax in range(3):
-            res += np.roll(v, idx, axis=ax)
-    return res.flatten()
+# @profile
+# def MatrixVectorProduct_roll(v):  # added by davide
+#     # v = v.reshape((N, N, N))
+#     res = -6 * np.copy(v)
+#     for idx in (-1, 1):
+#         for ax in range(3):
+#             res += np.roll(v, idx, axis=ax)
+#     return res.flatten()
 
 @profile
 def MatrixVectorProduct_manual(v):
-    v = v.reshape((N, N, N))
+    # v = v.reshape((N, N, N))
     res = -6 * np.copy(v)
+
+    curframe = inspect.currentframe()
+    calframe = inspect.getouterframes(curframe, 2)
+    # print('-----------', calframe[1][3], res.shape)
 
     res[1:,:,:] += v[:-1,:,:]
     res[:-1,:,:] += v[1:,:,:]
@@ -220,17 +244,17 @@ def MatrixVectorProduct_manual(v):
 
 #         return res.flatten()
     
-maze_mmul = os.environ.get('MAZE_MMUL', 'manual')
-if maze_mmul == 'roll':
-    MatrixVectorProduct_7entries_1 = MatrixVectorProduct_roll
-elif maze_mmul == 'manual':
-    MatrixVectorProduct_7entries_1 = MatrixVectorProduct_manual
-# elif maze_mmul == 'torch3d':
-#     MatrixVectorProduct_7entries_1 = MatrixVectorProduct_torch3d
-# elif maze_mmul == 'torch2d':
-#     MatrixVectorProduct_7entries_1 = MatrixVectorProduct_torch2d
-else:
-    raise ValueError(f'Unknown MAZE_MMUL value: {maze_mmul}')
+# maze_mmul = os.environ.get('MAZE_MMUL', 'manual')
+# if maze_mmul == 'roll':
+#     MatrixVectorProduct_7entries_1 = MatrixVectorProduct_roll
+# elif maze_mmul == 'manual':
+#     MatrixVectorProduct_7entries_1 = MatrixVectorProduct_manual
+# # elif maze_mmul == 'torch3d':
+# #     MatrixVectorProduct_7entries_1 = MatrixVectorProduct_torch3d
+# # elif maze_mmul == 'torch2d':
+# #     MatrixVectorProduct_7entries_1 = MatrixVectorProduct_torch2d
+# else:
+#     raise ValueError(f'Unknown MAZE_MMUL value: {maze_mmul}')
 
 MatrixVectorProduct = MatrixVectorProduct_manual
 
@@ -259,7 +283,11 @@ def MatrixVectorProduct_7entries_1_parallel(v, index):
 
 #apply Verlet algorithm to compute the updated value of the field phi, with LCG + SHAKE
 @profile
-def VerletPoisson(grid,y):
+def VerletPoisson(grid, y):
+    omega = grid.md_variables.omega
+    tol = grid.md_variables.tol
+    h = grid.h
+
     # compute provisional update for the field phi
     tmp = np.copy(grid.phi)
     grid.phi = 2 * grid.phi - grid.phi_prev
@@ -269,13 +297,15 @@ def VerletPoisson(grid,y):
     matrixmult = MatrixVectorProduct(grid.phi)
     sigma_p = omega * (grid.q / h + matrixmult / (4 * np.pi)) # M @ grid.phi for row-by-column product
 
+    # print(f'VerletPoisson: {grid.shape=}, {y.shape=}, {sigma_p.shape=}')
+
     # apply LCG
-    y_new, iter_conv = PrecondLinearConjGradPoisson(sigma_p, x0=y) #riduce di 1/3 il numero di iterazioni necessarie a convergere
+    y_new, iter_conv = PrecondLinearConjGradPoisson(sigma_p, x0=y, tol=tol) #riduce di 1/3 il numero di iterazioni necessarie a convergere
     
     # scale the field with the constrained 'force' term
     grid.phi -= y_new / omega * (4 * np.pi)
 
-    if debug:
+    if grid.debug:
         matrixmult1 = MatrixVectorProduct(y_new)
         print('LCG precision     :',np.max(np.abs(matrixmult1 - sigma_p)))
         
@@ -290,10 +320,13 @@ def VerletPoisson(grid,y):
     return grid, y_new, iter_conv
 
 @profile
-def PrecondLinearConjGradPoisson(b, x0 = np.zeros((N,N,N)), tol=tol):
+def PrecondLinearConjGradPoisson(b, x0 = None, tol=1e-7):
+    N_tot = b.size
+    if x0 is None:
+        x0 = np.zeros_like(b)
     P_inv = - 1 / 6
-    x = x0.reshape(N,N,N)
-    r = MatrixVectorProduct(x) - b.reshape(N,N,N)
+    x = np.copy(x0)
+    r = MatrixVectorProduct(x) - b
 
     # np.save('b.npy', b)
     # np.save('x0.npy', x0)
@@ -302,7 +335,7 @@ def PrecondLinearConjGradPoisson(b, x0 = np.zeros((N,N,N)), tol=tol):
     v = P_inv * r  # same as y in book
     p = -v
     
-    r_new = np.ones((N,N,N))
+    r_new = np.ones_like(r)
     iter = 0
 
     while np.linalg.norm(r_new) > tol:
@@ -348,7 +381,10 @@ def MatrixVectorProduct_7entries(M, v, index):
 
 #apply Verlet algorithm to compute the updated value of the field phi, with LCG + SHAKE
 def VerletPoissonBerendsen(grid,eta):
-    omega = md_variables.omega
+    omega = grid.md_variables.omega
+    h = grid.h
+    tol = grid.md_variables.tol
+
     # compute provisional update for the field phi
     tmp = np.copy(grid.phi)
     grid.phi = 2 * grid.phi - grid.phi_prev
@@ -377,8 +413,9 @@ def VerletPoissonBerendsen(grid,eta):
         sigma_p = grid.q / h + M_phi / (4 * np.pi) # M @ grid.phi for row-by-column product
         #print(iter, np.max(np.abs(sigma_p)))
                 
-        if output_settings.print_iters:
-            file_output_iters.write(str(iter) + ',' + str(np.max(np.abs(sigma_p))) + ',' + str(np.linalg.norm(np.abs(sigma_p))) + "\n") #+ ',' + str(end_Matrix - start_Matrix) + "\n")
+        if grid.output_settings.print_iters:
+            # from .output_md import OutputFiles
+            grid.output_files.file_output_iters.write(str(iter) + ',' + str(np.max(np.abs(sigma_p))) + ',' + str(np.linalg.norm(np.abs(sigma_p))) + "\n") #+ ',' + str(end_Matrix - start_Matrix) + "\n")
              
         #if np.linalg.norm(sigma_p) < tol: # MAX OR NORM?
         if np.max(np.abs(sigma_p)) < tol :
@@ -390,7 +427,7 @@ def VerletPoissonBerendsen(grid,eta):
     
     print('iter=',iter)
 
-    if debug:
+    if grid.debug:
         matrixmult2 = MatrixVectorProduct(grid.phi)
         sigma_p1 = grid.q / h + matrixmult2 / (4 * np.pi) # M @ grid.phi for row-by-column product
     
