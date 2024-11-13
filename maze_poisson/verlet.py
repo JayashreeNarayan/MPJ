@@ -1,37 +1,10 @@
-import inspect
-import os
-import time
 from math import exp, tanh
 
 import numpy as np
 from scipy.linalg import blas
 
-# from .input import grid_setting, md_variables, output_settings
 from .profiling import profile
 
-# debug = output_settings.debug
-#from scipy.sparse import linalg
-
-
-# h = grid_setting.h
-# L = grid_setting.L
-# N_tot = grid_setting.N_tot
-# N = grid_setting.N
-# tol = md_variables.tol
-# dt = md_variables.dt
-# omega = md_variables.omega
-# preconditioning = md_variables.preconditioning
-# elec = md_variables.elec
-# not_elec = md_variables.not_elec
-# N_p = grid_setting.N_p
-# T = md_variables.T
-# kB = md_variables.kB
-# kBT = md_variables.kBT
-# gamma_inpt = md_variables.gamma
-
-
-# if output_settings.print_iters:
-#     from output_md import file_output_iters
 
 def VerletSolutePart1(grid, dt=None, thermostat=False):
     if dt is None:
@@ -103,6 +76,7 @@ def R_block(x,v, gamma, dt, L):
     x_t_dt = x_t_dt - L * np.floor(x_t_dt / L)   
     return x_t_dt
 
+@profile
 def OVRVO_part1(grid, thermostat=False):
     particles = grid.particles
     if thermostat:
@@ -142,34 +116,10 @@ def OVRVO_part2(grid, prev=False, thermostat=False):
     
     return grid.particles
 
-#@profile
-'''
-def MatrixVectorProduct_7entries_1(v, index):
-    M = np.array([1,1,1,-6,1,1,1])    
-    v_matrix = v[index]
-
-    result = np.dot(v_matrix,M)
-
-    return result
-'''
-
-# @profile
-# def MatrixVectorProduct_roll(v):  # added by davide
-#     # v = v.reshape((N, N, N))
-#     res = -6 * np.copy(v)
-#     for idx in (-1, 1):
-#         for ax in range(3):
-#             res += np.roll(v, idx, axis=ax)
-#     return res.flatten()
-
 @profile
 def MatrixVectorProduct_manual(v):
     # v = v.reshape((N, N, N))
     res = -6 * np.copy(v)
-
-    curframe = inspect.currentframe()
-    calframe = inspect.getouterframes(curframe, 2)
-    # print('-----------', calframe[1][3], res.shape)
 
     res[1:,:,:] += v[:-1,:,:]
     res[:-1,:,:] += v[1:,:,:]
@@ -188,101 +138,9 @@ def MatrixVectorProduct_manual(v):
 
     return res
 
-# try:
-#     import torch
-# except ImportError:
-#     pass
-# else:
-#     kernel_3d = np.zeros((3,3,3), dtype=np.float64)
-#     kernel_3d[1,1,1] = -6
-#     kernel_3d[0, 1, 1] = 1
-#     kernel_3d[2, 1, 1] = 1
-#     kernel_3d[1, 0, 1] = 1
-#     kernel_3d[1, 2, 1] = 1
-#     kernel_3d[1, 1, 0] = 1
-#     kernel_3d[1, 1, 2] = 1
-
-#     kernel_3d = torch.tensor(kernel_3d, dtype=torch.float64)
-
-#     conv_3d = torch.nn.Conv3d(1, 1, 3, padding=1, bias=False, padding_mode='circular')
-#     conv_3d.weight.data = kernel_3d.unsqueeze(0).unsqueeze(0)
-
-#     @profile
-#     def MatrixVectorProduct_torch3d(v):
-#         v = v.reshape((N, N, N))
-#         v = torch.tensor(v, dtype=torch.float64)
-#         v = conv_3d(v.unsqueeze(0).unsqueeze(0)).squeeze().squeeze()
-#         return v.detach().numpy().flatten()
-        
-#     kernel_2d = np.zeros((3,3), dtype=np.float64)
-#     kernel_2d[1, 1] = -6
-#     kernel_2d[0, 1] = 1
-#     kernel_2d[2, 1] = 1
-#     kernel_2d[1, 0] = 1
-#     kernel_2d[1, 2] = 1
-
-#     kernel_2d = torch.tensor(kernel_2d, dtype=torch.float64)
-
-#     conv_2d = torch.nn.Conv2d(N, N, 3, padding=1, bias=False, padding_mode='circular')
-
-#     conv_2d.weight.data = kernel_2d.unsqueeze(0).unsqueeze(0)
-
-#     @profile
-#     def MatrixVectorProduct_torch2d(v):
-#         v = v.reshape((N, N, N))
-#         res = torch.tensor(v, dtype=torch.float64)
-#         res = conv_2d(res.unsqueeze(1)).squeeze(1)
-
-#         res = res.detach().numpy()
-
-#         # res += np.roll(v, -1, axis=0)
-#         # res += np.roll(v, 1, axis=0)
-#         res[1:,:,:] += v[:-1,:,:]
-#         res[:-1,:,:] += v[1:,:,:]
-#         res[-1,:,:] += v[0,:,:]
-#         res[0,:,:] += v[-1,:,:]
-
-#         return res.flatten()
-    
-# maze_mmul = os.environ.get('MAZE_MMUL', 'manual')
-# if maze_mmul == 'roll':
-#     MatrixVectorProduct_7entries_1 = MatrixVectorProduct_roll
-# elif maze_mmul == 'manual':
-#     MatrixVectorProduct_7entries_1 = MatrixVectorProduct_manual
-# # elif maze_mmul == 'torch3d':
-# #     MatrixVectorProduct_7entries_1 = MatrixVectorProduct_torch3d
-# # elif maze_mmul == 'torch2d':
-# #     MatrixVectorProduct_7entries_1 = MatrixVectorProduct_torch2d
-# else:
-#     raise ValueError(f'Unknown MAZE_MMUL value: {maze_mmul}')
-
 MatrixVectorProduct = MatrixVectorProduct_manual
 
-#PARALLEL
-'''
-def MatrixVectorProduct_7entries_1_row(v, index_row, M):
-    # Extract the relevant elements from v for the given row
-    v_row = v[index_row]
-    # Compute the dot product for the row
-    result = np.dot(v_row, M)
-    return result
-
-def MatrixVectorProduct_7entries_1_parallel(v, index):
-    M = np.array([1, 1, 1, -6, 1, 1, 1])  
-    
-    # Use ThreadPoolExecutor for parallelization
-    with ThreadPoolExecutor() as executor:
-        # Submit tasks for each row
-        futures = [executor.submit(MatrixVectorProduct_7entries_1_row, v, index_row, M) for index_row in index]
-        
-        # Collect results in the order they were submitted
-        result = np.array([future.result() for future in futures])
-
-    return result
-'''
-
 #apply Verlet algorithm to compute the updated value of the field phi, with LCG + SHAKE
-@profile
 def VerletPoisson(grid, y):
     omega = grid.md_variables.omega
     tol = grid.md_variables.tol

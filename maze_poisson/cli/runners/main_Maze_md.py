@@ -8,9 +8,7 @@ from tqdm import tqdm
 
 from ...constants import a0
 from ...grid import *
-# from ...input import a0, grid_setting, md_variables, output_settings
 from ...restart import generate_restart
-# from ...indices import dict_indices_CoordTon
 from ...verlet import (OVRVO_part1, OVRVO_part2, PrecondLinearConjGradPoisson,
                        VerletPoisson, VerletPoissonBerendsen,
                        VerletSolutePart1, VerletSolutePart2)
@@ -19,26 +17,6 @@ from ...verlet import (OVRVO_part1, OVRVO_part2, PrecondLinearConjGradPoisson,
 def main(grid_setting, output_settings, md_variables):
     begin_time = time.time()
     start_initialization = time.time()
-
-    # set output files
-    # if output_settings.print_field:
-    #     from ...output_md import file_output_field
-
-    # if output_settings.print_performance:
-    #     from ...output_md import file_output_performance
-
-    # if output_settings.print_solute:
-    #     from ...output_md import file_output_solute
-
-    # if output_settings.print_energy:
-    #     from ...output_md import file_output_energy 
-
-    # if output_settings.print_temperature:
-    #     from ...output_md import file_output_temperature
-
-    # if output_settings.print_tot_force:
-    #     from ...output_md import file_output_tot_force
-
 
     # get variables from input
     h = grid_setting.h

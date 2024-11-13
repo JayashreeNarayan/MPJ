@@ -7,13 +7,13 @@ import time
 import numpy as np
 from tqdm import tqdm
 
-from ...grid import *
-from ...indices import dict_indices_CoordTon
-from ...input import a0, grid_setting, md_variables
-from ...toclean.output import (file_output_convergence, file_output_field,
-                               file_output_solute, file_output_time)
-from ...verlet import (LinearConjGrad, PrecondLinearConjGradPoisson,
-                       VerletPoisson)
+from ..grid import *
+from ..indices import dict_indices_CoordTon
+from ..input import a0, grid_setting, md_variables
+from ..verlet import (LinearConjGrad, PrecondLinearConjGradPoisson,
+                      VerletPoisson)
+from .output import (file_output_convergence, file_output_field,
+                     file_output_solute, file_output_time)
 
 #import sys
 

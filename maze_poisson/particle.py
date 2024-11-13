@@ -1,22 +1,14 @@
 import math
 
 import numpy as np
-from scipy.interpolate import (CubicSpline, LinearNDInterpolator, interpn,
-                               make_interp_spline)
 
 from .constants import a0
 from .indices import GetDictTF
-# from .input import a0, grid_setting, md_variables, output_settings
 from .profiling import profile
 
-# L = grid_setting.L
-# h = grid_setting.h
-# N = grid_setting.N
-# N_tot = grid_setting.N_tot
-# kBT = md_variables.kBT
-# potential_info = md_variables.potential
-# restart = output_settings.restart
-# input_restart_filename = grid_setting.input_restart_filename
+# from scipy.interpolate import (CubicSpline, LinearNDInterpolator, interpn,
+#                                make_interp_spline)
+
 
 # Particle class
 class Particle:
@@ -24,12 +16,12 @@ class Particle:
         self.grid = grid
         self.mass = mass            # mass of particle 
         self.pos = pos              # position of the particle in an array (3D)
-        self.vel = np.zeros(3)      # velocity of the particle in an array (3D)
+        self.vel = np.zeros(3, dtype=float)      # velocity of the particle in an array (3D)
         self.charge = charge        # charge of the particle
         self.radius = radius        # radius of the particle
-        self.neigh = np.zeros(8)    # 8 nearest neighbours of the particle
-        self.force = np.zeros(3)    # force acting on the particle, electrostatic 
-        self.force_notelec = np.zeros(3) # TF or LJ
+        self.neigh = np.empty((8, 3), dtype=int)    # 8 nearest neighbours of the particle
+        self.force = np.zeros(3, dtype=float)    # force acting on the particle, electrostatic 
+        self.force_notelec = np.zeros(3, dtype=float) # TF or LJ
 
         L = grid.L
 
@@ -129,7 +121,7 @@ class Particle:
    
         return f_mag * r_cap
     
-    def ComputeLJPotential(self,particle):  # potential between particles
+    def ComputeLJPotential(self, particle):  # potential between particles
         r_diff = self.pos - particle.pos 
         r_mag = BoxScaleDistance(r_diff, self.grid.L)
         c_shift = -LJPotential(self.r_cutoff_LJ, self.epsilon, self.sigma)

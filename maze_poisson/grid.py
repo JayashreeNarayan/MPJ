@@ -1,34 +1,14 @@
 import numpy as np
-# from indices import dict_indices_nToCoord
 import pandas as pd
 
 from .constants import a0, amu_to_kg
-# from .input import grid_setting, md_variables, output_settings
 from .linkedcell import LinkedCell
-from .output_md import OutputFiles, generate_output_files
+from .output_md import generate_output_files
 from .particle import Particle, g
-
-# get input variables from input file
-# N = grid_setting.N
-# N_tot = grid_setting.N_tot
-# N_p = grid_setting.N_p
-# h = grid_setting.h
-# L = grid_setting.L
-# input_filename = grid_setting.input_filename
-# input_restart_filename = grid_setting.input_restart_filename
-
-# dt = md_variables.dt
-# potential_info = md_variables.potential
-# elec = md_variables.elec
-# not_elec = md_variables.not_elec
-# T = md_variables.T
-# kB = md_variables.kB
-# kBT = md_variables.kBT
 
 amu_to_kg = 1.66054 * 1e-27 
 m_e = 9.1093837 * 1e-31 #kg
 conv_mass = amu_to_kg / m_e
-# offset_update = np.array([[h/2, 0, 0], [h/2, 0, 0], [0, h/2, 0], [0, h/2, 0], [0, 0, h/2], [0, 0, h/2], [0, 0, 0]])
 # grid class to represent the grid and the fields operating on it
 
 class Grid:
@@ -63,14 +43,6 @@ class Grid:
             ])
         
         self.output_files = generate_output_files(self)
-        
-        # self.file_output_energy = None
-        # if output_settings.print_energy:
-        #     self.file_output_energy = OutputFiles.file_output_energy
-
-        # self.file_output_temperature = None
-        # if output_settings.print_temperature:
-        #     self.file_output_temperature = OutputFiles.file_output_temperature
 
         self.particles = [] # list of class instances of class particle
         
@@ -240,8 +212,6 @@ class Grid:
             
 
         q_tot = np.sum(self.q)
-        # for n in range(N_tot):
-        #     q_tot = q_tot + self.q[n]
 
         if q_tot + 1e-6 < q_tot_expected:
             print('Error: change initial position, charge is not preserved - q_tot =', q_tot) 

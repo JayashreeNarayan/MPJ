@@ -1,6 +1,5 @@
 import os
 
-# from .input import grid_setting, output_settings
 
 class OutputFiles:
     file_output_field = None
