@@ -28,7 +28,7 @@ requires-python = ">=3.8"
 dependencies = [
     "numpy",
     "scipy",
-    "matplotlib",
+    # "matplotlib",
     "pandas",
     "tqdm",
     "pyyaml",
@@ -42,6 +42,10 @@ dependencies = [
 # fancy = [
 #     "tqdm",
 # ]
+plotting = [
+    "matplotlib",
+    "PyQt5",
+]
 tests = [
     "pytest",
     "pytest-cov",

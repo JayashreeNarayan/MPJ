@@ -1,19 +1,28 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
 import os
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+from ...constants import a0, t_au
+from . import get_N
+
 #from input import md_variables, grid_setting, a0, output_settings
 
-a0 = 0.529177210903 #Angstrom 
-N = 100
-folder='Outputs/'
-path='Outputs/'
-file_T = 'temperature_N'
-t_au = 2.4188843265857 * 1e-2 #fs = 1 a.u. of time 
-dt = 0.25 / t_au
 
-def PlotT(file,folder,dt,N,label='iter'):
-    df = pd.read_csv(folder + file + str(N) + '.csv')
+# N = 100
+# folder='Outputs/'
+# path='Outputs/'
+# file_T = 'temperature_N'
+# t_au = 2.4188843265857 * 1e-2 #fs = 1 a.u. of time 
+# dt = 0.25 / t_au
+
+def PlotT(filename, dt, label='iter'):
+    df = pd.read_csv(filename)
+    N = get_N(filename)
+
+    dt /=  t_au
+
     T = df['T'][1:]
     iter = df[label][1:]
     rel_err = np.std(T)/np.mean(T)
@@ -28,7 +37,7 @@ def PlotT(file,folder,dt,N,label='iter'):
     plt.ylabel('T (K)', fontsize=15)
     plt.axhline(1550)
     plt.legend()
-    plt.savefig(folder + 'T_N' + str(N) + '_dt' + str(dt) + '.pdf', format='pdf')
+    plt.savefig('T_N' + str(N) + '_dt' + str(dt) + '.pdf', format='pdf')
     plt.show()
 
 def plot_Etot_trp(path, N, dt, N_th, L=20.9 / a0, upper_lim=None):
@@ -226,9 +235,9 @@ def plot_work_trp(path, N, N_th, L=20.9 / a0):
     plt.show()
 
 
-PlotT(file_T, folder, dt, N)
-plot_Etot_trp(path, N, dt, N_th=0, L=20.9 / a0)
-plot_work_trp(path, N, N_th=0)
+# PlotT(file_T, folder, dt, N)
+# plot_Etot_trp(path, N, dt, N_th=0, L=20.9 / a0)
+# plot_work_trp(path, N, N_th=0)
 
 
 

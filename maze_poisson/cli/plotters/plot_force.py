@@ -1,11 +1,14 @@
 import matplotlib.pyplot as plt
-import pandas as pd
 import numpy as np
+import pandas as pd
 
-N =100
+from . import get_N
 
-def plot_force(folder, N, dt):
-    df = pd.read_csv(folder + '/tot_force_N' + str(N) + '.csv')
+
+def plot_force(filename, dt):
+    df = pd.read_csv(filename, encoding='utf-8')
+
+    N = get_N(filename)
 
     plt.figure(figsize=(10, 6))
     plt.plot(df['iter'] * dt / 1000, df['Fx'], 'r', linestyle='-', label='Fx')
@@ -18,25 +21,28 @@ def plot_force(folder, N, dt):
     #plt.axhline(np.mean(df['Fy']), label='avg = '+str(np.mean(df['Fy'])))
     #plt.axhline(np.mean(df['Fz']), label='avg = '+str(np.mean(df['Fz'])))
     
-    title = '/force_tot_N_' + str(N) + '_dt_' + str(dt)
-    name = folder + title + ".pdf"
+    title = 'force_tot_N_' + str(N) + '_dt_' + str(dt)
+    name = title + ".pdf"
     plt.legend()
     plt.savefig(name, format='pdf')
     plt.show()
 
-def plot_forcemod(folder, N, dt):
-    df = pd.read_csv(folder + '/tot_force_N' + str(N) + '.csv')
+def plot_forcemod(filename, dt):
+    df = pd.read_csv(filename)
+
+    N = get_N(filename)
+
     Fx = df['Fx']
     Fy = df['Fy']
     Fz = df['Fz']
     Fmod = np.sqrt(Fx**2 + Fy**2 + Fz**2)
-    plt.plot(df['t'], Fmod, '.r', linestyle='-', label='N = ' + str(N))
+    plt.plot(df['iter'], Fmod, '.r', linestyle='-', label='N = ' + str(N))
     plt.ylabel('Total force on x axis (a.u.)')
     plt.xlabel('t (a.u.)')
     plt.axhline(np.mean(Fmod), label='avg = '+str(np.mean(Fmod)))
     plt.title('Total force acting on the system for dt = ' + str(dt) + ' and N = ' + str(N))
-    title = '/force_totmod_N_' + str(N) + '_dt_' + str(dt)
-    name = folder + title + ".pdf"
+    title = 'force_totmod_N_' + str(N) + '_dt_' + str(dt)
+    name = title + ".pdf"
     plt.legend()
     plt.savefig(name, format='pdf')
     plt.show()
@@ -116,15 +122,15 @@ def plot_force_allomega(folder, omega_list):
 #plot_force_allomega(path, ['1', '1e-2', '1e-4'])
 
 
-path = 'test_momentum/species_scaling/dt_0.25/'
-#plot_force(path, 50, 0.25)
-#plot_force(path, 100, 0.25)
-#plot_force_allN(path, [50, 100], 0.25)
+# path = 'test_momentum/species_scaling/dt_0.25/'
+# #plot_force(path, 50, 0.25)
+# #plot_force(path, 100, 0.25)
+# #plot_force_allN(path, [50, 100], 0.25)
 
-path = 'test_momentum/species_scaling/dt_0.1/'
-#plot_force(path, 50, 0.1)
-#plot_force(path, 100, 0.1)
-#plot_force_allN(path, [50, 100], 0.1)
+# path = 'test_momentum/species_scaling/dt_0.1/'
+# #plot_force(path, 50, 0.1)
+# #plot_force(path, 100, 0.1)
+# #plot_force_allN(path, [50, 100], 0.1)
 
-path = 'Outputs/'
-plot_force(path, N, 0.25)
+# path = 'Outputs/'
+# plot_force(path, N, 0.25)
