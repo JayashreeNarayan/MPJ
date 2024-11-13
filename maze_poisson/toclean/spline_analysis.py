@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 from scipy.interpolate import CubicSpline
 
-from .indices import nToGridCoord
-from .input import grid_setting
+from ..indices import nToGridCoord
+from ..input import grid_setting
 
 N = grid_setting.N
 h = grid_setting.h
