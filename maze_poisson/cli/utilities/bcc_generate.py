@@ -1,5 +1,7 @@
-import numpy as np
 import csv
+
+import numpy as np
+
 
 def generate_bcc_positions(box_size, num_particles, epsilon=0.2):
     """
@@ -41,38 +43,38 @@ def generate_bcc_positions(box_size, num_particles, epsilon=0.2):
     return positions
 
 # Define the dimensions of the box
-L =  [4.18, 8.36, 12.54, 16.72, 20.9, 25.08, 29.26, 33.44]
+# L =  [4.18, 8.36, 12.54, 16.72, 20.9, 25.08, 29.26, 33.44]
 
-# Number of particles
-num_particles = [2, 16, 54, 128, 250, 432, 686, 1024]
+# # Number of particles
+# num_particles = [2, 16, 54, 128, 250, 432, 686, 1024]
 
-# Generate BCC positions
-folder = 'input_files_bcc/'
+# # Generate BCC positions
+# folder = 'input_files_bcc/'
 
-m_Na = 22.99
-m_Cl = 35.453
-header = "charge,mass,radius,x,y,z\n"
+# m_Na = 22.99
+# m_Cl = 35.453
+# header = "charge,mass,radius,x,y,z\n"
 
-for i in range(len(L)):
-    positions = generate_bcc_positions(L[i], num_particles[i])
-    filename = folder + 'input_coord' + str(num_particles[i]) + '.csv'
-    # Header for the CSV file
-    print('Density = ', 0.5 * num_particles[i] * (m_Cl + m_Na) / L[i]**3)
+# for i in range(len(L)):
+#     positions = generate_bcc_positions(L[i], num_particles[i])
+#     filename = folder + 'input_coord' + str(num_particles[i]) + '.csv'
+#     # Header for the CSV file
+#     print('Density = ', 0.5 * num_particles[i] * (m_Cl + m_Na) / L[i]**3)
     
-    # Write coordinates to CSV file
-    with open(filename, "w", newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow(header.strip().split(','))
+#     # Write coordinates to CSV file
+#     with open(filename, "w", newline='') as f:
+#         writer = csv.writer(f)
+#         writer.writerow(header.strip().split(','))
     
-        idx = 0
-        for pos in positions:
-            charge = (-1) ** idx  # Alternate the charge between 1 and -1
-            if charge > 0:
-                mass = m_Na
-            else:
-                mass = m_Cl
-            radius = 1
-            writer.writerow([charge, mass, radius, pos[0], pos[1], pos[2]])
-            idx += 1
+#         idx = 0
+#         for pos in positions:
+#             charge = (-1) ** idx  # Alternate the charge between 1 and -1
+#             if charge > 0:
+#                 mass = m_Na
+#             else:
+#                 mass = m_Cl
+#             radius = 1
+#             writer.writerow([charge, mass, radius, pos[0], pos[1], pos[2]])
+#             idx += 1
 
-    print(f"CSV file '{filename}' has been generated.")
+#     print(f"CSV file '{filename}' has been generated.")
