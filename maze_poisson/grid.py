@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 from .constants import a0, amu_to_kg
-from .linkedcell import LinkedCell
+# from .toclean.linkedcell import LinkedCell
 from .output_md import generate_output_files
 from .particle import Particle, g
 
@@ -92,9 +92,9 @@ class Grid:
             self.ComputeForceNotElecLC = self.ComputeForcesLJLinkedcell
             self.ComputeForceNotElecBasic = self.ComputeForcesLJBasic
       
-    def LinkedCellInit(self,cutoff): # review together, not working rn - list to make neighbours and implement TF properly 
-        self.linked_cell = LinkedCell(cutoff, L, self.N_p)
-        self.linked_cell.update_lists(self.particles)
+    # def LinkedCellInit(self,cutoff): # review together, not working rn - list to make neighbours and implement TF properly 
+    #     self.linked_cell = LinkedCell(cutoff, L, self.N_p)
+    #     self.linked_cell.update_lists(self.particles)
 
     def ComputeForcesLJBasic(self):
         pe = 0

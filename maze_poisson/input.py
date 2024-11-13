@@ -1,23 +1,8 @@
-import sys
 from pathlib import Path
 
 import yaml
 
 from .constants import a0, t_au
-
-# Check if the correct number of arguments is provided
-# if len(sys.argv) != 5:
-#     print("\nUsage: python your_script.py <N_p> <N> <N_steps> <L>")
-#     print("Where:")
-#     print("<N_p>        : Number of particles (integer)")
-#     print("<N>          : Number of grid points per side (integer)")
-#     print("<N_steps>    : Number of steps to perform (integer)")
-#     print("<L>          : Length of the side of the box (float, Angstrom)\n")
-#     sys.exit(1)  # Exit the script with an error code
-
-# a0 = 0.529177210903 #Angstrom 
-# t_au = 2.4188843265857 * 1e-2 #fs = 1 a.u. of time 
-
 
 ###################################################################################
 
@@ -35,21 +20,11 @@ class OutputSettings:
     debug = False
     restart = True
     generate_restart_file = False
-# output_settings = OutputSettings()
 
 ###################################################################################
 
 ### Grid and box settings ###
 class GridSetting:
-    # N = int(sys.argv[2])              #number of grid points per size
-    # N_tot = N * N * N        #number of grid points
-    # L = float(sys.argv[4])  / a0  #20.9/ a0  #6.64 / a0 Np = 8 # 5.6 * 2 / a0   #box lenght
-    # h = L / N                #mesh size
-    # path = './restart_files/'
-    # input_restart_filename = path + 'restart_N' + str(N) + '_step9999.csv'
-    # input_filename = 'input_files_new/input_coord' + str(int(sys.argv[1])) + '.csv'
-    # N_p = int(sys.argv[1])
-
     def __init__(self):
         self._N = None
         self._L = None
@@ -70,20 +45,10 @@ class GridSetting:
         self._N = value
         self._N_tot = int(value ** 3)
         self._h = None
-        # self.input_restart_filename = self.path + 'restart_N' + str(self.N) + '_step9999.csv'
-        # self.input_filename = 'input_files_new/input_coord' + str(self.N_p) + '.csv'
 
     @property
     def N_tot(self):
         return self._N_tot
-    
-    # @N_tot.setter
-    # def N_tot(self, value):
-    #     fl = value ** (1/3)
-    #     if fl.is_integer():
-    #         self.N = int(fl)
-    #     else:
-    #         raise ValueError('N_tot must be a perfect cube')
         
     @property
     def L(self):
