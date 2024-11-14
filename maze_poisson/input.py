@@ -97,7 +97,7 @@ required_inputs: dict[str, list[str]] = {
     'md_variables': ['N_steps']
 }
 
-def initialize_from_yaml(filename: Path | str):
+def initialize_from_yaml(filename):
     if isinstance(filename, str):
         filename = Path(filename)
     if not isinstance(filename, Path):
