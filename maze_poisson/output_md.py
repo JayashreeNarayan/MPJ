@@ -1,6 +1,5 @@
 import os
 
-
 class OutputFiles:
     file_output_field = None
     file_output_performance = None

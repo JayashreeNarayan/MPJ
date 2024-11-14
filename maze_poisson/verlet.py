@@ -1,10 +1,7 @@
 from math import exp, tanh
-
 import numpy as np
 from scipy.linalg import blas
-
 from .profiling import profile
-
 
 def VerletSolutePart1(grid, dt=None, thermostat=False):
     if dt is None:
@@ -18,7 +15,6 @@ def VerletSolutePart1(grid, dt=None, thermostat=False):
     if thermostat == True:
         mi_vi2 = [p.mass * np.dot(p.vel, p.vel) for p in particles]
         T_exp = np.sum(mi_vi2) / (3 * N_p * kB)
-        #print('T measured =', T_exp)
         lambda_scaling = np.sqrt(T / T_exp)
 
     for particle in particles:
@@ -42,7 +38,6 @@ def VerletSolutePart2(grid, dt=None, prev=False):
         if elec:
             particle.ComputeForce_FD(grid, prev=prev)
         particle.vel = particle.vel + 0.5 * ((particle.force + particle.force_notelec) / particle.mass) * dt
-        # berendsen
     return grid
 
 ### OVRVO ###
@@ -60,13 +55,11 @@ def V_block(v, F, m, gamma, dt):
         c2 = 1
     else:
         c2 = np.sqrt(2 /(gamma * dt) * tanh(0.5 * gamma * dt)) 
-    
     v_t_dt = v + 0.5 * c2 * dt * F / m #F is the force
     return v_t_dt
 
 ### Solves the equations for the R-block ###
 def R_block(x,v, gamma, dt, L):
-    #print(gamma)
     if gamma == 0:
         c2 = 1
     else:
@@ -105,7 +98,6 @@ def OVRVO_part2(grid, prev=False, thermostat=False):
         gamma_sim = 0
         
     if grid.not_elec:
-        #grid.ComputeForceNotEleLC() #TF or LJ
         grid.ComputeForceNotElecBasic()
             
     for p in grid.particles:
@@ -118,7 +110,6 @@ def OVRVO_part2(grid, prev=False, thermostat=False):
 
 @profile
 def MatrixVectorProduct_manual(v):
-    # v = v.reshape((N, N, N))
     res = -6 * np.copy(v)
 
     res[1:,:,:] += v[:-1,:,:]
@@ -140,7 +131,7 @@ def MatrixVectorProduct_manual(v):
 
 MatrixVectorProduct = MatrixVectorProduct_manual
 
-#apply Verlet algorithm to compute the updated value of the field phi, with LCG + SHAKE
+# apply Verlet algorithm to compute the updated value of the field phi, with LCG + SHAKE
 def VerletPoisson(grid, y):
     omega = grid.md_variables.omega
     tol = grid.md_variables.tol
@@ -154,8 +145,6 @@ def VerletPoisson(grid, y):
     # compute the constraint with the provisional value of the field phi
     matrixmult = MatrixVectorProduct(grid.phi)
     sigma_p = omega * (grid.q / h + matrixmult / (4 * np.pi)) # M @ grid.phi for row-by-column product
-
-    # print(f'VerletPoisson: {grid.shape=}, {y.shape=}, {sigma_p.shape=}')
 
     # apply LCG
     y_new, iter_conv = PrecondLinearConjGradPoisson(sigma_p, x0=y, tol=tol) #riduce di 1/3 il numero di iterazioni necessarie a convergere
@@ -185,12 +174,7 @@ def PrecondLinearConjGradPoisson(b, x0 = None, tol=1e-7):
     P_inv = - 1 / 6
     x = np.copy(x0)
     r = MatrixVectorProduct(x) - b
-
-    # np.save('b.npy', b)
-    # np.save('x0.npy', x0)
-    # print(tol)
-    
-    v = P_inv * r  # same as y in book
+    v = P_inv * r  
     p = -v
     
     r_new = np.ones_like(r)
@@ -199,33 +183,19 @@ def PrecondLinearConjGradPoisson(b, x0 = None, tol=1e-7):
     while np.linalg.norm(r_new) > tol:
         iter = iter + 1
         Ap = MatrixVectorProduct(p) # A @ d for row-by-column product
-
-        #Ap = A @ p
-        # r_dot_v = np.dot(r, v)
-        # r_dot_v = np.sum(r * v)
         r_dot_v = blas.ddot(r, v, N_tot)
-        # alpha = r_dot_v / np.dot(p, Ap)
-        # alpha = r_dot_v / np.sum(p * Ap)
+
         alpha = r_dot_v / blas.ddot(p, Ap, N_tot)
         x = blas.daxpy(p, x , N_tot, alpha)
-        # x += alpha * p
-        
-        # r_new = r + alpha * Ap
+ 
         r_new = blas.daxpy(Ap, r, N_tot, alpha)
         v_new =  P_inv * r_new
 
-        # beta = np.dot(r_new, v_new) / r_dot_v
-        # beta = np.sum(r_new * v_new) / r_dot_v
         beta = blas.ddot(r_new, v_new, N_tot) / r_dot_v
-        # p = -v_new + beta * p
         p = blas.daxpy(p, -v_new, N_tot, beta)
         
         r = r_new
         v = v_new
-
-    # np.save('x.npy', x)
-    # print(iter)
-    # raise
 
     return x, iter
 
@@ -233,11 +203,9 @@ def PrecondLinearConjGradPoisson(b, x0 = None, tol=1e-7):
 def MatrixVectorProduct_7entries(M, v, index):
     v_matrix = v[index]
     result = np.einsum('ij,ij->i', M, v_matrix)
-
     return result
 
-
-#apply Verlet algorithm to compute the updated value of the field phi, with LCG + SHAKE
+# apply Verlet algorithm to compute the updated value of the field phi, with LCG + SHAKE
 def VerletPoissonBerendsen(grid,eta):
     omega = grid.md_variables.omega
     h = grid.h
@@ -260,28 +228,21 @@ def VerletPoissonBerendsen(grid,eta):
     while(stop_iteration == False):	
         iter = iter + 1
         delta_eta =  -(4 * np.pi)**2 * const_inv * sigma_p * omega
-        #delta_eta =  -(4 * np.pi) * const_inv * sigma_p * omega
         eta = eta + delta_eta
         
         M_delta_eta = MatrixVectorProduct(delta_eta)
         grid.phi = grid.phi + M_delta_eta / (4 * np.pi) 
-        #grid.phi = grid.phi + M_delta_eta
         
         M_phi = MatrixVectorProduct(grid.phi)
         sigma_p = grid.q / h + M_phi / (4 * np.pi) # M @ grid.phi for row-by-column product
-        #print(iter, np.max(np.abs(sigma_p)))
                 
         if grid.output_settings.print_iters:
             # from .output_md import OutputFiles
             grid.output_files.file_output_iters.write(str(iter) + ',' + str(np.max(np.abs(sigma_p))) + ',' + str(np.linalg.norm(np.abs(sigma_p))) + "\n") #+ ',' + str(end_Matrix - start_Matrix) + "\n")
              
-        #if np.linalg.norm(sigma_p) < tol: # MAX OR NORM?
+        # if np.linalg.norm(sigma_p) < tol: # MAX OR NORM?
         if np.max(np.abs(sigma_p)) < tol :
             stop_iteration = True
-
-        #if iter % 1000 == 0:
-        #    omega = omega - 0.1
-            
     
     print('iter=',iter)
 

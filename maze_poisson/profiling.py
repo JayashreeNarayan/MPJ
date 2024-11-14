@@ -1,6 +1,5 @@
 import os
 
-
 allowed_profilers = {}
 try:
     import line_profiler as lprof

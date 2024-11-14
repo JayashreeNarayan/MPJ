@@ -1,7 +1,5 @@
 from pathlib import Path
-
 import yaml
-
 from .constants import a0, t_au
 
 ###################################################################################
@@ -65,31 +63,27 @@ class GridSetting:
             self._h = self.L / self.N
         return self._h
 
-# grid_setting = GridSetting()
-
 ###################################################################################
 
 ### MD variables ###
 class MDVariables:
-    # N_steps = int(sys.argv[3])  
     N_steps = None
     init_steps = 0
     thermostat = False
     dt = 0.25 / t_au        # timestep for the solute evolution given in fs and converted in a.u.
     stride = 1              # saves every stride steps
     tol = 1e-7
-    omega = 1 #overrelaxation parameter # REMOVE
+    omega = 1 # overrelaxation parameter 
     initialization = 'CG'   # always CG
-    preconditioning = 'Yes' #Yes or No
+    preconditioning = 'Yes' # Yes or No
     elec = True
     not_elec = True
-    potential = 'TF' #TF or LJ
+    potential = 'TF' # Tosi Fumi (TF) or Leonard Jones (LJ)
     integrator = 'OVRVO'
     gamma = 1e-3 # OVRVO parameter
     T = 1550 # K
-    kB = 3.1668 * 1e-6 #Eh/K
-    kBT = kB * T #Eh
-# md_variables = MDVariables()
+    kB = 3.1668 * 1e-6 #E_h/K
+    kBT = kB * T # E_h
 
 required_inputs: dict[str, list[str]] = {
     'grid_setting': ['N', 'L', 'N_p', 'input_file'],

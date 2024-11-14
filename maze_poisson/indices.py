@@ -1,23 +1,8 @@
 import numpy as np
 from .constants import a0
 
-
-# translate index n = i + j * N + k * N * N  to a set of indices (i,j,k)
-'''
-def nToGridCoord(n, N): 
-    i = n % N
-    j = ((n - i) / N) % N
-    k = ((n - i) / N - j) / N
-
-    coord = np.array([i, j, k]).astype(int)
-    if n == i + j * N + k * N * N:
-        return coord
-    else:
-        print('Conversion gone wrong: check nToGridCoord(n) function')
-        print(n, '!=', i + j * N + k * N * N)
-        print(coord)
-'''
-def GetDictTF(): # get dictionary of TF params
+### get dictionary of TF params ###
+def GetDictTF(): 
     charge_totNaNa = 2
     charge_totNaCl = 0
     charge_totClCl = -2

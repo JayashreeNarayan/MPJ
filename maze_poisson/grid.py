@@ -2,18 +2,16 @@ import numpy as np
 import pandas as pd
 
 from .constants import a0, amu_to_kg
-# from .toclean.linkedcell import LinkedCell
 from .output_md import generate_output_files
 from .particle import Particle, g
 
 amu_to_kg = 1.66054 * 1e-27 
 m_e = 9.1093837 * 1e-31 #kg
 conv_mass = amu_to_kg / m_e
-# grid class to represent the grid and the fields operating on it
 
+### grid class to represent the grid and the fields operating on it ###
 class Grid:
     def __init__(self, grid_setting, md_variables, output_settings):
-        #print(df.head())
         self.grid_setting = grid_setting
         self.md_variables = md_variables
         self.output_settings = output_settings
@@ -52,8 +50,8 @@ class Grid:
                 self.particles.append(Particle(
                     self,
                     df['charge'][i],
-                    df['mass'][i] * conv_mass, #mass given in amu and converted in au
-                    df['radius'][i] / a0,      #radius given in Angs and converted to au
+                    df['mass'][i] * conv_mass, # mass given in amu and converted in au
+                    df['radius'][i] / a0,      # radius given in Angs and converted to au
                     np.array([df['x'][i], df['y'][i], df['z'][i]]) / a0
                     )
                 )
@@ -66,9 +64,9 @@ class Grid:
                 self.particles.append(
                     Particle(
                         self,
-                        df['charge'][i],           #charge given in electronic charge units
-                        df['mass'][i] * conv_mass, #mass given in amu and converted in au
-                        df['radius'][i] / a0,      #radius given in Angs and converted to au
+                        df['charge'][i],           # charge given in electronic charge units
+                        df['mass'][i] * conv_mass, # mass given in amu and converted in au
+                        df['radius'][i] / a0,      # radius given in Angs and converted to au
                         np.array([df['x'][i], df['y'][i], df['z'][i]]) / a0
                     )
                 )
@@ -79,7 +77,6 @@ class Grid:
         self.q = np.zeros(self.shape, dtype=float)          # charge vector - q for every grid point
         self.phi = np.zeros(self.shape, dtype=float)          # electrostatic field updated with MaZe
         self.phi_prev = np.zeros(self.shape, dtype=float)     # electrostatic field for step t - 1 Verlet
-        # self.indices7 = np.zeros((N_tot, 7))
         self.linked_cell = None
         self.energy = 0
         self.temperature = md_variables.T
@@ -91,10 +88,6 @@ class Grid:
         elif self.potential_info == 'LJ':
             self.ComputeForceNotElecLC = self.ComputeForcesLJLinkedcell
             self.ComputeForceNotElecBasic = self.ComputeForcesLJBasic
-      
-    # def LinkedCellInit(self,cutoff): # review together, not working rn - list to make neighbours and implement TF properly 
-    #     self.linked_cell = LinkedCell(cutoff, L, self.N_p)
-    #     self.linked_cell.update_lists(self.particles)
 
     def ComputeForcesLJBasic(self):
         pe = 0
@@ -108,7 +101,7 @@ class Grid:
                 pe += pair_potential
         self.potential_notelec = pe
 
-    # LINKED-CELL METHOD
+    ### Linked Cell Method ###
     def ComputeForcesLJLinkedcell(self):
         for p in self.particles:   
             p.force_notelec = np.zeros(3)
@@ -204,12 +197,8 @@ class Grid:
             q_tot_expected = q_tot_expected + particle.charge
 
             for i,j,k in particle.neigh:
-                # coord = dict_indices_nToCoord[n]
                 diff = particle.pos - np.array([i,j,k]) * h
-                #diff = BoxScale(diff)
                 self.q[i,j,k] += particle.charge * g(diff[0], L, h) * g(diff[1], L, h) * g(diff[2], L, h)
-                #print(self.q[n], g(diff[0]), g(diff[1]), g(diff[2]))
-            
 
         q_tot = np.sum(self.q)
 
@@ -232,10 +221,8 @@ class Grid:
 
             for p in self.particles:
                 for i,j,k in p.neigh:
-                    # coord = dict_indices_nToCoord[n]
                     diff = p.pos - np.array([i,j,k]) * h
                     q_n = p.charge * g(diff[0], L, h) * g(diff[1], L, h) * g(diff[2], L, h)
-                    #potential = potential + p.charge * phi_v[n] * g(diff[0])* g(diff[1])* g(diff[2])
                     pot1 = pot1 + 0.5 * q_n * phi_v[i,j,k]
                     potential = potential + 0.5 * self.q[i,j,k] * phi_v[i,j,k]
 
@@ -255,8 +242,7 @@ class Grid:
 
         self.energy = kinetic + pot_tot
         if print_energy:
-            #file_output_energy.write(str(iter) + ',' +  str(self.energy) + ',' +  str(kinetic) + ',' + str(potential) + ',' + str(self.potential_notelec) + '\n')#+ potential) + '\n')
-            self.output_files.file_output_energy.write(str(iter) + ',' +  str(kinetic) + ',' + str(self.potential_notelec) + '\n')#+ potential) + '\n')
+            self.output_files.file_output_energy.write(str(iter) + ',' +  str(kinetic) + ',' + str(self.potential_notelec) + '\n')
 
 
     def Temperature(self, iter, print_temperature):
