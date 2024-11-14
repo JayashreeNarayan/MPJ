@@ -52,10 +52,10 @@ class Particle:
 
 
     # move the particle of a vector delta
-    def Move(self, delta):
-        self.pos = self.pos + delta
+    #def Move(self, delta):
+    #    self.pos = self.pos + delta
         
-    # compute the force acting on the particle
+    # compute the force acting on the particle; Force function according to Benoit's paper.
     def ComputeForce(self, grid, prev): 
         L = grid.L
         h = grid.h
@@ -75,7 +75,8 @@ class Particle:
 
         print(self.force)
 
-    @profile
+    # Currently using this one
+    @profile 
     def ComputeForce_FD(self, grid, prev): # defn of the force from notes poisson, computer force on the particle
         N = grid.N
         h = grid.h
@@ -98,7 +99,37 @@ class Particle:
             self.force[2] = self.force[2] + grid.q[i,j,k] * E_z(i,j,k) 
             q_tot = q_tot + grid.q[i,j,k]
     
+    def ComputeTFForce(self, particles): # total force acting on particle self
+        force = np.zeros(3)
+
+        for particle in particles:
+            if(particle == self):
+                continue
+            else:
+                force += self.ComputeTFForcePair(particle)
+        self.force_notelec = force
     
+    @profile
+    def ComputeTFForcePotentialPair(self,particle):  
+        r_diff = self.pos - particle.pos 
+        r, r_mag = BoxScaleDistance2(r_diff, self.grid.L)
+        r_cap = r / r_mag
+        
+        A, C, D, sigma_TF = self.dict[self.charge + particle.charge]
+        V_shift = A * np.exp(self.B * (sigma_TF - self.r_cutoff)) - C / self.r_cutoff**6 - D / self.r_cutoff**8
+        alpha = A * self.B * np.exp(self.B * (sigma_TF - self.r_cutoff)) - 6 * C / self.r_cutoff**7 - 8 * D / self.r_cutoff**9
+        beta = - V_shift - alpha * self.r_cutoff
+        
+        if r_mag <= self.r_cutoff: 
+            f_mag = self.B * A * np.exp(self.B * (sigma_TF - r_mag)) - 6 * C / r_mag**7 - 8 * D / r_mag**9 - alpha
+            V_mag = A * np.exp(self.B * (sigma_TF - r_mag)) - C / r_mag**6 - D / r_mag**8 + alpha * r_mag + beta #- V_shift
+        else:
+            f_mag = 0
+            V_mag = 0.
+            
+        return f_mag * r_cap, V_mag
+    
+    '''
     def ComputeLJForcePair(self, particle):  # computes LJ force for couple of particles (self particle and a particle given in input
         r_diff = self.pos - particle.pos 
         r = BoxScale(r_diff, self.grid.L)
@@ -123,7 +154,7 @@ class Particle:
             V_mag = 0
    
         return V_mag
-
+    
     def ComputeLJForcePotentialPair(self, particle): # potential and force in the same function, between 2 particles
         r_diff = self.pos - particle.pos 
         r = BoxScale(r_diff, self.grid.L)
@@ -152,36 +183,6 @@ class Particle:
 
         self.force_notelec = force
     
-    @profile
-    def ComputeTFForcePotentialPair(self,particle):  
-        r_diff = self.pos - particle.pos 
-        r, r_mag = BoxScaleDistance2(r_diff, self.grid.L)
-        r_cap = r / r_mag
-        
-        A, C, D, sigma_TF = self.dict[self.charge + particle.charge]
-        V_shift = A * np.exp(self.B * (sigma_TF - self.r_cutoff)) - C / self.r_cutoff**6 - D / self.r_cutoff**8
-        alpha = A * self.B * np.exp(self.B * (sigma_TF - self.r_cutoff)) - 6 * C / self.r_cutoff**7 - 8 * D / self.r_cutoff**9
-        beta = - V_shift - alpha * self.r_cutoff
-        
-        if r_mag <= self.r_cutoff: 
-            f_mag = self.B * A * np.exp(self.B * (sigma_TF - r_mag)) - 6 * C / r_mag**7 - 8 * D / r_mag**9 - alpha
-            V_mag = A * np.exp(self.B * (sigma_TF - r_mag)) - C / r_mag**6 - D / r_mag**8 + alpha * r_mag + beta #- V_shift
-        else:
-            f_mag = 0
-            V_mag = 0.
-            
-        return f_mag * r_cap, V_mag
-    
-
-    def ComputeTFForce(self, particles): # total force acting on particle self
-        force = np.zeros(3)
-
-        for particle in particles:
-            if(particle == self):
-                continue
-            else:
-                force += self.ComputeTFForcePair(particle)
-        self.force_notelec = force
 
     
     def ComputeLJForce(self, particles): 
@@ -218,7 +219,7 @@ class Particle:
                 force += self.ComputeTFForcePair(particle)
                 
         return force, pot
-
+    '''
 # distance with periodic boundary conditions
 @profile
 # returns a number - smallest distance between 2 neightbouring particles - to enforce PBC
@@ -226,7 +227,7 @@ def BoxScaleDistance(diff, L):
     diff = diff - L * np.rint(diff / L)
     distance = np.linalg.norm(diff)
     return distance
-
+    
 @profile
 # returns a number - smallest distance between 2 neightbouring particles - to enforce PBC
 def BoxScaleDistance2(diff, L): 

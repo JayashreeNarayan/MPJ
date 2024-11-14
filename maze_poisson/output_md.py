@@ -52,7 +52,6 @@ def generate_output_files(grid):
         else:
             open(output_energy, 'w').close()  # Create the file
         output_files.file_output_energy = open(output_energy, 'r+')
-        #file_output_energy.write("iter,E,K,V_elec,V_notelec\n")
         output_files.file_output_energy.write("iter,K,V_notelec\n")
 
     if output_settings.print_temperature:
