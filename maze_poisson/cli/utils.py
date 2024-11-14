@@ -22,7 +22,7 @@ lattice_option = click.option(
     type=click.Choice(lattice_choices),
     # required=True,
     default='bcc',
-    help=f'Type of lattice to generate. Supported options: {', '.join(lattice_choices)}',
+    help=f'Type of lattice to generate. Supported options: {", ".join(lattice_choices)}',
 )
 output_option = click.option(
     '--output', '-o', 'output',
