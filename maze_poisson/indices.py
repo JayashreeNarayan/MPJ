@@ -1,11 +1,10 @@
 import numpy as np
-
-# from .input import grid_setting
 from .constants import a0
 
 
 # translate index n = i + j * N + k * N * N  to a set of indices (i,j,k)
-def nToGridCoord(n, N): # COULD BE INVERTED FROM I,J,K TO n - COULD BE OPT
+'''
+def nToGridCoord(n, N): 
     i = n % N
     j = ((n - i) / N) % N
     k = ((n - i) / N - j) / N
@@ -17,7 +16,7 @@ def nToGridCoord(n, N): # COULD BE INVERTED FROM I,J,K TO n - COULD BE OPT
         print('Conversion gone wrong: check nToGridCoord(n) function')
         print(n, '!=', i + j * N + k * N * N)
         print(coord)
-
+'''
 def GetDictTF(): # get dictionary of TF params
     charge_totNaNa = 2
     charge_totNaCl = 0
