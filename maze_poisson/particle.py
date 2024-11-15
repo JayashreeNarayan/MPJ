@@ -49,11 +49,6 @@ class Particle:
                      neigh_indices.append((i % N, j % N, k % N))
         
         self.neigh = np.array(neigh_indices).astype(int)
-
-
-    # move the particle of a vector delta
-    #def Move(self, delta):
-    #    self.pos = self.pos + delta
         
     # compute the force acting on the particle; Force function according to Benoit's paper.
     def ComputeForce(self, grid, prev): 
@@ -264,15 +259,4 @@ def g_prime(x, L, h):
 def LJPotential(r, epsilon, sigma):  
         V_mag = 4 * epsilon * ((sigma/r)**12 - (sigma/r)**6)
         return V_mag
-
-# all possible neighbouring grid points
-def i_vec(i):
-    return  np.array([i - 2, i - 1, i, i + 1, i + 2])
-
-def j_vec(j):
-    return  np.array([j - 2, j - 1, j, j + 1, j + 2])
-
-def k_vec(k):
-    return  np.array([k - 2, k - 1, k, k + 1, k + 2])
-
 

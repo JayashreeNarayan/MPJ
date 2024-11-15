@@ -18,6 +18,7 @@ class OutputSettings:
     debug = False
     restart = True
     generate_restart_file = False
+    iter_restart = None
 
 ###################################################################################
 

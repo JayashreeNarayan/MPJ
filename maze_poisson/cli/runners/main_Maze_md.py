@@ -37,6 +37,7 @@ def main(grid_setting, output_settings, md_variables):
     elec = md_variables.elec
     V = 27.211386245988
     tol = md_variables.tol
+    iter_restart = output_settings.iter_restart
 
     # initialize grid by inserting particles in the system
     grid = Grid(grid_setting, md_variables, output_settings)
@@ -227,9 +228,8 @@ def main(grid_setting, output_settings, md_variables):
         ofiles.file_output_temperature.close()
 
     if output_settings.generate_restart_file:
-        restart_file = generate_restart(grid_setting, output_settings)
+        restart_file = generate_restart(grid_setting, output_settings, iter_restart)
         print('Restart file generated: ', restart_file)
-
         
     end_time = time.time()
     print('\nTotal time: {:.2f} s\n'.format(end_time - begin_time))

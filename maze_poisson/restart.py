@@ -2,7 +2,8 @@ import numpy as np
 import pandas as pd
 from.constants import a0
 
-def generate_restart(grid_setting, output_settings):
+def generate_restart(grid_setting, output_settings, iter = None):
+
     N_p = grid_setting.N_p
     N = grid_setting.N
     path = output_settings.path
@@ -14,7 +15,11 @@ def generate_restart(grid_setting, output_settings):
     radius = np.ones(N_p)
 
     max = np.max(df['iter'])
-    new_df = df[df['iter'] == max][['charge','x','y','z','vx','vy','vz']] 
+    if iter == None:
+        new_df = df[df['iter'] == max][['charge','x','y','z','vx','vy','vz']] 
+    else:
+        new_df = df[df['iter'] == iter][['charge','x','y','z','vx','vy','vz']] 
+
     col_mass_bool = new_df['charge'] == 1
     col_mass = [m_Na if bool == True else m_Cl for bool in col_mass_bool]
 
@@ -26,6 +31,10 @@ def generate_restart(grid_setting, output_settings):
     new_df['z'] = new_df['z'] * a0
 
     print(new_df.head())
-    filename_output = path + 'restart_N' + str(N) + '_5K.csv'
+    if iter == None:
+        filename_output = path + 'restart_N' + str(N) + '_iter' + str(max) + '.csv'
+    else:
+        filename_output = path + 'restart_N' + str(N) + '_iter' + str(iter) + '.csv'
+
     new_df.to_csv(filename_output, index=False)
     return filename_output
