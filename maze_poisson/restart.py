@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
+import os
 from.constants import a0
 
 def generate_restart(grid_setting, output_settings, iter = None):
-
     N_p = grid_setting.N_p
     N = grid_setting.N
     path = output_settings.path
@@ -32,9 +32,9 @@ def generate_restart(grid_setting, output_settings, iter = None):
 
     print(new_df.head())
     if iter == None:
-        filename_output = path + 'restart_N' + str(N) + '_iter' + str(max) + '.csv'
+        filename_output = os.path.join(path, 'restart_N' + str(N) + '_iter' + str(max) + '.csv')
     else:
-        filename_output = path + 'restart_N' + str(N) + '_iter' + str(iter) + '.csv'
+        filename_output = os.path.join(path, 'restart_N' + str(N) + '_iter' + str(iter) + '.csv')
 
     new_df.to_csv(filename_output, index=False)
     return filename_output

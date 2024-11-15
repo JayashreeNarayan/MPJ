@@ -17,7 +17,7 @@ def generate_output_files(grid):
     output_files = OutputFiles()
 
     if output_settings.print_field:
-        output_field = path + 'field_N' + str(N) + '.csv'
+        output_field = os.path.join(path, 'field_N' + str(N) + '.csv')
         if os.path.exists(output_field):
             open(output_field, 'w').close()  # Clear file content if it exists
         else:
@@ -26,7 +26,7 @@ def generate_output_files(grid):
         output_files.file_output_field.write("iter,x,MaZe\n")
 
     if output_settings.print_performance:
-        output_performance = path + 'performance_N' + str(N) + '.csv'
+        output_performance = os.path.join(path, 'performance_N' + str(N) + '.csv')
         if os.path.exists(output_performance):
             open(output_performance, 'w').close()  # Clear file content if it exists
         else:
@@ -36,7 +36,7 @@ def generate_output_files(grid):
 
 
     if output_settings.print_iters:
-        output_iters = path + 'iters_N' + str(N) + '.csv'
+        output_iters = os.path.join(path,'iters_N' + str(N) + '.csv')
         if os.path.exists(output_iters):
             open(output_iters, 'w').close()  # Clear file content if it exists
         else:
@@ -46,7 +46,7 @@ def generate_output_files(grid):
 
 
     if output_settings.print_energy:
-        output_energy = path + 'energy_N' + str(N) + '.csv'
+        output_energy = os.path.join(path, 'energy_N' + str(N) + '.csv')
         if os.path.exists(output_energy):
             open(output_energy, 'w').close()  # Clear file content if it exists
         else:
@@ -55,7 +55,7 @@ def generate_output_files(grid):
         output_files.file_output_energy.write("iter,K,V_notelec\n")
 
     if output_settings.print_temperature:
-        output_temperature = path + 'temperature_N' + str(N) + '.csv'
+        output_temperature = os.path.join(path, 'temperature_N' + str(N) + '.csv')
         if os.path.exists(output_temperature):
             open(output_temperature, 'w').close()  # Clear file content if it exists
         else:
@@ -64,7 +64,7 @@ def generate_output_files(grid):
         output_files.file_output_temperature.write("iter,T\n")
 
     if output_settings.print_solute:
-        output_solute = path + 'solute_N' + str(N) + '.csv'
+        output_solute = os.path.join(path, 'solute_N' + str(N) + '.csv')
         if os.path.exists(output_solute):
             open(output_solute, 'w').close()  # Clear file content if it exists
         else:
@@ -73,7 +73,7 @@ def generate_output_files(grid):
         output_files.file_output_solute.write("charge,iter,particle,x,y,z,vx,vy,vz,fx,fy,fz\n")
 
     if output_settings.print_tot_force:
-        output_tot_force = path + 'tot_force_N' + str(N) + '.csv'
+        output_tot_force = os.path.join(path, 'tot_force_N' + str(N) + '.csv')
         if os.path.exists(output_tot_force):
             open(output_tot_force, 'w').close()  # Clear file content if it exists
         else:
