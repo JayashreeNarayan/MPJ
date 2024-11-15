@@ -16,7 +16,7 @@ class OutputSettings:
     print_iters = False
     path = 'Outputs/'
     debug = False
-    restart = True
+    #restart = True
     generate_restart_file = False
     iter_restart = None
 
@@ -68,15 +68,14 @@ class GridSetting:
 ### MD variables ###
 class MDVariables:
     N_steps = None
-    init_steps = 0
+    #init_steps = 0
     thermostat = False
     dt = 0.25 / t_au        # timestep for the solute evolution given in fs and converted in a.u.
     stride = 1              # saves every stride steps
-    #tol = 1e-7
     omega = 1 # overrelaxation parameter 
     initialization = 'CG'   # always CG
     preconditioning = 'Yes' # Yes or No
-    rescale = True # rescaling of the initial momenta to have tot momenta = 0
+    #rescale = True # rescaling of the initial momenta to have tot momenta = 0
     elec = True
     not_elec = True
     potential = 'TF' # Tosi Fumi (TF) or Leonard Jones (LJ)
@@ -87,8 +86,8 @@ class MDVariables:
 
 required_inputs = {
     'grid_setting': ['N', 'L', 'N_p', 'input_file'],
-    'output_settings': [],
-    'md_variables': ['N_steps', 'tol']
+    'output_settings': ['restart'],
+    'md_variables': ['N_steps', 'tol', 'rescale']
 }
 
 def initialize_from_yaml(filename):
