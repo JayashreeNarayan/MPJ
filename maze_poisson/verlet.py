@@ -2,9 +2,8 @@ import os
 from math import exp, tanh
 
 import numpy as np
-from scipy.linalg import blas
 
-from .c_api import c_conj_grad, c_daxpy, c_ddot, c_laplace
+from .c_api import c_conj_grad, c_laplace
 from .profiling import profile
 
 
