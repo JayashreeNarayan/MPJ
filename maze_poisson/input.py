@@ -76,6 +76,7 @@ class MDVariables:
     omega = 1 # overrelaxation parameter 
     initialization = 'CG'   # always CG
     preconditioning = 'Yes' # Yes or No
+    rescale = True # rescaling of the initial momenta to have tot momenta = 0
     elec = True
     not_elec = True
     potential = 'TF' # Tosi Fumi (TF) or Leonard Jones (LJ)
@@ -85,7 +86,7 @@ class MDVariables:
     kB = 3.1668 * 1e-6 #E_h/K
     kBT = kB * T # E_h
 
-required_inputs: dict[str, list[str]] = {
+required_inputs = {
     'grid_setting': ['N', 'L', 'N_p', 'input_file'],
     'output_settings': [],
     'md_variables': ['N_steps']

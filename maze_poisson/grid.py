@@ -89,6 +89,39 @@ class Grid:
             self.ComputeForceNotElecLC = self.ComputeForcesLJLinkedcell
             self.ComputeForceNotElecBasic = self.ComputeForcesLJBasic
 
+    
+    def RescaleVelocities(self):
+        init_vel_Na = np.zeros(3)
+        new_vel_Na = np.zeros(3)
+        init_vel_Cl = np.zeros(3)
+        new_vel_Cl = np.zeros(3)
+        
+        for particle in self.particles:
+            if particle.charge == 1.:
+                init_vel_Na = init_vel_Na + particle.vel
+            else:
+                init_vel_Cl = init_vel_Cl + particle.vel
+            
+        mi_vi2 = [p.mass * np.dot(p.vel, p.vel) for p in self.particles]
+        self.temperature = np.sum(mi_vi2) / (3 * self.N_p * self.kB)
+
+        print(f'Total initial vel: Na = {init_vel_Na}, Cl = {init_vel_Cl}\tOld T = {self.temperature}')
+        
+        for particle in self.particles:
+            if particle.charge == 1.:
+                particle.vel = particle.vel - 2 * init_vel_Na / self.N_p
+                new_vel_Na = new_vel_Na + particle.mass * particle.vel
+            else:
+                particle.vel = particle.vel - 2 * init_vel_Cl / self.N_p
+                new_vel_Cl = new_vel_Cl + particle.mass * particle.vel
+
+        
+        mi_vi2 = [p.mass * np.dot(p.vel, p.vel) for p in self.particles]
+        self.temperature = np.sum(mi_vi2) / (3 * self.N_p * self.kB)
+        print(f'Total scaled vel: Na = {new_vel_Na}, Cl = {new_vel_Cl}\tNew T = {self.temperature}')
+    
+    
+    
     def ComputeForcesLJBasic(self):
         pe = 0
 

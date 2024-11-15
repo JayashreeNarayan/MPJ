@@ -22,7 +22,6 @@ def main(grid_setting, output_settings, md_variables):
     h = grid_setting.h
     L = grid_setting.L
     N = grid_setting.N
-    N_tot = grid_setting.N_tot
     N_p = grid_setting.N_p
 
     T = md_variables.T
@@ -34,6 +33,7 @@ def main(grid_setting, output_settings, md_variables):
     thermostat = md_variables.thermostat
     dt = md_variables.dt
     preconditioning = md_variables.preconditioning
+    rescale = md_variables.rescale
     elec = md_variables.elec
     V = 27.211386245988
     tol = md_variables.tol
@@ -112,6 +112,10 @@ def main(grid_setting, output_settings, md_variables):
     else:
         grid = VerletSolutePart2(grid)
 
+    # rescaling of the velocities to get total momentum = 0
+    if rescale:
+        print('\nRescaling of the velocities in progress...')
+        grid.RescaleVelocities()
 
     ################################ FINE INIZIALIZZAZIONE ##########################################
     #########################################################################################
