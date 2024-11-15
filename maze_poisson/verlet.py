@@ -1,7 +1,11 @@
+import os
 from math import exp, tanh
+
 import numpy as np
-from scipy.linalg import blas
+
+from .c_api import c_conj_grad, c_laplace
 from .profiling import profile
+
 
 def VerletSolutePart1(grid, dt=None, thermostat=False):
     if dt is None:
@@ -110,24 +114,30 @@ def OVRVO_part2(grid, prev=False, thermostat=False):
 
 @profile
 def MatrixVectorProduct_manual(v):
-    res = -6 * np.copy(v)
-
-    res[1:,:,:] += v[:-1,:,:]
-    res[:-1,:,:] += v[1:,:,:]
-    res[-1,:,:] += v[0,:,:]
-    res[0,:,:] += v[-1,:,:]
-
-    res[:,1:,:] += v[:,:-1,:]
-    res[:,:-1,:] += v[:,1:,:]
-    res[:,-1,:] += v[:,0,:]
-    res[:,0,:] += v[:,-1,:]
-
-    res[:,:,1:] += v[:,:,:-1]
-    res[:,:,:-1] += v[:,:,1:]
-    res[:,:,-1] += v[:,:,0]
-    res[:,:,0] += v[:,:,-1]
-
+    # print('MatrixVectorProduct_manual')
+    # print(v.flags)
+    # exit()
+    res = np.empty_like(v)
+    c_laplace(v, res, v.shape[0])
     return res
+    # res = -6 * np.copy(v)
+
+    # res[1:,:,:] += v[:-1,:,:]
+    # res[:-1,:,:] += v[1:,:,:]
+    # res[-1,:,:] += v[0,:,:]
+    # res[0,:,:] += v[-1,:,:]
+
+    # res[:,1:,:] += v[:,:-1,:]
+    # res[:,:-1,:] += v[:,1:,:]
+    # res[:,-1,:] += v[:,0,:]
+    # res[:,0,:] += v[:,-1,:]
+
+    # res[:,:,1:] += v[:,:,:-1]
+    # res[:,:,:-1] += v[:,:,1:]
+    # res[:,:,-1] += v[:,:,0]
+    # res[:,:,0] += v[:,:,-1]
+
+    # return res
 
 MatrixVectorProduct = MatrixVectorProduct_manual
 
@@ -168,36 +178,58 @@ def VerletPoisson(grid, y):
 
 @profile
 def PrecondLinearConjGradPoisson(b, x0 = None, tol=1e-7):
-    N_tot = b.size
+    x = np.empty_like(b)
     if x0 is None:
         x0 = np.zeros_like(b)
-    P_inv = - 1 / 6
-    x = np.copy(x0)
-    r = MatrixVectorProduct(x) - b
-    v = P_inv * r  
-    p = -v
+    i = c_conj_grad(b, x0, x, tol, b.shape[0])
+    return x, i
+    # N_tot = b.size
+    # if x0 is None:
+    #     x0 = np.zeros_like(b)
+    # P_inv = - 1 / 6
+    # x = np.copy(x0)
+    # r = MatrixVectorProduct(x) - b
+    # v = P_inv * r  
+    # p = -v
     
-    r_new = np.ones_like(r)
-    iter = 0
+    # r_new = np.ones_like(r)
+    # iter = 0
 
-    while np.linalg.norm(r_new) > tol:
-        iter = iter + 1
-        Ap = MatrixVectorProduct(p) # A @ d for row-by-column product
-        r_dot_v = blas.ddot(r, v, N_tot)
+    # while np.linalg.norm(r_new) > tol:
+    #     iter = iter + 1
+    #     Ap = MatrixVectorProduct(p) # A @ d for row-by-column product
+    #     # r_dot_v = blas.ddot(r, v, N_tot)
+    #     # r_dot_v = np.sum(r * v)
+    #     r_dot_v = c_ddot(r, v, N_tot)
 
-        alpha = r_dot_v / blas.ddot(p, Ap, N_tot)
-        x = blas.daxpy(p, x , N_tot, alpha)
+    #     # alpha = r_dot_v / blas.ddot(p, Ap, N_tot)
+    #     # alpha = r_dot_v / np.sum(p * Ap)
+    #     alpha = r_dot_v / c_ddot(p, Ap, N_tot)
+    #     # x = blas.daxpy(p, x , N_tot, alpha)
+    #     # x = alpha * p + x
+    #     c_daxpy(p, x, x, alpha, N_tot)
+    #     # c_daxpy2(p, x, alpha, N_tot)
  
-        r_new = blas.daxpy(Ap, r, N_tot, alpha)
-        v_new =  P_inv * r_new
+    #     # r_new = blas.daxpy(Ap, r, N_tot, alpha)
+    #     # r_new = alpha * Ap + r
+    #     c_daxpy(Ap, r, r_new, alpha, N_tot)
+    #     # c_daxpy2(Ap, r, alpha, N_tot)
+    #     # r_new = r
+    #     v_new =  P_inv * r_new
 
-        beta = blas.ddot(r_new, v_new, N_tot) / r_dot_v
-        p = blas.daxpy(p, -v_new, N_tot, beta)
+    #     # beta = blas.ddot(r_new, v_new, N_tot) / r_dot_v
+    #     # beta = np.sum(r_new * v_new) / r_dot_v
+    #     beta = c_ddot(r_new, v_new, N_tot) / r_dot_v
+    #     # p = blas.daxpy(p, -v_new, N_tot, beta)
+    #     # p = beta * p - v_new
+    #     c_daxpy(p, -v_new, p, beta, N_tot)
+    #     # v_new = -v_new
+    #     # c_daxpy2(p, v_new, beta, N_tot)
         
-        r = r_new
-        v = v_new
+    #     r = r_new
+    #     v = v_new
 
-    return x, iter
+    # return x, iter
 
 # alternative function for matrix-vector product
 def MatrixVectorProduct_7entries(M, v, index):

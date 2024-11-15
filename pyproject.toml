@@ -74,14 +74,12 @@ exclude = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-DJANGO_SETTINGS_MODULE = "mysite.settings"
 log_cli = 1
 
 [tool.pylint.main]
 load-plugins = [
     "pylint_pytest"
 ]
-django-settings-module = "mysite.settings"
 
 [tool.pylint.messages_control]
 disable = [
