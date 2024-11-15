@@ -20,8 +20,10 @@ def main(grid_setting, output_settings, md_variables):
     # get variables from input
     h = grid_setting.h
     L = grid_setting.L
+    L_ang = grid_setting.L_ang
     N = grid_setting.N
     N_p = grid_setting.N_p
+    h_ang = L_ang/N
 
     T = md_variables.T
     not_elec = md_variables.not_elec
@@ -31,6 +33,7 @@ def main(grid_setting, output_settings, md_variables):
     omega = md_variables.omega
     thermostat = md_variables.thermostat
     dt = md_variables.dt
+    dt_fs = md_variables.dt_fs
     preconditioning = md_variables.preconditioning
     rescale = md_variables.rescale
     elec = md_variables.elec
@@ -49,7 +52,7 @@ def main(grid_setting, output_settings, md_variables):
     #    print('Position particle', i + 1, '=', particle.pos)
     #    print('Velocity particle', i + 1, '=', particle.vel)
     print('\nInitialization is done with CG and preconditioning:', preconditioning)
-    print('\nParameters:\nh =', h, "\ndt =", dt, "\nstride =", stride, '\nL =', L, '\nomega =', omega, '\ngamma =', md_variables.gamma)
+    print('\nParameters:\nh =', h_ang, 'A', "\ndt =", dt_fs, 'fs', "\nstride =", stride, '\nL =', L_ang, 'A', '\nomega =', omega, '\ngamma =', md_variables.gamma)
     print('\nPotential:', md_variables.potential)
     print('\nElec:', elec, '\tNotElec: ', not_elec,'\n')
     print('\nTemperature:',T,' K\tNumerical density:',N_p / L**3,' a.u.')
