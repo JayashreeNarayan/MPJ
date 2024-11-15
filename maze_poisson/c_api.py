@@ -56,5 +56,5 @@ c_conj_grad.argtypes = [
     npct.ndpointer(dtype=np.float64, ndim=3, flags='C_CONTIGUOUS'),
     npct.ndpointer(dtype=np.float64, ndim=3, flags='C_CONTIGUOUS'),
     ctypes.c_double,
-    ctypes.c_int64
+    ctypes.c_int
 ]
