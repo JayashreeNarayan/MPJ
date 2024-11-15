@@ -11,3 +11,11 @@ md_variables:
 
 output_settings: {}
   # path: output_files
+
+  # delta T
+  # Temperature
+  # restart yes or no
+  # tolerance
+  # init_steps
+  # equilibriation -- later
+  

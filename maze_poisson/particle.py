@@ -259,4 +259,3 @@ def g_prime(x, L, h):
 def LJPotential(r, epsilon, sigma):  
         V_mag = 4 * epsilon * ((sigma/r)**12 - (sigma/r)**6)
         return V_mag
-
