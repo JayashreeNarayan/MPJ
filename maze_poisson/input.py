@@ -1,6 +1,6 @@
 from pathlib import Path
 import yaml
-from .constants import a0, t_au
+from .constants import a0, kB, t_au
 
 ###################################################################################
 
@@ -27,7 +27,6 @@ class GridSetting:
     def __init__(self):
         self._N = None
         self._L = None
-        # self.h = None
         self.N_p = None
         self._N_tot = None
         self._h = None
@@ -73,7 +72,7 @@ class MDVariables:
     thermostat = False
     dt = 0.25 / t_au        # timestep for the solute evolution given in fs and converted in a.u.
     stride = 1              # saves every stride steps
-    tol = 1e-7
+    #tol = 1e-7
     omega = 1 # overrelaxation parameter 
     initialization = 'CG'   # always CG
     preconditioning = 'Yes' # Yes or No
@@ -83,14 +82,13 @@ class MDVariables:
     potential = 'TF' # Tosi Fumi (TF) or Leonard Jones (LJ)
     integrator = 'OVRVO'
     gamma = 1e-3 # OVRVO parameter
-    T = 1550 # K
-    kB = 3.1668 * 1e-6 #E_h/K
+    T = 1500 # K
     kBT = kB * T # E_h
 
 required_inputs = {
     'grid_setting': ['N', 'L', 'N_p', 'input_file'],
     'output_settings': [],
-    'md_variables': ['N_steps']
+    'md_variables': ['N_steps', 'tol']
 }
 
 def initialize_from_yaml(filename):

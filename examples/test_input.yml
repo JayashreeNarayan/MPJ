@@ -8,6 +8,8 @@ grid_setting:
 
 md_variables:
   N_steps: 20
+  #T: 1500 # K 
+  tol: 1.e-7
 
 output_settings: {}
   # path: output_files
@@ -15,7 +17,5 @@ output_settings: {}
   # delta T
   # Temperature
   # restart yes or no
-  # tolerance
   # init_steps
   # equilibriation -- later
-  

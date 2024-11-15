@@ -1,13 +1,9 @@
 import numpy as np
 import pandas as pd
 
-from .constants import a0, amu_to_kg
+from .constants import a0, kB, conv_mass
 from .output_md import generate_output_files
 from .particle import Particle, g
-
-amu_to_kg = 1.66054 * 1e-27 
-m_e = 9.1093837 * 1e-31 #kg
-conv_mass = amu_to_kg / m_e
 
 ### grid class to represent the grid and the fields operating on it ###
 class Grid:
@@ -27,7 +23,7 @@ class Grid:
         self.dt = md_variables.dt
         self.elec = md_variables.elec
         self.not_elec = md_variables.not_elec
-        self.kB = md_variables.kB
+        #self.kB = kB
         self.kBT = md_variables.kBT
 
         self.offset_update = np.array([
@@ -103,7 +99,7 @@ class Grid:
                 init_vel_Cl = init_vel_Cl + particle.vel
             
         mi_vi2 = [p.mass * np.dot(p.vel, p.vel) for p in self.particles]
-        self.temperature = np.sum(mi_vi2) / (3 * self.N_p * self.kB)
+        self.temperature = np.sum(mi_vi2) / (3 * self.N_p * kB)
 
         print(f'Total initial vel: Na = {init_vel_Na}, Cl = {init_vel_Cl}\tOld T = {self.temperature}')
         
@@ -117,7 +113,7 @@ class Grid:
 
         
         mi_vi2 = [p.mass * np.dot(p.vel, p.vel) for p in self.particles]
-        self.temperature = np.sum(mi_vi2) / (3 * self.N_p * self.kB)
+        self.temperature = np.sum(mi_vi2) / (3 * self.N_p * kB)
         print(f'Total scaled vel: Na = {new_vel_Na}, Cl = {new_vel_Cl}\tNew T = {self.temperature}')
     
     
@@ -280,7 +276,7 @@ class Grid:
 
     def Temperature(self, iter, print_temperature):
         mi_vi2 = [p.mass * np.dot(p.vel, p.vel) for p in self.particles]
-        self.temperature = np.sum(mi_vi2) / (3 * self.N_p * self.kB)
+        self.temperature = np.sum(mi_vi2) / (3 * self.N_p * kB)
         
         if print_temperature:
             self.output_files.file_output_temperature.write(str(iter) + ',' +  str(self.temperature) + '\n')
