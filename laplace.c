@@ -1,5 +1,6 @@
 // Implement a lapace filter on a 3-D array in C with cyclic boundary conditions
 
+#include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
 // #include <string.h>
@@ -12,6 +13,7 @@ void laplace_filter(double *u, double *u_new, int n) {
     long int i0, i1, i2;
     long int j0, j1, j2;
     long int n2 = n * n;
+    #pragma omp parallel for private(i, j, k, i_prev, i_next, j_prev, j_next, k_prev, k_next, i0, i1, i2, j0, j1, j2)
     for (i = 0; i < n; i++) {
         i_prev = (i - 1 + n) % n;
         i_next = (i + 1) % n;
@@ -44,6 +46,7 @@ void laplace_filter(double *u, double *u_new, int n) {
 double ddot(double *u, double *v, int n) {
     int i;
     double result = 0.0;
+    #pragma omp parallel for reduction(+:result)
     for (i = 0; i < n; i++) {
         result += u[i] * v[i];
     }
@@ -52,6 +55,7 @@ double ddot(double *u, double *v, int n) {
 
 void daxpy(double *v, double *u, double *result, double alpha, int n) {
     int i;
+    #pragma omp parallel for
     for (i = 0; i < n; i++) {
         result[i] = u[i] + alpha * v[i];
     }
@@ -59,6 +63,7 @@ void daxpy(double *v, double *u, double *result, double alpha, int n) {
 
 void daxpy2(double *v, double *u, double alpha, int n) {
     int i;
+    #pragma omp parallel for
     for (i = 0; i < n; i++) {
         u[i] += alpha * v[i];
     }
@@ -81,12 +86,14 @@ int conj_grad(double *b, double *x0, double *x, double tol, int n) {
 
     double app;
 
+    #pragma omp parallel for
     for (i = 0; i < n3; i++) {
         x[i] = x0[i];
     }
     laplace_filter(x, r, n);
     daxpy2(b, r, -1.0, n3);
 
+    #pragma omp parallel for
     for (i = 0; i < n3; i++) {
         app = r[i] / 6.0;
         p[i] = app;
@@ -102,12 +109,14 @@ int conj_grad(double *b, double *x0, double *x, double tol, int n) {
         daxpy2(p, x, alpha, n3);
         daxpy2(Ap, r, alpha, n3);
 
+        #pragma omp parallel for
         for (i = 0; i < n3; i++) {
             v[i] = -r[i] / 6.0;
         }
 
         beta = ddot(r, v, n3) / r_dot_v;
 
+        #pragma omp parallel for
         for (i = 0; i < n3; i++) {
             p[i] = beta * p[i] - v[i];
         }        
