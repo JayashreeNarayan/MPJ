@@ -10,8 +10,7 @@ from ...constants import a0
 from ...grid import *
 from ...restart import generate_restart
 from ...verlet import (OVRVO_part1, OVRVO_part2, PrecondLinearConjGradPoisson,
-                       VerletPoisson, VerletPoissonBerendsen,
-                       VerletSolutePart1, VerletSolutePart2)
+                       VerletPoisson, VerletSolutePart1, VerletSolutePart2)
 
 
 def main(grid_setting, output_settings, md_variables):

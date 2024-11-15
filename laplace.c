@@ -1,12 +1,13 @@
-// Implement a lapace filter on a 3-D array in C with cyclic boundary conditions
-
-#include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
-// #include <string.h>
 #include <math.h>
-// #include <time.h>
 
+/*
+Apply a 3-D Laplace filter to a 3-D array with cyclic boundary conditions
+@param u: the input array
+@param u_new: the output array
+@param n: the size of the array in each dimension
+*/
 void laplace_filter(double *u, double *u_new, int n) {
     int i, j, k;
     int i_prev, i_next, j_prev, j_next, k_prev, k_next;
@@ -43,6 +44,13 @@ void laplace_filter(double *u, double *u_new, int n) {
     }
 }
 
+/*
+Compute the dot product of two vectors
+@param u: the first vector
+@param v: the second vector
+@param n: the size of the vectors
+@return the dot product of the two vectors
+*/
 double ddot(double *u, double *v, int n) {
     int i;
     double result = 0.0;
@@ -53,6 +61,15 @@ double ddot(double *u, double *v, int n) {
     return result;
 }
 
+/*
+Compute the sum of two vectors scaled by a constant (res = u + alpha * v)
+and store the result in a third vector
+@param v: the first vector
+@param u: the second vector
+@param result: the vector to store the result
+@param alpha: the scaling constant
+@param n: the size of the vectors
+*/
 void daxpy(double *v, double *u, double *result, double alpha, int n) {
     int i;
     #pragma omp parallel for
@@ -61,6 +78,14 @@ void daxpy(double *v, double *u, double *result, double alpha, int n) {
     }
 }
 
+/*
+Compute the sum of two vectors scaled by a constant (u += alpha * v)
+and store the result in the second vector
+@param v: the first vector
+@param u: the second vector
+@param alpha: the scaling constant
+@param n: the size of the vectors
+*/
 void daxpy2(double *v, double *u, double alpha, int n) {
     int i;
     #pragma omp parallel for
@@ -69,10 +94,24 @@ void daxpy2(double *v, double *u, double alpha, int n) {
     }
 }
 
+/*
+Compute the Euclidean norm of a vector
+@param u: the vector
+@param n: the size of the vector
+@return the Euclidean norm of the vector
+*/
 double norm(double *u, int n) {
     return sqrt(ddot(u, u, n));
 }
 
+/*
+Solve the system of linear equations Ax = b using the conjugate gradient method where A is the Laplace filter
+@param b: the right-hand side of the system of equations
+@param x0: the initial guess for the solution
+@param x: the solution to the system of equations
+@param tol: the tolerance for the solution
+@param n: the size of the arrays (n_tot = n * n * n)
+*/
 int conj_grad(double *b, double *x0, double *x, double tol, int n) {
     long int i;
     long int n3 = n * n * n;

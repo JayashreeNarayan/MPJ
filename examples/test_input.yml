@@ -8,6 +8,13 @@ grid_setting:
 
 md_variables:
   N_steps: 20
+  rescale: 'True' # rescaling of the initial momenta to have tot momenta = 0
+  tol: 1.e-7
+  init_steps: 0
 
-output_settings: {}
+output_settings: 
+  restart: 'True'
   # path: output_files
+  # dt # CHECK LATER
+  # Temperature # NOT NOW
+  # equilibriation -- later
