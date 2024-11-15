@@ -2,9 +2,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+// #include <string.h>
 #include <math.h>
-#include <time.h>
+// #include <time.h>
 
 void laplace_filter(double *u, double *u_new, int n) {
     int i, j, k;
@@ -64,57 +64,60 @@ void daxpy2(double *v, double *u, double alpha, int n) {
     }
 }
 
-// void print_array(double *u, int n) {
-//     int i, j, k;
-//     for (i = 0; i < n; i++) {
-//         for (j = 0; j < n; j++) {
-//             for (k = 0; k < n; k++) {
-//                 printf("%18.8Le ", u[i * n * n + j * n + k]);
-//             }
-//             printf("\n");
-//         }
-//         printf("\n");
-//     }
-// }
+double norm(double *u, int n) {
+    return sqrt(ddot(u, u, n));
+}
 
-// int main(int argc, char *argv[]) {
-//     int steps = atoi(argv[1]);
-//     double div = atof(argv[2]);
+int conj_grad(double *b, double *x0, double *x, double tol, int n) {
+    long int i;
+    long int n3 = n * n * n;
+    int iter = 0;
 
-//     int n = 3;
-//     long int n3 = n * n * n;
-//     long int i, j, k;
-//     double *u = (double *)malloc(n3 * sizeof(double));
-//     double *u_new = (double *)malloc(n3 * sizeof(double));
-//     for (i = 0; i < n; i++) {
-//         for (j = 0; j < n; j++) {
-//             for (k = 0; k < n; k++) {
-//                 u[i * n * n + j * n + k] = i * n * n + j * n + k;
-//             }
-//         }
-//     }
+    double *v = (double *)malloc(n3 * sizeof(double));
+    double *r = (double *)malloc(n3 * sizeof(double));
+    double *p = (double *)malloc(n3 * sizeof(double));
+    double *Ap = (double *)malloc(n3 * sizeof(double));
+    double alpha, beta, r_dot_v;
 
-//     // print_array(u, n);
+    double app;
 
-    
-//     for (i = 0; i < steps; i++) {
-//         laplace_filter(u, u_new, n);
-//         for (j = 0; j < n3; j++) {
-//             u[j] = u_new[j] / div;
-//         }
-//     }
+    for (i = 0; i < n3; i++) {
+        x[i] = x0[i];
+    }
+    laplace_filter(x, r, n);
+    daxpy2(b, r, -1.0, n3);
 
-//     print_array(u, n);
-//     // for (i = 0; i < n; i++) {
-//     //     for (j = 0; j < n; j++) {
-//     //         for (k = 0; k < n; k++) {
-//     //             printf("%18.8e ", u[i * n * n + j * n + k]);
-//     //         }
-//     //         printf("\n");
-//     //     }
-//     //     printf("\n");
-//     // }
-//     free(u);
-//     free(u_new);
-//     return 0;
-// }
+    for (i = 0; i < n3; i++) {
+        app = r[i] / 6.0;
+        p[i] = app;
+        v[i] = -app;
+    }
+
+    do {
+        iter++;
+        laplace_filter(p, Ap, n);
+        r_dot_v = ddot(r, v, n3);
+
+        alpha = r_dot_v / ddot(p, Ap, n3);
+        daxpy2(p, x, alpha, n3);
+        daxpy2(Ap, r, alpha, n3);
+
+        for (i = 0; i < n3; i++) {
+            v[i] = -r[i] / 6.0;
+        }
+
+        beta = ddot(r, v, n3) / r_dot_v;
+
+        for (i = 0; i < n3; i++) {
+            p[i] = beta * p[i] - v[i];
+        }        
+
+    } while(norm(r, n3) > tol);
+
+    free(v);
+    free(r);
+    free(p);
+    free(Ap);
+
+    return iter;
+}
