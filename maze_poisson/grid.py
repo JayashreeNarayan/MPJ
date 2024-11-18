@@ -73,14 +73,6 @@ class Grid:
         self.temperature = md_variables.T
         self.potential_notelec = 0
         
-        '''
-        if self.potential_info == 'TF':
-            self.ComputeForceNotElecLC = self.ComputeForcesTFLinkedcell
-            self.ComputeForceNotElecBasic = self.ComputeForcesTFBasic
-        elif self.potential_info == 'LJ':
-            self.ComputeForceNotElecLC = self.ComputeForcesLJLinkedcell
-            self.ComputeForceNotElecBasic = self.ComputeForcesLJBasic
-        '''
     
     def RescaleVelocities(self):
         init_vel_Na = np.zeros(3)
