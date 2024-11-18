@@ -28,11 +28,10 @@ def main(grid_setting, output_settings, md_variables):
     N_steps = md_variables.N_steps
     stride = md_variables.stride
     initialization = md_variables.initialization
-    omega = md_variables.omega
     thermostat = md_variables.thermostat
     dt = md_variables.dt
     preconditioning = md_variables.preconditioning
-    rescale = md_variables.rescale
+    rescale = True if md_variables.rescale == 'True' else False
     elec = md_variables.elec
     V = 27.211386245988
     tol = md_variables.tol
@@ -49,24 +48,22 @@ def main(grid_setting, output_settings, md_variables):
     #    print('Position particle', i + 1, '=', particle.pos)
     #    print('Velocity particle', i + 1, '=', particle.vel)
     print('\nInitialization is done with CG and preconditioning:', preconditioning)
-    print('\nParameters:\nh =', h, "\ndt =", dt, "\nstride =", stride, '\nL =', L, '\nomega =', omega, '\ngamma =', md_variables.gamma)
+    print('\nParameters:\nh =', h, "\ndt =", dt, "\nstride =", stride, '\nL =', L, '\ngamma =', md_variables.gamma)
     print('\nPotential:', md_variables.potential)
     print('\nElec:', elec, '\tNotElec: ', not_elec,'\n')
     print('\nTemperature:',T,' K\tNumerical density:',N_p / L**3,' a.u.')
     print('\nPrint solute:', output_settings.print_solute, '\tPrint field: ', output_settings.print_field, '\tPrint tot_force:', output_settings.print_tot_force,
         '\nPrint energy:', output_settings.print_energy, '\tPrint temperature:', output_settings.print_temperature,
         '\tPrint performance:', output_settings.print_performance,'\tRestart:', output_settings.restart,'\n')
-    print('\nThermostat:', thermostat)
+    print('\nThermostat:', thermostat, '\tRescaling of the velocities:', rescale)
 
     ################################ STEP 0 Verlet ##########################################
     #########################################################################################
 
     q_tot = 0
     #compute 8 nearest neighbors for any particle
-    for particle in grid.particles:
-        particle.NearestNeigh()
-        q_tot = q_tot + particle.charge
-
+    grid.particles.NearestNeighbors()
+    q_tot = np.sum(grid.particles.charges)
     print('Total charge q = ',q_tot)
 
     # set charges with the weight function
@@ -80,13 +77,10 @@ def main(grid_setting, output_settings, md_variables):
     #grid.LinkedCellInit(grid.particles[0].r_cutoff)
 
     if not_elec:
-        grid.ComputeForceNotElecBasic()
-        #grid.ComputeForceNotElecLC()
+        grid.particles.ComputeForceNotElec()
 
-    for particle in grid.particles:
-        if elec:
-            particle.ComputeForce_FD(grid, prev=True) 
-
+    if elec:
+        grid.particles.ComputeForce_FD(prev=True) 
 
     ################################ STEP 1 Verlet ##########################################
     #########################################################################################
@@ -98,8 +92,7 @@ def main(grid_setting, output_settings, md_variables):
         grid.particles = VerletSolutePart1(grid, thermostat=thermostat)
 
     # compute 8 nearest neighbors for any particle
-    for p, particle in enumerate(grid.particles):
-            particle.NearestNeigh()
+    grid.particles.NearestNeighbors()
 
     # set charges with the weight function
     grid.SetCharges()
@@ -121,8 +114,8 @@ def main(grid_setting, output_settings, md_variables):
     #########################################################################################
 
     X = np.arange(0, L, h)
-    j = int(grid.particles[0].pos[1] / h)
-    k = int(grid.particles[0].pos[2] / h)
+    j = int(grid.particles.pos[0,1] / h)
+    k = int(grid.particles.pos[0,2] / h)
 
     end_initialization = time.time()
     print("\nInitialization time: {:.2f} s \n".format(end_initialization - start_initialization))
@@ -140,14 +133,10 @@ def main(grid_setting, output_settings, md_variables):
     #############################################################################################
 
     counter = 0 
-    old_pos = []
-
+  
     # iterate over the number of steps (i.e times I move the particle 1)
     for i in tqdm(range(N_steps)):
         #print('\nStep = ', i, ' t elapsed from init =', time.time() - end_initialization)
-        for particle in grid.particles:
-            old_pos.append(particle.pos)
-
         if md_variables.integrator == 'OVRVO':
             grid.particles = OVRVO_part1(grid, thermostat = thermostat)
         else:
@@ -155,8 +144,7 @@ def main(grid_setting, output_settings, md_variables):
 
         if elec:
             # compute 8 nearest neighbors for any particle
-            for particle in grid.particles:
-                particle.NearestNeigh()
+            grid.particles.NearestNeighbors()
         
             # set charges with the weight function
             grid.SetCharges()
@@ -174,9 +162,7 @@ def main(grid_setting, output_settings, md_variables):
 
         if output_settings.print_tot_force:
             tot_force = np.zeros(3)
-        
-            for particle in grid.particles:
-                tot_force = tot_force + particle.force + particle.force_notelec
+            tot_force = np.sum(grid.particles.forces + grid.particles.forces_notelec, axis=0)
             
             ofiles.file_output_tot_force.write(str(i) + ',' + str(tot_force[0]) + ',' + str(tot_force[1]) + ','+ str(tot_force[2]) + "\n") 
 
@@ -192,10 +178,10 @@ def main(grid_setting, output_settings, md_variables):
             
             if output_settings.print_solute:
                 for p in range(grid.N_p):
-                    ofiles.file_output_solute.write(str(grid.particles[p].charge) + ',' + str(i - init_steps) + ',' + str(p) 
-                                    + ',' + str(grid.particles[p].pos[0]) + ',' + str(grid.particles[p].pos[1]) + ',' + str(grid.particles[p].pos[2]) # pos are printed in a.u., then converted to angs in the convert_to_xyz file
-                                    + ','  + str(grid.particles[p].vel[0]) + ',' + str(grid.particles[p].vel[1]) + ',' + str(grid.particles[p].vel[2])  #vel are in a.u.
-                                    + ','  + str(grid.particles[p].force[0]) + ',' + str(grid.particles[p].force[1]) + ',' + str(grid.particles[p].force[2]) + '\n')
+                    ofiles.file_output_solute.write(str(grid.particles.charges[p]) + ',' + str(i - init_steps) + ',' + str(p) 
+                                    + ',' + str(grid.particles.pos[p, 0]) + ',' + str(grid.particles.pos[p, 1]) + ',' + str(grid.particles.pos[p, 2]) # pos are printed in a.u., then converted to angs in the convert_to_xyz file
+                                    + ','  + str(grid.particles.vel[p, 0]) + ',' + str(grid.particles.vel[p, 1]) + ',' + str(grid.particles.vel[p, 2])  #vel are in a.u.
+                                    + ','  + str(grid.particles.forces[p, 0]) + ',' + str(grid.particles.forces[p, 1]) + ',' + str(grid.particles.forces[p, 2]) + '\n')
                                     #+ ','  + str(grid.particles[p].force_notelec[0]) + ',' + str(grid.particles[p].force_notelec[1]) + ',' + str(grid.particles[p].force_notelec[2]) + '\n')
                                     #+ ','  + str(grid.particles[p].force[0] + grid.particles[p].force_notelec[0]) + ',' + str(grid.particles[p].force[1]+ grid.particles[p].force_notelec[1]) + ',' + str(grid.particles[p].force[2]+ grid.particles[p].force_notelec[2]) + '\n')          
             

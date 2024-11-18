@@ -7,7 +7,7 @@ from .constants import a0, kB, t_au
 ### Output settings ###
 
 class OutputSettings:
-    print_field = True
+    print_field = False
     print_performance = False
     print_solute = True
     print_energy = True
@@ -72,16 +72,15 @@ class MDVariables:
     thermostat = False
     dt = 0.25 / t_au        # timestep for the solute evolution given in fs and converted in a.u.
     stride = 1              # saves every stride steps
-    omega = 1 # overrelaxation parameter 
     initialization = 'CG'   # always CG
     preconditioning = 'Yes' # Yes or No
-    #rescale = True # rescaling of the initial momenta to have tot momenta = 0
+    rescale = None # rescaling of the initial momenta to have tot momenta = 0
     elec = True
     not_elec = True
     potential = 'TF' # Tosi Fumi (TF) or Leonard Jones (LJ)
-    integrator = 'OVRVO'
+    integrator = 'VELOCITY'
     gamma = 1e-3 # OVRVO parameter
-    T = 1500 # K
+    T = 1550 # K
     kBT = kB * T # E_h
 
 required_inputs = {
