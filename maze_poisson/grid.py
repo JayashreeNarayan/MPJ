@@ -209,7 +209,14 @@ class Grid:
 
         # Same as above using broadcasting
         diff = self.particles.pos[:, np.newaxis, :] - self.particles.neighbors * h
-        self.q[*self.particles.neighbors.reshape(-1, 3).T] += (self.particles.charges[:, np.newaxis] * np.prod(g(diff, L, h), axis=2)).flatten()
+        
+        # if Python 3.11 or newer uncomment below and comment lines 217-219
+        #self.q[*self.particles.neighbors.reshape(-1, 3).T] += (self.particles.charges[:, np.newaxis] * np.prod(g(diff, L, h), axis=2)).flatten()
+        
+        # Version that works for Python 3.8.15
+        indices = tuple(self.particles.neighbors.reshape(-1, 3).T)
+        updates = (self.particles.charges[:, np.newaxis] * np.prod(g(diff, L, h), axis=2)).flatten()
+        self.q[indices] += updates
   
         q_tot_expected = np.sum(self.particles.charges)
         q_tot = np.sum(self.q)
