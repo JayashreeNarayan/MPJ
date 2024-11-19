@@ -25,7 +25,7 @@ def generate_restart(grid_setting, output_settings, iter = None):
 
     new_df.insert(loc=1, column='mass',value=col_mass)
     print(np.shape(new_df))
-    new_df.insert(loc=2, column='radius',value=radius)
+    #new_df.insert(loc=2, column='radius',value=radius)
     new_df['x'] = new_df['x'] * a0
     new_df['y'] = new_df['y'] * a0
     new_df['z'] = new_df['z'] * a0
