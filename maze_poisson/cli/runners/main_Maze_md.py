@@ -31,7 +31,7 @@ def main(grid_setting, output_settings, md_variables):
     thermostat = md_variables.thermostat
     dt = md_variables.dt
     preconditioning = md_variables.preconditioning
-    rescale = True if md_variables.rescale == 'True' else False
+    rescale = md_variables.rescale
     elec = md_variables.elec
     V = 27.211386245988
     tol = md_variables.tol

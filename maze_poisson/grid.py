@@ -38,7 +38,7 @@ class Grid:
 
         self.particles = [] # list of class instances of class particle
         
-        if output_settings.restart == 'False': # if False then it starts from a good initial config (BCC lattice) - i.e from an input file.
+        if output_settings.restart == False: # if False then it starts from a good initial config (BCC lattice) - i.e from an input file.
             df = pd.read_csv(grid_setting.input_file) # from file
             print('START new simulation from file:' + grid_setting.input_file)
 
