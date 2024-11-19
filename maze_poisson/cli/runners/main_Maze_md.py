@@ -165,6 +165,7 @@ def main(grid_setting, output_settings, md_variables):
             tot_force = np.sum(grid.particles.forces + grid.particles.forces_notelec, axis=0)
             
             ofiles.file_output_tot_force.write(str(i) + ',' + str(tot_force[0]) + ',' + str(tot_force[1]) + ','+ str(tot_force[2]) + "\n") 
+            ofiles.file_output_tot_force.flush()
 
         grid.Energy(print_energy=output_settings.print_energy, iter=i)
         grid.Temperature(print_temperature=output_settings.print_temperature, iter=i)
