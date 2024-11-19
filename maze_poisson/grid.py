@@ -1,9 +1,10 @@
 import numpy as np
 import pandas as pd
 
-from .constants import a0, kB, conv_mass
+from .constants import a0, conv_mass, kB
 from .output_md import generate_output_files
 from .particles import Particles, g
+
 
 ### grid class to represent the grid and the fields operating on it ###
 class Grid:
@@ -201,10 +202,14 @@ class Grid:
         h = self.h
         self.q = np.zeros(self.shape, dtype=float)
         
-        for m in range(len(self.particles.charges)):
-            for i, j, k in self.particles.neighbors[m, :, :]:
-                diff = self.particles.pos[m] - np.array([i,j, k]) * h
-                self.q[i, j, k] += self.particles.charges[m] * g(diff[0], L, h) * g(diff[1], L, h) * g(diff[2], L, h)
+        # for m in range(len(self.particles.charges)):
+        #     for i, j, k in self.particles.neighbors[m, :, :]:
+        #         diff = self.particles.pos[m] - np.array([i,j, k]) * h
+        #         self.q[i, j, k] += self.particles.charges[m] * g(diff[0], L, h) * g(diff[1], L, h) * g(diff[2], L, h)
+
+        # Same as above using broadcasting
+        diff = self.particles.pos[:, np.newaxis, :] - self.particles.neighbors * h
+        self.q[*self.particles.neighbors.reshape(-1, 3).T] += (self.particles.charges[:, np.newaxis] * np.prod(g(diff, L, h), axis=2)).flatten()
   
         q_tot_expected = np.sum(self.particles.charges)
         q_tot = np.sum(self.q)
