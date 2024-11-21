@@ -44,7 +44,7 @@ def generate_output_files(grid):
         output_files.file_output_iters = open(output_iters, 'r+')
         output_files.file_output_iters.write("iter,max_sigma,norm\n")
 
-
+    # prints only kinetic and non electrostatic potential
     if output_settings.print_energy:
         output_energy = os.path.join(path, 'energy_N' + str(N) + '.csv')
         if os.path.exists(output_energy):
@@ -70,7 +70,7 @@ def generate_output_files(grid):
         else:
             open(output_solute, 'w').close()  # Create the file
         output_files.file_output_solute = open(output_solute, 'r+')
-        output_files.file_output_solute.write("charge,iter,particle,x,y,z,vx,vy,vz,fx,fy,fz\n")
+        output_files.file_output_solute.write("charge,iter,particle,x,y,z,vx,vy,vz,fx_elec,fy_elec,fz_elec\n")
 
     if output_settings.print_tot_force:
         output_tot_force = os.path.join(path, 'tot_force_N' + str(N) + '.csv')

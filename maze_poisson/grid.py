@@ -1,9 +1,10 @@
 import numpy as np
 import pandas as pd
 
-from .constants import a0, kB, conv_mass
+from .constants import a0, conv_mass, kB
 from .output_md import generate_output_files
-from .particle import Particle, g
+from .particles import Particles, g
+
 
 ### grid class to represent the grid and the fields operating on it ###
 class Grid:
@@ -18,8 +19,6 @@ class Grid:
         self.N_p = grid_setting.N_p
         self.h = grid_setting.h
         self.L = grid_setting.L
-
-        self.potential_info = md_variables.potential
         self.dt = md_variables.dt
         self.elec = md_variables.elec
         self.not_elec = md_variables.not_elec
@@ -42,32 +41,29 @@ class Grid:
         
         if output_settings.restart == False: # if False then it starts from a good initial config (BCC lattice) - i.e from an input file.
             df = pd.read_csv(grid_setting.input_file) # from file
-            for i in range(self.N_p):
-                self.particles.append(Particle(
+            print('START new simulation from file:' + grid_setting.input_file)
+
+            self.particles = Particles(
                     self,
-                    df['charge'][i],
-                    df['mass'][i] * conv_mass, # mass given in amu and converted in au
-                    df['radius'][i] / a0,      # radius given in Angs and converted to au
-                    np.array([df['x'][i], df['y'][i], df['z'][i]]) / a0
+                    md_variables,
+                    df['charge'],
+                    df['mass'] * conv_mass, # mass given in amu and converted in au
+                    np.array([df['x'], df['y'], df['z']]).T / a0
                     )
-                )
-            for j in range(self.N_p): # not from file - generating on the go
-                self.particles[j].vel = np.array([np.random.normal(loc = 0.0, scale = np.sqrt(self.kBT / self.particles[j].mass)) for i in range(3)]) # creating a velocity variable in each of the particle classes instances                      
+            self.particles.vel = np.random.normal(loc = 0.0, scale =  np.sqrt(self.kBT / self.particles.masses[:, np.newaxis]), size=(self.N_p, 3))
+            
         else:
             df = pd.read_csv(grid_setting.restart_file)
             print('RESTART from file:' + grid_setting.restart_file)
-            for i in range(self.N_p):
-                self.particles.append(
-                    Particle(
-                        self,
-                        df['charge'][i],           # charge given in electronic charge units
-                        df['mass'][i] * conv_mass, # mass given in amu and converted in au
-                        df['radius'][i] / a0,      # radius given in Angs and converted to au
-                        np.array([df['x'][i], df['y'][i], df['z'][i]]) / a0
-                    )
+
+            self.particles = Particles(
+                self,
+                md_variables,
+                df['charge'],
+                df['mass'] * conv_mass, # mass given in amu and converted in au
+                np.array([df['x'], df['y'], df['z']]).T / a0
                 )
-            for j in range(self.N_p):
-                self.particles[j].vel = np.array([df['vx'][j], df['vy'][j], df['vz'][j]])
+            self.particles.vel = np.array([df['vx'], df['vy'], df['vz']]).T
 
         self.shape = (self.N,)*3
         self.q = np.zeros(self.shape, dtype=float)          # charge vector - q for every grid point
@@ -78,13 +74,6 @@ class Grid:
         self.temperature = md_variables.T
         self.potential_notelec = 0
         
-        if self.potential_info == 'TF':
-            self.ComputeForceNotElecLC = self.ComputeForcesTFLinkedcell
-            self.ComputeForceNotElecBasic = self.ComputeForcesTFBasic
-        elif self.potential_info == 'LJ':
-            self.ComputeForceNotElecLC = self.ComputeForcesLJLinkedcell
-            self.ComputeForceNotElecBasic = self.ComputeForcesLJBasic
-
     
     def RescaleVelocities(self):
         init_vel_Na = np.zeros(3)
@@ -92,32 +81,26 @@ class Grid:
         init_vel_Cl = np.zeros(3)
         new_vel_Cl = np.zeros(3)
         
-        for particle in self.particles:
-            if particle.charge == 1.:
-                init_vel_Na = init_vel_Na + particle.vel
-            else:
-                init_vel_Cl = init_vel_Cl + particle.vel
-            
-        mi_vi2 = [p.mass * np.dot(p.vel, p.vel) for p in self.particles]
+        init_vel_Na = np.sum(self.particles.vel[self.particles.charges == 1.], axis=0)
+        init_vel_Cl = np.sum(self.particles.vel[self.particles.charges == -1.], axis=0)
+
+        mi_vi2 = self.particles.masses * np.sum(self.particles.vel**2, axis=1)
         self.temperature = np.sum(mi_vi2) / (3 * self.N_p * kB)
 
-        print(f'Total initial vel: Na = {init_vel_Na}, Cl = {init_vel_Cl}\tOld T = {self.temperature}')
+        print(f'Total initial vel:\nNa = {init_vel_Na} \nCl = {init_vel_Cl}\nOld T = {self.temperature}\n')
         
-        for particle in self.particles:
-            if particle.charge == 1.:
-                particle.vel = particle.vel - 2 * init_vel_Na / self.N_p
-                new_vel_Na = new_vel_Na + particle.mass * particle.vel
-            else:
-                particle.vel = particle.vel - 2 * init_vel_Cl / self.N_p
-                new_vel_Cl = new_vel_Cl + particle.mass * particle.vel
+        self.particles.vel[self.particles.charges == 1.] -= 2 * init_vel_Na / self.N_p
+        self.particles.vel[self.particles.charges == -1.] -= 2 * init_vel_Cl / self.N_p
+        
+        new_vel_Na = np.sum(self.particles.vel[self.particles.charges == 1.], axis=0)
+        new_vel_Cl = np.sum(self.particles.vel[self.particles.charges == -1.], axis=0)
 
-        
-        mi_vi2 = [p.mass * np.dot(p.vel, p.vel) for p in self.particles]
+        mi_vi2 = self.particles.masses * np.sum(self.particles.vel**2, axis=1)
         self.temperature = np.sum(mi_vi2) / (3 * self.N_p * kB)
-        print(f'Total scaled vel: Na = {new_vel_Na}, Cl = {new_vel_Cl}\tNew T = {self.temperature}')
+
+        print(f'Total scaled vel: \nNa = {new_vel_Na} \nCl = {new_vel_Cl}\nNew T = {self.temperature}\n')
     
-    
-    
+     
     def ComputeForcesLJBasic(self):
         pe = 0
 
@@ -163,9 +146,9 @@ class Grid:
         self.potential_notelec = pe
     
 
+    '''
     def ComputeForcesTFBasic(self): # 
-        for p in self.particles:
-            p.force_notelec = np.zeros(3)
+        self.particles.force_notelec = np.zeros((self.N_p, 3), dtype=float)
         pe = 0
         
         for p1 in range(self.N_p):
@@ -211,71 +194,47 @@ class Grid:
                                 pe += pair_potential
 
         self.potential_notelec = pe
-
+    '''
 
     # update charges with a weight function that spreads it on the grid
     def SetCharges(self):
         L = self.L
         h = self.h
         self.q = np.zeros(self.shape, dtype=float)
+        
+        # for m in range(len(self.particles.charges)):
+        #     for i, j, k in self.particles.neighbors[m, :, :]:
+        #         diff = self.particles.pos[m] - np.array([i,j, k]) * h
+        #         self.q[i, j, k] += self.particles.charges[m] * g(diff[0], L, h) * g(diff[1], L, h) * g(diff[2], L, h)
 
-        q_tot = 0
-        q_tot_expected = 0
-
-        for particle in self.particles:
-            q_tot_expected = q_tot_expected + particle.charge
-
-            for i,j,k in particle.neigh:
-                diff = particle.pos - np.array([i,j,k]) * h
-                self.q[i,j,k] += particle.charge * g(diff[0], L, h) * g(diff[1], L, h) * g(diff[2], L, h)
-
+        # Same as above using broadcasting
+        diff = self.particles.pos[:, np.newaxis, :] - self.particles.neighbors * h
+        
+        # if Python 3.11 or newer uncomment below and comment lines 217-219
+        #self.q[*self.particles.neighbors.reshape(-1, 3).T] += (self.particles.charges[:, np.newaxis] * np.prod(g(diff, L, h), axis=2)).flatten()
+        
+        # Version that works for Python 3.8.15
+        indices = tuple(self.particles.neighbors.reshape(-1, 3).T)
+        updates = (self.particles.charges[:, np.newaxis] * np.prod(g(diff, L, h), axis=2)).flatten()
+        self.q[indices] += updates
+  
+        q_tot_expected = np.sum(self.particles.charges)
         q_tot = np.sum(self.q)
 
         if q_tot + 1e-6 < q_tot_expected:
             print('Error: change initial position, charge is not preserved - q_tot =', q_tot) 
-            
-
-    def Energy(self, iter, print_energy, prev=False):
-        L = self.L
-        h = self.h
-        if prev == False:
-            phi_v = self.phi
-        else:
-            phi_v = self.phi_prev
-
-        # electrostatic potential
-        potential = 0
-        if self.elec:
-            pot1 = 0
-
-            for p in self.particles:
-                for i,j,k in p.neigh:
-                    diff = p.pos - np.array([i,j,k]) * h
-                    q_n = p.charge * g(diff[0], L, h) * g(diff[1], L, h) * g(diff[2], L, h)
-                    pot1 = pot1 + 0.5 * q_n * phi_v[i,j,k]
-                    potential = potential + 0.5 * self.q[i,j,k] * phi_v[i,j,k]
-
+                
+    # returns only kinetic energy and not electrostatic one
+    def Energy(self, iter, print_energy):
         # kinetic E
-        kinetic = 0
-            
-        for p in self.particles:
-            kinetic = kinetic + 0.5 * p.mass * np.dot(p.vel, p.vel)
+        kinetic = 0.5 * np.sum(self.particles.masses * np.sum(self.particles.vel**2, axis=1))
         
-        #print('potential = ', potential, ' TF = ', self.potential_notelec)
-        if self.elec and self.not_elec:
-            pot_tot = self.potential_notelec + potential
-        elif self.elec and self.not_elec == False:
-            pot_tot = potential
-        elif self.not_elec and self.elec == False:
-            pot_tot = self.potential_notelec
-
-        self.energy = kinetic + pot_tot
         if print_energy:
             self.output_files.file_output_energy.write(str(iter) + ',' +  str(kinetic) + ',' + str(self.potential_notelec) + '\n')
 
 
     def Temperature(self, iter, print_temperature):
-        mi_vi2 = [p.mass * np.dot(p.vel, p.vel) for p in self.particles]
+        mi_vi2 = self.particles.masses * np.sum(self.particles.vel**2, axis=1)
         self.temperature = np.sum(mi_vi2) / (3 * self.N_p * kB)
         
         if print_temperature:

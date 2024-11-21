@@ -5,52 +5,58 @@ import numpy as np
 
 from .c_api import c_conj_grad, c_laplace
 from .profiling import profile
+from .constants import kB
 
-
-def VerletSolutePart1(grid, dt=None, thermostat=False):
-    if dt is None:
-        dt = grid.dt
+def VerletSolutePart1(grid, thermostat=False):
+    dt = grid.md_variables.dt
     N_p = grid.N_p
-    kB = grid.kB
     L = grid.L
+
+    if thermostat == True:
+        mi_vi2 = grid.particles.masses * np.sum(grid.particles.vel**2, axis=1)
+        T_exp = np.sum(mi_vi2) / (3 * N_p * kB)
+        lambda_scaling = np.sqrt(grid.temperature / T_exp)
 
     particles = grid.particles
 
     if thermostat == True:
-        mi_vi2 = [p.mass * np.dot(p.vel, p.vel) for p in particles]
-        T_exp = np.sum(mi_vi2) / (3 * N_p * kB)
-        lambda_scaling = np.sqrt(T / T_exp)
+        particles.vel = particles.vel * lambda_scaling
 
-    for particle in particles:
-        if thermostat == True:
-            particle.vel = particle.vel * lambda_scaling
-        particle.vel = particle.vel + 0.5 * ((particle.force + particle.force_notelec) / particle.mass) * dt
-        particle.pos = particle.pos + particle.vel * dt 
-        particle.pos = particle.pos - L * np.floor(particle.pos / L)   
+    particles.vel = particles.vel + 0.5 * dt * ((particles.forces + particles.forces_notelec) / particles.masses[:, np.newaxis])
+    particles.pos = particles.pos + particles.vel * dt 
+    particles.pos = particles.pos - L * np.floor(particles.pos / L)  
+
     return particles
 
 
-def VerletSolutePart2(grid, dt=None, prev=False):
+def VerletSolutePart2(grid, prev=False):
     not_elec = grid.not_elec
     elec = grid.elec
-
-    grid.potential_notelec = 0
+    particles = grid.particles
+    dt = grid.md_variables.dt
+    
     if not_elec:
-        grid.ComputeForceNotElecBasic()
+        particles.ComputeForceNotElec()
 
-    for particle in grid.particles:
-        if elec:
-            particle.ComputeForce_FD(grid, prev=prev)
-        particle.vel = particle.vel + 0.5 * ((particle.force + particle.force_notelec) / particle.mass) * dt
+    if elec:
+        particles.ComputeForce_FD(prev=prev)
+
+    particles.vel = particles.vel + 0.5 * dt * (particles.forces + particles.forces_notelec) / particles.masses[:, np.newaxis]
+    
     return grid
 
 ### OVRVO ###
      
 ### Solves the equations for the O-block ###
-def O_block(v, m, gamma, dt, kBT):
+def O_block(N_p, v, m, gamma, dt, kBT):
     c1 = exp(-gamma*dt)
-    rnd = np.random.multivariate_normal(mean = (0.0, 0.0, 0.0), cov = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
-    v_t_dt = np.sqrt(c1) * v + np.sqrt((1 - c1) * kBT / m) * rnd
+    rnd = np.random.multivariate_normal(
+    mean=[0.0, 0.0, 0.0],
+    cov=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+    size=N_p
+    )
+
+    v_t_dt = np.sqrt(c1) * v + np.sqrt((1 - c1) * kBT / m[:, np.newaxis]) * rnd
     return v_t_dt
 
 ### Solves the equations for the V-block ###
@@ -59,7 +65,7 @@ def V_block(v, F, m, gamma, dt):
         c2 = 1
     else:
         c2 = np.sqrt(2 /(gamma * dt) * tanh(0.5 * gamma * dt)) 
-    v_t_dt = v + 0.5 * c2 * dt * F / m #F is the force
+    v_t_dt = v + 0.5 * c2 * dt * F / m[:, np.newaxis] #F is the force
     return v_t_dt
 
 ### Solves the equations for the R-block ###
@@ -75,7 +81,6 @@ def R_block(x,v, gamma, dt, L):
 
 @profile
 def OVRVO_part1(grid, thermostat=False):
-    particles = grid.particles
     if thermostat:
         gamma_sim = grid.md_variables.gamma_inpt
     else:
@@ -84,17 +89,19 @@ def OVRVO_part1(grid, thermostat=False):
     dt = grid.md_variables.dt
     kBT = grid.md_variables.kBT
     L = grid.L
-        
-    for p in particles:
-        p.vel = O_block(p.vel, p.mass, gamma_sim, dt, kBT)
-        p.vel = V_block(p.vel,p.force + p.force_notelec, p.mass, gamma_sim, dt)
-        p.pos = R_block(p.pos,p.vel, gamma_sim, dt, L)
+    N_p = grid.N_p
+
+    grid.particles.vel = O_block(N_p, grid.particles.vel, grid.particles.masses, gamma_sim, dt, kBT)
+    grid.particles.vel = V_block(grid.particles.vel, grid.particles.forces + grid.particles.forces_notelec, grid.particles.masses, gamma_sim, dt)
+    grid.particles.pos = R_block(grid.particles.pos, grid.particles.vel, gamma_sim, dt, L)
     
-    return particles
+    return grid.particles
+
 
 def OVRVO_part2(grid, prev=False, thermostat=False):
     dt = grid.md_variables.dt
     kBT = grid.md_variables.kBT
+    N_p = grid.N_p
 
     if thermostat:
         gamma_sim = grid.md_variables.gamma_inpt
@@ -102,15 +109,16 @@ def OVRVO_part2(grid, prev=False, thermostat=False):
         gamma_sim = 0
         
     if grid.not_elec:
-        grid.ComputeForceNotElecBasic()
-            
-    for p in grid.particles:
-        if grid.elec:
-            p.ComputeForce_FD(grid, prev=prev)
-        p.vel = V_block(p.vel, p.force + p.force_notelec, p.mass, gamma_sim, dt)
-        p.vel = O_block(p.vel, p.mass, gamma_sim, dt, kBT)
+        grid.particles.ComputeForceNotElec()
+
+    if grid.elec:
+        grid.particles.ComputeForce_FD(prev=prev)
+
+    grid.particles.vel = V_block(grid.particles.vel, grid.particles.forces + grid.particles.forces_notelec, grid.particles.masses, gamma_sim, dt)
+    grid.particles.vel = O_block(N_p, grid.particles.vel, grid.particles.masses, gamma_sim, dt, kBT)
     
     return grid.particles
+
 
 @profile
 def MatrixVectorProduct_manual(v):
@@ -143,7 +151,6 @@ MatrixVectorProduct = MatrixVectorProduct_manual
 
 # apply Verlet algorithm to compute the updated value of the field phi, with LCG + SHAKE
 def VerletPoisson(grid, y):
-    omega = grid.md_variables.omega
     tol = grid.md_variables.tol
     h = grid.h
 
@@ -154,21 +161,18 @@ def VerletPoisson(grid, y):
 
     # compute the constraint with the provisional value of the field phi
     matrixmult = MatrixVectorProduct(grid.phi)
-    sigma_p = omega * (grid.q / h + matrixmult / (4 * np.pi)) # M @ grid.phi for row-by-column product
+    sigma_p = grid.q / h + matrixmult / (4 * np.pi) # M @ grid.phi for row-by-column product
 
     # apply LCG
     y_new, iter_conv = PrecondLinearConjGradPoisson(sigma_p, x0=y, tol=tol) #riduce di 1/3 il numero di iterazioni necessarie a convergere
     
     # scale the field with the constrained 'force' term
-    grid.phi -= y_new / omega * (4 * np.pi)
+    grid.phi -= y_new * (4 * np.pi)
 
     if grid.debug:
         matrixmult1 = MatrixVectorProduct(y_new)
         print('LCG precision     :',np.max(np.abs(matrixmult1 - sigma_p)))
         
-        matrixmult1_old = MatrixVectorProduct(y_new / omega)
-        print('LCG precision orig:',np.max(np.abs(matrixmult1_old - sigma_p / omega)))
-    
         matrixmult2 = MatrixVectorProduct(grid.phi)
         sigma_p1 = grid.q / h + matrixmult2 / (4 * np.pi) # M @ grid.phi for row-by-column product
     
@@ -239,7 +243,6 @@ def MatrixVectorProduct_7entries(M, v, index):
 
 # apply Verlet algorithm to compute the updated value of the field phi, with LCG + SHAKE
 def VerletPoissonBerendsen(grid,eta):
-    omega = grid.md_variables.omega
     h = grid.h
     tol = grid.md_variables.tol
 
@@ -259,7 +262,7 @@ def VerletPoissonBerendsen(grid,eta):
 
     while(stop_iteration == False):	
         iter = iter + 1
-        delta_eta =  -(4 * np.pi)**2 * const_inv * sigma_p * omega
+        delta_eta =  -(4 * np.pi)**2 * const_inv * sigma_p 
         eta = eta + delta_eta
         
         M_delta_eta = MatrixVectorProduct(delta_eta)
