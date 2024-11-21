@@ -16,7 +16,3 @@ output_settings:
   restart: TRUE
   print_tot_force: TRUE
   print_field: TRUE
-  # path: output_files
-  # dt # CHECK LATER
-  # Temperature # NOT NOW
-  # equilibriation -- later

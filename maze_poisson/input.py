@@ -55,6 +55,7 @@ class GridSetting:
     @L.setter
     def L(self, value):
         self._h = None
+        self.L_ang = value
         self._L = value / a0
 
     @property
@@ -70,7 +71,8 @@ class MDVariables:
     N_steps = None
     #init_steps = 0
     thermostat = False # to move
-    dt = 0.25 / t_au        # timestep for the solute evolution given in fs and converted in a.u.  # to move
+    dt_fs = 0.25 # dt in fs
+    dt = dt_fs / t_au        # timestep for the solute evolution given in fs and converted in a.u. # to move
     stride = 1              # saves every stride steps
     initialization = 'CG'   # always CG
     preconditioning = 'Yes' # Yes or No
