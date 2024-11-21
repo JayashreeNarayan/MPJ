@@ -71,54 +71,28 @@ def plot_Etot_trp(path, N, dt, N_th, L=20.9 / a0, upper_lim=None):
     if recompute_work:
 
         # If the file doesn't exist, compute the work
-        df = pd.read_csv(path + 'solute_N' + str(N) + '.csv')
+        # df = pd.read_csv(path + 'solute_N' + str(N) + '.csv')
         Np = int(df['particle'].max() + 1)
-        df_list = [df[df['particle'] == p].reset_index(drop=True) for p in range(Np)]
-        iterations = df['iter']
-        N_steps = int(iterations.max() + 1)
+        # df_list = [df[df['particle'] == p].reset_index(drop=True) for p in range(Np)]
+        # iterations = df['iter']
+        # N_steps = int(iterations.max() + 1)
         Ework = np.zeros(N_steps)
-        work = np.zeros((Np, N_steps))
-        print('N_steps =', N_steps)
+        # print('N_steps =', N_steps)
         print('Np =', Np)
 
-        # Precompute steps and avoid repeated indexing
-        for p in range(Np):
-            df_p = df_list[p]
-            x = df_p['x'].values
-            y = df_p['y'].values
-            z = df_p['z'].values
-            fx = df_p['fx_elec'].values
-            fy = df_p['fy_elec'].values
-            fz = df_p['fz_elec'].values
+        gb = df.groupby('particle')
+        xyz = gb.apply(lambda x: x[['x', 'y', 'z',]]).values.reshape(Np, N_steps, 3)
+        f_xyz = gb.apply(lambda x: x[['fx_elec', 'fy_elec', 'fz_elec',]]).values.reshape(Np, N_steps, 3)
 
-            # Initialize cumulative displacement
-            cx = np.zeros(N_steps)
-            cy = np.zeros(N_steps)
-            cz = np.zeros(N_steps)
-            for i in range(1, N_steps):
+        delta = np.diff(xyz, axis=1)
+        delta -= np.rint(delta / L) * L
 
-                # Calculate displacement between consecutive steps
-                dx = x[i] - x[i-1]
-                dy = y[i] - y[i-1]
-                dz = z[i] - z[i-1]
+        # Get the work per iteration done by all particles
+        # Sum over particles (axis 0) and directions (axis 2)
+        work = - np.sum((f_xyz[:, 1:] + f_xyz[:, :-1]) * delta / 2, axis=(0,2))
 
-                # Apply minimum image convention to account for PBC
-                dx -= np.rint(dx / L) * L
-                dy -= np.rint(dy / L) * L
-                dz -= np.rint(dz / L) * L
-
-                # Accumulate the corrected displacements
-                cx[i] = cx[i-1] + dx
-                cy[i] = cy[i-1] + dy
-                cz[i] = cz[i-1] + dz
-
-                # Compute work for each particle p at each step i
-                work[p][i] = - (np.trapz(fx[:i], x=cx[:i]) +
-                                np.trapz(fy[:i], x=cy[:i]) +
-                                np.trapz(fz[:i], x=cz[:i]))
-                
-        # Sum up the work across all particles
-        Ework = np.add.reduce(work, axis=0)
+        # Integrate the work per iteration to get the total work at each iteration
+        Ework[2:] = np.cumsum(work)[:-1]
 
         # Create the work file with header "iter,work" and save the computed work
         work_df = pd.DataFrame({'iter': range(N_steps), 'work': Ework})
