@@ -87,9 +87,9 @@ def plot_Etot_trp(path, N, dt, N_th, L=20.9 / a0, upper_lim=None):
             x = df_p['x'].values
             y = df_p['y'].values
             z = df_p['z'].values
-            fx = df_p['fx'].values
-            fy = df_p['fy'].values
-            fz = df_p['fz'].values
+            fx = df_p['fx_elec'].values
+            fy = df_p['fy_elec'].values
+            fz = df_p['fz_elec'].values
 
             # Initialize cumulative displacement
             cx = np.zeros(N_steps)
@@ -193,9 +193,9 @@ def plot_work_trp(path, N, N_th, L=20.9 / a0):
             x = df_p['x'].values
             y = df_p['y'].values
             z = df_p['z'].values
-            fx = df_p['fx'].values
-            fy = df_p['fy'].values
-            fz = df_p['fz'].values
+            fx = df_p['fx_elec'].values
+            fy = df_p['fy_elec'].values
+            fz = df_p['fz_elec'].values
             # Initialize cumulative displacement
             cx = np.zeros(N_steps)
             cy = np.zeros(N_steps)
