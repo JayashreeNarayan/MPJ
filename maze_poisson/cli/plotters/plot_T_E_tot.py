@@ -71,51 +71,28 @@ def plot_Etot_trp(path, N, dt, N_th, L=20.9 / a0, upper_lim=None):
     if recompute_work:
 
         # If the file doesn't exist, compute the work
-        df = pd.read_csv(path + 'solute_N' + str(N) + '.csv')
+        # df = pd.read_csv(path + 'solute_N' + str(N) + '.csv')
         Np = int(df['particle'].max() + 1)
         df_list = [df[df['particle'] == p].reset_index(drop=True) for p in range(Np)]
-        iterations = df['iter']
-        N_steps = int(iterations.max() + 1)
+        # iterations = df['iter']
+        # N_steps = int(iterations.max() + 1)
         Ework = np.zeros(N_steps)
         work = np.zeros((Np, N_steps))
-        print('N_steps =', N_steps)
+        # print('N_steps =', N_steps)
         print('Np =', Np)
 
         # Precompute steps and avoid repeated indexing
         for p in range(Np):
             df_p = df_list[p]
-            x = df_p['x'].values
-            y = df_p['y'].values
-            z = df_p['z'].values
-            fx = df_p['fx'].values
-            fy = df_p['fy'].values
-            fz = df_p['fz'].values
+            
+            # Calculate displacement between consecutive steps
+            delta = np.diff(df_p[['x', 'y', 'z']].values, axis=0)
 
-            # Initialize cumulative displacement
-            cx = np.zeros(N_steps)
-            cy = np.zeros(N_steps)
-            cz = np.zeros(N_steps)
-            for i in range(1, N_steps):
+            # Accumulate the corrected displacements
+            c = np.cumsum(delta, axis=0)
 
-                # Calculate displacement between consecutive steps
-                dx = x[i] - x[i-1]
-                dy = y[i] - y[i-1]
-                dz = z[i] - z[i-1]
-
-                # Apply minimum image convention to account for PBC
-                dx -= np.rint(dx / L) * L
-                dy -= np.rint(dy / L) * L
-                dz -= np.rint(dz / L) * L
-
-                # Accumulate the corrected displacements
-                cx[i] = cx[i-1] + dx
-                cy[i] = cy[i-1] + dy
-                cz[i] = cz[i-1] + dz
-
-                # Compute work for each particle p at each step i
-                work[p][i] = - (np.trapz(fx[:i], x=cx[:i]) +
-                                np.trapz(fy[:i], x=cy[:i]) +
-                                np.trapz(fz[:i], x=cz[:i]))
+            # Compute work for each particle p
+            work[p][1:] = - np.trapz(df_p[['fx', 'fy', 'fz']].values, x=c, axis=0)
                 
         # Sum up the work across all particles
         Ework = np.add.reduce(work, axis=0)
