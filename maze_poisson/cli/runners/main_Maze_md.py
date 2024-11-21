@@ -6,7 +6,7 @@ import time
 import numpy as np
 from tqdm import tqdm
 
-from ...constants import a0
+from ...constants import a0, t_au
 from ...grid import *
 from ...restart import generate_restart
 from ...verlet import (OVRVO_part1, OVRVO_part2, PrecondLinearConjGradPoisson,
@@ -48,7 +48,7 @@ def main(grid_setting, output_settings, md_variables):
     #    print('Position particle', i + 1, '=', particle.pos)
     #    print('Velocity particle', i + 1, '=', particle.vel)
     print('\nInitialization is done with CG and preconditioning:', preconditioning)
-    print('\nParameters:\nh =', h, "\ndt =", dt, "\nstride =", stride, '\nL =', L, '\ngamma =', md_variables.gamma)
+    print('\nParameters:\nh =', h * a0, " A\ndt =", dt * t_au, " fs\nstride =", stride, '\nL =', L * a0, ' A\ngamma =', md_variables.gamma)
     print('\nPotential:', md_variables.potential)
     print('\nElec:', elec, '\tNotElec: ', not_elec,'\n')
     print('\nTemperature:',T,' K\tNumerical density:',N_p / L**3,' a.u.')

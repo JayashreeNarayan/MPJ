@@ -7,17 +7,17 @@ from .constants import a0, kB, t_au
 ### Output settings ###
 
 class OutputSettings:
-    print_field = False
-    print_performance = False
-    print_solute = True
-    print_energy = True
-    print_temperature = True
-    print_tot_force = True
+    print_field = False # to move
+    print_performance = False # to move
+    print_solute = True # to move
+    print_energy = True # to move
+    print_temperature = True # to move
+    print_tot_force = True # to move
     print_iters = False
     path = 'Outputs/'
     debug = False
     #restart = True
-    generate_restart_file = False
+    generate_restart_file = False # to move
     iter_restart = None
 
 ###################################################################################
@@ -69,18 +69,18 @@ class GridSetting:
 class MDVariables:
     N_steps = None
     #init_steps = 0
-    thermostat = False
-    dt = 0.25 / t_au        # timestep for the solute evolution given in fs and converted in a.u.
+    thermostat = False # to move
+    dt = 0.25 / t_au        # timestep for the solute evolution given in fs and converted in a.u.  # to move
     stride = 1              # saves every stride steps
     initialization = 'CG'   # always CG
     preconditioning = 'Yes' # Yes or No
     rescale = None # rescaling of the initial momenta to have tot momenta = 0
-    elec = True
-    not_elec = True
+    elec = True # to move
+    not_elec = True # to move
     potential = 'TF' # Tosi Fumi (TF) or Leonard Jones (LJ)
-    integrator = 'VELOCITY'
+    integrator = 'OVRVO'
     gamma = 1e-3 # OVRVO parameter
-    T = 1550 # K
+    T = 1550 # K # to move
     kBT = kB * T # E_h
 
 required_inputs = {
