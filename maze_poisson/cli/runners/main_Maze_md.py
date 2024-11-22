@@ -51,7 +51,7 @@ def main(grid_setting, output_settings, md_variables):
     #    print('Position particle', i + 1, '=', particle.pos)
     #    print('Velocity particle', i + 1, '=', particle.vel)
     print('\nInitialization is done with CG and preconditioning:', preconditioning)
-    print('\nParameters:\nh =', h_ang, 'A', "\ndt =", dt_fs, 'fs', "\nstride =", stride, '\nL =', L_ang, 'A', '\nomega =', omega, '\ngamma =', md_variables.gamma)
+    print('\nParameters:\nh =', h_ang, 'A', "\ndt =", dt_fs, 'fs', "\nstride =", stride, '\nL =', L_ang, 'A', '\ngamma =', md_variables.gamma)
     print('\nPotential:', md_variables.potential)
     print('\nElec:', elec, '\tNotElec: ', not_elec,'\n')
     print('\nTemperature:',T,' K\tNumerical density:',N_p / L**3,' a.u.')
@@ -222,4 +222,3 @@ def main(grid_setting, output_settings, md_variables):
         
     end_time = time.time()
     print('\nTotal time: {:.2f} s\n'.format(end_time - begin_time))
-

@@ -1,10 +1,10 @@
 grid_setting:
   N: 100
-  L: 20.90
-  N_p: 250
+  L: 19.659
+  N_p: 216
 
   input_file: input_files_new/input_coord250.csv
-  restart_file: restart_files/restart_N100_step9999.csv
+  restart_file: restart_files/density_1.379/restart_N100_step9999.csv
 
 md_variables:
   N_steps: 20
