@@ -1,5 +1,7 @@
 from pathlib import Path
+
 import yaml
+
 from .constants import a0, kB, t_au
 
 ###################################################################################
@@ -106,25 +108,22 @@ def initialize_from_yaml(filename):
     with filename.open() as file:
         data = yaml.load(file, Loader=yaml.FullLoader)
 
+    missing = []
     for key in ['output_settings', 'grid_setting', 'md_variables']:
-        if key in data:
-            for k, v in data[key].items():
-                setattr(eval(key), k, v)
+        ptr = data.get(key, {})
+        req = required_inputs.get(key, [])
+        missing += [f'{key}.{r}' for r in req if r not in ptr]
+        for k, v in data[key].items():
+            setattr(eval(key), k, v)
+
+    if missing:
+        raise ValueError(f'Missing required inputs: {", ".join(missing)}')
 
     if output_settings.restart:
         if not grid_setting.restart_file:
             raise ValueError('restart_file must be provided if restart is True')
         if not Path(grid_setting.restart_file).exists():
             raise FileNotFoundError(f'Restart file {grid_setting.restart_file} does not exist')
-        
-    missing = []
-    for key, value in required_inputs.items():
-        for v in value:
-            if not getattr(eval(key), v):
-                missing.append(f'{key}.{v}')
-
-    if missing:
-        raise ValueError(f'Missing required inputs: {", ".join(missing)}')
 
     return grid_setting, output_settings, md_variables
 
