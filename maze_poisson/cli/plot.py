@@ -2,8 +2,9 @@ import click
 
 from .maze import maze
 from .plotters.plot_force import plot_force, plot_forcemod
-from .plotters.plot_T_E_tot import PlotT
+from .plotters.plot_T_E_tot import PlotT, store_T_analysys
 
+path = 'Outputs'
 filename_argument = click.argument(
     'filename',
     type=click.Path(exists=True),

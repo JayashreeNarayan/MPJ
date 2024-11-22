@@ -186,9 +186,11 @@ def main(grid_setting, output_settings, md_variables):
                                     + ',' + str(grid.particles.pos[p, 0]) + ',' + str(grid.particles.pos[p, 1]) + ',' + str(grid.particles.pos[p, 2]) # pos are printed in a.u., then converted to angs in the convert_to_xyz file
                                     + ','  + str(grid.particles.vel[p, 0]) + ',' + str(grid.particles.vel[p, 1]) + ',' + str(grid.particles.vel[p, 2])  #vel are in a.u.
                                     + ','  + str(grid.particles.forces[p, 0]) + ',' + str(grid.particles.forces[p, 1]) + ',' + str(grid.particles.forces[p, 2]) + '\n')
+                                    
+                                    
                                     #+ ','  + str(grid.particles[p].force_notelec[0]) + ',' + str(grid.particles[p].force_notelec[1]) + ',' + str(grid.particles[p].force_notelec[2]) + '\n')
                                     #+ ','  + str(grid.particles[p].force[0] + grid.particles[p].force_notelec[0]) + ',' + str(grid.particles[p].force[1]+ grid.particles[p].force_notelec[1]) + ',' + str(grid.particles[p].force[2]+ grid.particles[p].force_notelec[2]) + '\n')          
-            
+                                    
             if output_settings.print_performance and elec:
                 ofiles.file_output_performance.write(str(i - init_steps) + ',' + str(end_Verlet - start_Verlet) + ',' + str(iter_conv) + "\n") #+ ',' + str(end_Matrix - start_Matrix) + "\n"
                         

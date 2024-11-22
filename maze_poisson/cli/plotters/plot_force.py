@@ -84,21 +84,6 @@ def plot_force_alldt(folder, dt_list, N):
     plt.savefig(name, format='pdf')
     plt.show()
 
-#folder_force = 'test_Poisson'
-#folder_force = 'dati_parigi/gr_paper_sara/equilibration/test_thermostat/fix_th/'
-#folder_force = 'test_newE/test_Np2/dt_0.025/'
-#plot_force(folder_force, 20, 0.025)
-#plot_force(folder_force, 50, 10)
-#plot_force(folder_force, 100, 200)
-#plot_forcemod(folder_force, 20, 10)
-#plot_forcemod(folder_force, 50, 10)
-#plot_forcemod(folder_force, 100, 10)
-#plot_force_allN(folder_force, [20,50,100], 10)
-
-#plot_force_allN(folder_force, [0.1, 1, 10], 20)
-#plot_force_allN(folder_force, [0.1, 1, 10], 50)
-#plot_force_allN(folder_force, [0.1, 1, 10], 100)
-
 def plot_force_allomega(folder, omega_list):  
     df_list = [pd.read_csv(folder + 'omega_' + str(omega) + '/tot_force_N50.csv') for omega in omega_list]
     color_list = ['r', 'm', 'b']
@@ -117,20 +102,3 @@ def plot_force_allomega(folder, omega_list):
     name = folder + title + ".pdf"
     plt.savefig(name, format='pdf')
     plt.show()
-
-#path = 'test_omega/'
-#plot_force_allomega(path, ['1', '1e-2', '1e-4'])
-
-
-# path = 'test_momentum/species_scaling/dt_0.25/'
-# #plot_force(path, 50, 0.25)
-# #plot_force(path, 100, 0.25)
-# #plot_force_allN(path, [50, 100], 0.25)
-
-# path = 'test_momentum/species_scaling/dt_0.1/'
-# #plot_force(path, 50, 0.1)
-# #plot_force(path, 100, 0.1)
-# #plot_force_allN(path, [50, 100], 0.1)
-
-# path = 'Outputs/'
-# plot_force(path, N, 0.25)
