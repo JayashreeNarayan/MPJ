@@ -70,22 +70,36 @@ class GridSetting:
 
 ### MD variables ###
 class MDVariables:
-    N_steps = None
-    init_steps = None
-    thermostat = None # to move
-    dt_fs = 0.25 # dt in fs
-    dt = dt_fs / t_au        # timestep for the solute evolution given in fs and converted in a.u. # to move
-    stride = 1              # saves every stride steps
-    initialization = 'CG'   # always CG
-    preconditioning = 'Yes' # Yes or No
-    rescale = None # rescaling of the initial momenta to have tot momenta = 0
-    elec = None # to move
-    not_elec = None # to move
-    potential = 'TF' # Tosi Fumi (TF) or Leonard Jones (LJ)
-    integrator = 'OVRVO'
-    gamma = 1e-3 # OVRVO parameter
-    T = 1550 # K # to move
-    kBT = kB * T # E_h
+    def __init__(self):
+        self._T = None
+        self._kBT = None
+        self.N_steps = None
+        self.init_steps = None
+        self.thermostat = None # to move
+        self.dt_fs = 0.25 # dt in fs
+        self.dt = self.dt_fs / t_au        # timestep for the solute evolution given in fs and converted in a.u. # to move
+        self.stride = 1              # saves every stride steps
+        self.initialization = 'CG'   # always CG
+        self.preconditioning = 'Yes' # Yes or No
+        self.rescale = None # rescaling of the initial momenta to have tot momenta = 0
+        self.elec = None # to move
+        self.not_elec = None # to move
+        self.potential = 'TF' # Tosi Fumi (TF) or Leonard Jones (LJ)
+        self.integrator = 'OVRVO'
+        self.gamma = 1e-3 # OVRVO parameter
+    
+    @property
+    def T(self):
+        return self._T
+    
+    @T.setter
+    def T(self, value):
+        self._T = value
+        self._kBT = kB * value
+    
+    @property
+    def kBT(self):
+        return self._kBT
 
 required_inputs = {
     'grid_setting': ['N', 'L', 'N_p', 'input_file'],
@@ -126,4 +140,3 @@ def initialize_from_yaml(filename):
             raise FileNotFoundError(f'Restart file {grid_setting.restart_file} does not exist')
 
     return grid_setting, output_settings, md_variables
-
