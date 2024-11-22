@@ -7,17 +7,17 @@ from .constants import a0, kB, t_au
 ### Output settings ###
 
 class OutputSettings:
-    print_field = False # to move
-    print_performance = False # to move
-    print_solute = True # to move
-    print_energy = True # to move
-    print_temperature = True # to move
-    print_tot_force = True # to move
+    print_field = None # to move
+    print_performance = None # to move
+    print_solute = None # to move
+    print_energy = None # to move
+    print_temperature = None # to move
+    print_tot_force = None # to move
     print_iters = False
     path = 'Outputs/'
     debug = False
-    #restart = True
-    generate_restart_file = False # to move
+    restart = None
+    generate_restart_file = None # to move
     iter_restart = None
 
 ###################################################################################
@@ -69,16 +69,16 @@ class GridSetting:
 ### MD variables ###
 class MDVariables:
     N_steps = None
-    #init_steps = 0
-    thermostat = False # to move
+    init_steps = None
+    thermostat = None # to move
     dt_fs = 0.25 # dt in fs
     dt = dt_fs / t_au        # timestep for the solute evolution given in fs and converted in a.u. # to move
     stride = 1              # saves every stride steps
     initialization = 'CG'   # always CG
     preconditioning = 'Yes' # Yes or No
     rescale = None # rescaling of the initial momenta to have tot momenta = 0
-    elec = True # to move
-    not_elec = True # to move
+    elec = None # to move
+    not_elec = None # to move
     potential = 'TF' # Tosi Fumi (TF) or Leonard Jones (LJ)
     integrator = 'OVRVO'
     gamma = 1e-3 # OVRVO parameter
@@ -88,7 +88,7 @@ class MDVariables:
 required_inputs = {
     'grid_setting': ['N', 'L', 'N_p', 'input_file'],
     'output_settings': ['restart'],
-    'md_variables': ['N_steps', 'tol', 'rescale']
+    'md_variables': ['N_steps', 'tol', 'rescale', 'T']
 }
 
 def initialize_from_yaml(filename):
