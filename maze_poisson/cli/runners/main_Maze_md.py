@@ -16,7 +16,7 @@ from ...verlet import (OVRVO_part1, OVRVO_part2, PrecondLinearConjGradPoisson,
 def main(grid_setting, output_settings, md_variables):
     begin_time = time.time()
     start_initialization = time.time()
-    logger_func('Initialization begins', 'i')
+    logger_func('--------Initialization begins---------', 'i')
 
     # get variables from input
     h = grid_setting.h
@@ -80,20 +80,23 @@ def main(grid_setting, output_settings, md_variables):
 
     # set charges with the weight function
     grid.SetCharges()
-    logger_func('Charges are set', 'i')
+    #logger_func('Charges are set', 'i')
 
     # initialize the electrostatic field with CG                  
     if preconditioning == "Yes":
-        logger_func('Preconditioning being done for elec field', 'i')
+        #logger_func('Preconditioning being done for elec field', 'i')
         grid.phi_prev, _ = PrecondLinearConjGradPoisson(- 4 * np.pi * grid.q / h, tol=tol)
 
     if not_elec:
         grid.particles.ComputeForceNotElec()
-        logger_func('Non_elec force being computed', 'i')
+        #logger_func('Non_elec force being computed', 'i')
 
     if elec:
         grid.particles.ComputeForce_FD(prev=True) 
-        logger_func('Elec force being computed', 'i')
+        #logger_func('Elec force being computed', 'i')
+    
+    else:
+        logger_func("There is an error here", 'e')
 
     ################################ STEP 1 Verlet ##########################################
     #########################################################################################
@@ -101,25 +104,25 @@ def main(grid_setting, output_settings, md_variables):
     # Velocity Verlet for the solute
     if md_variables.integrator == 'OVRVO':
         grid.particles = OVRVO_part1(grid, thermostat = thermostat)
-        logger_func('Thermostat being applied', 'i')
+        #logger_func('Thermostat being applied', 'i')
     else:
         grid.particles = VerletSolutePart1(grid, thermostat=thermostat)
-        logger_func('Thermostat is not applied', 'i')
+        #logger_func('Thermostat is not applied', 'i')
 
     # compute 8 nearest neighbors for any particle
     grid.particles.NearestNeighbors()
-    logger_func('Nearest neighbours calculated', 'i')
+    #logger_func('Nearest neighbours calculated', 'i')
 
     # set charges with the weight function
     grid.SetCharges()
-    logger_func("Charges set with weight function", 'i')
+    #logger_func("Charges set with weight function", 'i')
         
     if preconditioning == "Yes":
         grid.phi, _ = PrecondLinearConjGradPoisson(- 4 * np.pi * grid.q / h, tol=tol, x0=grid.phi_prev)
 
     if md_variables.integrator == 'OVRVO':
         grid.particles = OVRVO_part2(grid, thermostat = thermostat)
-        logger_func('OVRVO part 2 being run', 'i')
+        #logger_func('OVRVO part 2 being run', 'i')
     else:
         grid = VerletSolutePart2(grid)
 
@@ -248,4 +251,5 @@ def main(grid_setting, output_settings, md_variables):
     end_time = time.time()
     print('\nTotal time: {:.2f} s\n'.format(end_time - begin_time))
     logger_func('Total time taken: '+str((end_time - begin_time)), 'i')
+    logger_func('--------------END RUN---------------------', 'i')
     logger_func('-----------------------------------', 'i')

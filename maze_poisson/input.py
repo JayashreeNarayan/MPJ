@@ -1,4 +1,5 @@
 from pathlib import Path
+from loggers import logger_func
 
 import yaml
 
@@ -135,8 +136,11 @@ def initialize_from_yaml(filename):
     if isinstance(filename, str):
         filename = Path(filename)
     if not isinstance(filename, Path):
+        logger_func("filename must be a Path or a str", 'e')
         raise TypeError('filename must be a Path or a str')
+        
     if not filename.exists():
+        logger_func(f'Input file {filename} does not exist', 'e')
         raise FileNotFoundError(f'Input file {filename} does not exist')
     
     grid_setting = GridSetting()
@@ -159,8 +163,10 @@ def initialize_from_yaml(filename):
 
     if output_settings.restart:
         if not grid_setting.restart_file:
+            logger_func('restart_file must be provided if restart is True', 'e')
             raise ValueError('restart_file must be provided if restart is True')
         if not Path(grid_setting.restart_file).exists():
+            logger_func(f'Restart file {grid_setting.restart_file} does not exist', 'e')
             raise FileNotFoundError(f'Restart file {grid_setting.restart_file} does not exist')
 
     return grid_setting, output_settings, md_variables
