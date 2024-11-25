@@ -76,8 +76,8 @@ class MDVariables:
         self.N_steps = None
         self.init_steps = None
         self.thermostat = None # to move
-        self.dt_fs = 0.25 # dt in fs
-        self.dt = self.dt_fs / t_au        # timestep for the solute evolution given in fs and converted in a.u. # to move
+        self._dt_fs = None # dt in fs
+        self._dt = None        # timestep for the solute evolution given in fs and converted in a.u. # to move
         self.stride = 1              # saves every stride steps
         self.initialization = 'CG'   # always CG
         self.preconditioning = 'Yes' # Yes or No
@@ -100,6 +100,19 @@ class MDVariables:
     @property
     def kBT(self):
         return self._kBT
+    
+    @property
+    def dt_fs(self):
+        return self._dt_fs
+    
+    @dt_fs.setter
+    def dt_fs(self, value):
+        self._dt_fs = value
+        self._dt = value / t_au
+    
+    @property
+    def dt(self):
+        return self._dt
 
 required_inputs = {
     'grid_setting': ['N', 'L', 'N_p', 'input_file'],
