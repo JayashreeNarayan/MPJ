@@ -33,7 +33,7 @@ class GridSetting:
         self._N_tot = None
         self._h = None
         self._input_file = None
-        self.restart_file = None
+        self._restart_file = None
 
     @property
     def N(self):
@@ -64,6 +64,18 @@ class GridSetting:
         if self._h is None:
             self._h = self.L / self.N
         return self._h
+
+    @property
+    def input_file(self):
+        if self._input_file is None:
+            self._input_file = 'input_files_new/input_coord'+str(self.N_p)+'.csv'
+        return self._input_file
+
+    @property
+    def restart_file(self):
+        if self._restart_file is None:
+            self._restart_file = 'restart_files/density_1.329/restart_N'+str(self.N)+'_step9999.csv'
+        return self._restart_file
 
 ###################################################################################
 
@@ -114,7 +126,7 @@ class MDVariables:
         return self._dt
 
 required_inputs = {
-    'grid_setting': ['N', 'L', 'N_p', 'input_file'],
+    'grid_setting': ['N', 'L', 'N_p'],
     'output_settings': ['restart'],
     'md_variables': ['N_steps', 'tol', 'rescale', 'T']
 }
@@ -128,7 +140,6 @@ def initialize_from_yaml(filename):
         raise FileNotFoundError(f'Input file {filename} does not exist')
     
     grid_setting = GridSetting()
-    print('########### restart file is: ', grid_setting.restart_file)
     output_settings = OutputSettings()
     md_variables = MDVariables()
 
