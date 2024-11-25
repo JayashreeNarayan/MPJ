@@ -4,6 +4,7 @@
 import time
 from loggers import logger_func
 import numpy as np
+import pandas as pd
 from tqdm import tqdm
 
 from ...constants import a0, t_au
@@ -200,12 +201,21 @@ def main(grid_setting, output_settings, md_variables):
                 counter = counter + 1
             
             if output_settings.print_solute:
-                for p in range(grid.N_p):
-                    ofiles.file_output_solute.write(str(grid.particles.charges[p]) + ',' + str(i - init_steps) + ',' + str(p) 
-                                    + ',' + str(grid.particles.pos[p, 0]) + ',' + str(grid.particles.pos[p, 1]) + ',' + str(grid.particles.pos[p, 2]) # pos are printed in a.u., then converted to angs in the convert_to_xyz file
-                                    + ','  + str(grid.particles.vel[p, 0]) + ',' + str(grid.particles.vel[p, 1]) + ',' + str(grid.particles.vel[p, 2])  #vel are in a.u.
-                                    + ','  + str(grid.particles.forces[p, 0]) + ',' + str(grid.particles.forces[p, 1]) + ',' + str(grid.particles.forces[p, 2]) + '\n')
-
+                df = pd.DataFrame(grid.particles.pos, columns=['x', 'y', 'z'])
+                df['vx'] = grid.particles.vel[:, 0]
+                df['vy'] = grid.particles.vel[:, 1]
+                df['vz'] = grid.particles.vel[:, 2]
+                df['fx_elec'] = grid.particles.forces[:, 0]
+                df['fy_elec'] = grid.particles.forces[:, 1]
+                df['fz_elec'] = grid.particles.forces[:, 2]
+                df['charge'] = grid.particles.charges
+                df['iter'] = i - init_steps
+                df['particle'] = np.arange(N_p)
+                df.to_csv(
+                    ofiles.file_output_solute, index=False, header=False, mode='a',
+                    columns=['charge', 'iter', 'particle', 'x', 'y', 'z', 'vx', 'vy', 'vz', 'fx_elec', 'fy_elec', 'fz_elec']
+                    )
+                                    
             if output_settings.print_performance and elec:
                 ofiles.file_output_performance.write(str(i - init_steps) + ',' + str(end_Verlet - start_Verlet) + ',' + str(iter_conv) + "\n") #+ ',' + str(end_Matrix - start_Matrix) + "\n"
                         
