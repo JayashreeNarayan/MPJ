@@ -32,8 +32,7 @@ class GridSetting:
         self.N_p = None
         self._N_tot = None
         self._h = None
-
-        self.input_file = None
+        self._input_file = None
         self.restart_file = None
 
     @property
@@ -129,6 +128,7 @@ def initialize_from_yaml(filename):
         raise FileNotFoundError(f'Input file {filename} does not exist')
     
     grid_setting = GridSetting()
+    print('########### restart file is: ', grid_setting.restart_file)
     output_settings = OutputSettings()
     md_variables = MDVariables()
 
