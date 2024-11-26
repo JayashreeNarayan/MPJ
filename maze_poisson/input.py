@@ -1,9 +1,10 @@
 from pathlib import Path
+import numpy as np
 from loggers import logger_func
 
 import yaml
 
-from .constants import a0, kB, t_au
+from .constants import a0, kB, t_au, m_Na, m_Cl
 
 ###################################################################################
 
@@ -75,7 +76,7 @@ class GridSetting:
     @property
     def restart_file(self):
         if self._restart_file is None:
-            self._restart_file = 'restart_files/density_1.329/restart_N'+str(self.N)+'_step9999.csv'
+            self._restart_file = 'restart_files/density_'+str(np.round((self.N_p/2)*(m_Na+m_Cl)*1000 / (self.L_ang*1.e-8)**3, 3))+'/restart_N'+str(self.N)+'_step9999.csv'
         return self._restart_file
 
 ###################################################################################
