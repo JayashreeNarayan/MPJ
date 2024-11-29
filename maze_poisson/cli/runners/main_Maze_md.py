@@ -133,7 +133,7 @@ def main(grid_setting, output_settings, md_variables):
     end_initialization = time.time()
     # print("\nInitialization time: {:.2f} s \n".format(end_initialization - start_initialization))
     logger.info('Initialization ends')
-    logger.info('Initialization time: '+str((end_initialization - start_initialization)))
+    logger.info(f'Initialization time: {end_initialization - start_initialization} s')
 
     if output_settings.restart == True and thermostat == False:
         init_steps = 0
@@ -217,22 +217,6 @@ def main(grid_setting, output_settings, md_variables):
                 field_x_MaZe = np.array([grid.phi[l, j, k] for l in range(N)])
                 for n in range(N):
                     ofiles.file_output_field.write(str(i - init_steps) + ',' + str(X[n] * a0) + ',' + str(field_x_MaZe[n] * V) + '\n')
-
-    # close output files
-    if output_settings.print_field:
-        ofiles.file_output_field.close()
-
-    if output_settings.print_performance:
-        ofiles.file_output_performance.close()
-
-    if output_settings.print_solute:
-        ofiles.file_output_solute.close()
-
-    if output_settings.print_energy:
-        ofiles.file_output_energy.close()
-
-    if output_settings.print_temperature:
-        ofiles.file_output_temperature.close()
 
     if output_settings.generate_restart_file:
         restart_file = generate_restart(grid_setting, output_settings, iter_restart)

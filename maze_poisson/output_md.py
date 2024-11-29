@@ -1,4 +1,6 @@
+import atexit
 import os
+
 
 class OutputFiles:
     file_output_field = None
@@ -9,6 +11,19 @@ class OutputFiles:
     file_output_solute = None
     file_output_tot_force = None
 
+open_files = []
+
+def generate_output_file(out_path, overwrite=True):
+    if os.path.exists(out_path):
+        if overwrite:
+            os.remove(out_path)
+        else:
+            raise ValueError(f"File {out_path} already exists")
+    res = open(out_path, 'w')
+    open_files.append(res)
+    return res
+
+
 def generate_output_files(grid):
     N = grid.N
     output_settings = grid.output_settings
@@ -18,67 +33,55 @@ def generate_output_files(grid):
 
     if output_settings.print_field:
         output_field = os.path.join(path, 'field_N' + str(N) + '.csv')
-        if os.path.exists(output_field):
-            open(output_field, 'w').close()  # Clear file content if it exists
-        else:
-            open(output_field, 'w').close()  # Create the file
-        output_files.file_output_field = open(output_field, 'r+')
+        output_files.file_output_field = generate_output_file(output_field)
         output_files.file_output_field.write("iter,x,MaZe\n")
 
     if output_settings.print_performance:
         output_performance = os.path.join(path, 'performance_N' + str(N) + '.csv')
-        if os.path.exists(output_performance):
-            open(output_performance, 'w').close()  # Clear file content if it exists
-        else:
-            open(output_performance, 'w').close()  # Create the file
-        output_files.file_output_performance = open(output_performance, 'r+')
+        output_files.file_output_performance = generate_output_file(output_performance)
         output_files.file_output_performance.write("iter,time,n_iters\n")
 
 
     if output_settings.print_iters:
         output_iters = os.path.join(path,'iters_N' + str(N) + '.csv')
-        if os.path.exists(output_iters):
-            open(output_iters, 'w').close()  # Clear file content if it exists
-        else:
-            open(output_iters, 'w').close()  # Create the file
-        output_files.file_output_iters = open(output_iters, 'r+')
+        output_files.file_output_iters = generate_output_file(output_iters)
         output_files.file_output_iters.write("iter,max_sigma,norm\n")
 
     # prints only kinetic and non electrostatic potential
     if output_settings.print_energy:
         output_energy = os.path.join(path, 'energy_N' + str(N) + '.csv')
-        if os.path.exists(output_energy):
-            open(output_energy, 'w').close()  # Clear file content if it exists
-        else:
-            open(output_energy, 'w').close()  # Create the file
-        output_files.file_output_energy = open(output_energy, 'r+')
+        output_files.file_output_energy = generate_output_file(output_energy)
         output_files.file_output_energy.write("iter,K,V_notelec\n")
 
     if output_settings.print_temperature:
         output_temperature = os.path.join(path, 'temperature_N' + str(N) + '.csv')
-        if os.path.exists(output_temperature):
-            open(output_temperature, 'w').close()  # Clear file content if it exists
-        else:
-            open(output_temperature, 'w').close()  # Create the file
-        output_files.file_output_temperature = open(output_temperature, 'r+')
+        output_files.file_output_temperature = generate_output_file(output_temperature)
         output_files.file_output_temperature.write("iter,T\n")
 
     if output_settings.print_solute:
         output_solute = os.path.join(path, 'solute_N' + str(N) + '.csv')
-        if os.path.exists(output_solute):
-            open(output_solute, 'w').close()  # Clear file content if it exists
-        else:
-            open(output_solute, 'w').close()  # Create the file
-        output_files.file_output_solute = open(output_solute, 'r+')
+        output_files.file_output_solute = generate_output_file(output_solute)
         output_files.file_output_solute.write("charge,iter,particle,x,y,z,vx,vy,vz,fx_elec,fy_elec,fz_elec\n")
 
     if output_settings.print_tot_force:
         output_tot_force = os.path.join(path, 'tot_force_N' + str(N) + '.csv')
-        if os.path.exists(output_tot_force):
-            open(output_tot_force, 'w').close()  # Clear file content if it exists
-        else:
-            open(output_tot_force, 'w').close()  # Create the file
-        output_files.file_output_tot_force = open(output_tot_force, 'r+')
+        output_files.file_output_tot_force = generate_output_file(output_tot_force)
         output_files.file_output_tot_force.write("iter,Fx,Fy,Fz\n")
 
     return output_files
+
+@atexit.register
+def close_output_files():
+    not_closed = []
+    while open_files:
+        app = open_files.pop()
+        try:
+            app.close()
+        except Exception as e:
+            print(f"Error closing file: {e}")
+            not_closed.append(app)
+
+    if not_closed:
+        open_files.extend(not_closed)
+        print("Some files could not be closed")
+            
