@@ -1,6 +1,6 @@
 import logging
-import time
 import os
+import time
 
 # Ensure logs are written to the script's directory
 log_file_path = os.path.join(os.getcwd(), "all_logs.log")
@@ -14,7 +14,6 @@ def setup_logger():
         logger.setLevel(logging.DEBUG)  # Set the logging level
         
         # Create a file handler
-        file_handler = logging.FileHandler(log_file_path, mode='a')  # Append mode
         
         # Custom formatter to include UTC offset
         class UTCFormatter(logging.Formatter):
@@ -25,30 +24,20 @@ def setup_logger():
                 return f"{formatted_time} {utc_offset}"
         
         # Create and set the custom formatter
-        formatter = UTCFormatter('%(asctime)s - %(levelname)s - %(message)s')
-        file_handler.setFormatter(formatter)
-        
-        # Add the handler to the logger
+        file_handler = logging.FileHandler(log_file_path, mode='a')  # Append mode
+        file_formatter = UTCFormatter('%(asctime)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(file_formatter)
+        file_handler.setLevel(logging.DEBUG)
         logger.addHandler(file_handler)
+
+        # Add a stream handler to print to console
+        stream_formatter = logging.Formatter('%(message)s')
+        stream_handler = logging.StreamHandler()
+        stream_handler.setFormatter(stream_formatter)
+        stream_handler.setLevel(logging.INFO)  # Ensure debug messages are not printed to the console
+        logger.addHandler(stream_handler)
     
     return logger
 
 # Instantiate the logger
 logger = setup_logger()
-
-# Function to log messages
-def logger_func(message, log_type):
-    log_type = log_type.lower()  # Normalize the log type input
-    if log_type in ['i', 'info']:
-        logger.info(message)
-    elif log_type in ['d', 'debug']:
-        logger.debug(message)
-    elif log_type in ['w', 'warning']:
-        logger.warning(message)
-    elif log_type in ['e', 'error']:
-        logger.error(message)
-    elif log_type in ['c', 'critical']:
-        logger.critical(message)
-    else:
-        logger.error(f"Unknown log type '{log_type}' for message: {message}")
-

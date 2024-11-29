@@ -1,10 +1,10 @@
 from pathlib import Path
-import numpy as np
-from loggers import logger_func
 
+import numpy as np
 import yaml
 
-from .constants import a0, kB, t_au, m_Na, m_Cl
+from .constants import a0, kB, m_Cl, m_Na, t_au
+from .loggers import logger
 
 ###################################################################################
 
@@ -137,11 +137,11 @@ def initialize_from_yaml(filename):
     if isinstance(filename, str):
         filename = Path(filename)
     if not isinstance(filename, Path):
-        logger_func("filename must be a Path or a str", 'e')
+        logger.error("filename must be a Path or a str")
         raise TypeError('filename must be a Path or a str')
         
     if not filename.exists():
-        logger_func(f'Input file {filename} does not exist', 'e')
+        logger.error(f'Input file {filename} does not exist')
         raise FileNotFoundError(f'Input file {filename} does not exist')
     
     grid_setting = GridSetting()
@@ -164,10 +164,10 @@ def initialize_from_yaml(filename):
 
     if output_settings.restart:
         if not grid_setting.restart_file:
-            logger_func('restart_file must be provided if restart is True', 'e')
+            logger.error('restart_file must be provided if restart is True')
             raise ValueError('restart_file must be provided if restart is True')
         if not Path(grid_setting.restart_file).exists():
-            logger_func(f'Restart file {grid_setting.restart_file} does not exist', 'e')
+            logger.error(f'Restart file {grid_setting.restart_file} does not exist')
             raise FileNotFoundError(f'Restart file {grid_setting.restart_file} does not exist')
 
     return grid_setting, output_settings, md_variables

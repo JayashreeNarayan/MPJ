@@ -2,21 +2,23 @@
 #####                        Federica Troni - 09 / 2023                                 ####
 
 import time
-from loggers import logger_func
+
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
 from ...constants import a0, t_au
 from ...grid import *
+from ...loggers import logger
 from ...restart import generate_restart
 from ...verlet import (OVRVO_part1, OVRVO_part2, PrecondLinearConjGradPoisson,
                        VerletPoisson, VerletSolutePart1, VerletSolutePart2)
 
+
 def main(grid_setting, output_settings, md_variables):
     begin_time = time.time()
     start_initialization = time.time()
-    logger_func('--------Initialization begins---------', 'i')
+    logger.info('--------Initialization begins---------')
 
     # get variables from input
     h = grid_setting.h
@@ -46,27 +48,17 @@ def main(grid_setting, output_settings, md_variables):
 
     ofiles = grid.output_files
 
-    # print relevant info
-    print('\nSimulation with N =', N, 'with N_steps =', N_steps, 'and tol =', md_variables.tol)
-    print('\nInitialization is done with CG and preconditioning:', preconditioning)
-    print('\nParameters:\nh =', h_ang, 'A', "\ndt =", dt_fs, 'fs', "\nstride =", stride, '\nL =', L_ang, 'A', '\ngamma =', md_variables.gamma)
-    print('\nPotential:', md_variables.potential)
-    print('\nElec:', elec, '\tNotElec: ', not_elec,'\n')
-    print('\nTemperature:',T,' K\tNumerical density:',N_p / L**3,' a.u.')
-    print('\nPrint solute:', output_settings.print_solute, '\tPrint field: ', output_settings.print_field, '\tPrint tot_force:', output_settings.print_tot_force,
-        '\nPrint energy:', output_settings.print_energy, '\tPrint temperature:', output_settings.print_temperature,
-        '\tPrint performance:', output_settings.print_performance,'\tRestart:', output_settings.restart,'\n')
-    print('\nThermostat:', thermostat, '\tRescaling of the velocities:', rescale)
-
     # log all the relevant info 
-    logger_func('Simulation with N ='+str(N)+' with N_steps ='+str(N_steps)+' and tol ='+str(md_variables.tol)+'\nInitialization is done with CG and preconditioning: '+str(preconditioning)+ 
-                '\nParameters: h ='+str(h_ang,)+ ' A \ndt ='+str(dt_fs)+' fs'+"\nstride ="+str(stride)+'\nL ='+str(L_ang)+' A'+'\ngamma ='+ str(md_variables.gamma)+
-                '\nPotential:'+ str(md_variables.potential)+ 
-                '\nElec:'+str(elec)+ '\tNotElec: '+str(not_elec)+'\n'+'\nTemperature:'+str(T)+' K\tNumerical density:'+str(N_p / L**3)+' a.u.'+
-                '\nPrint solute:'+str(output_settings.print_solute)+ '\tPrint field: '+str(output_settings.print_field)+'\tPrint tot_force:'+str(output_settings.print_tot_force)+
-                '\nPrint energy:'+str(output_settings.print_energy)+ '\tPrint temperature:'+str(output_settings.print_temperature)+
-                '\tPrint performance:'+str(output_settings.print_performance)+'\tRestart:'+str(output_settings.restart)+'\n'+
-                '\nThermostat:'+str(thermostat)+ '\tRescaling of the velocities:'+str(rescale), 'i')
+    logger.info(f'Simulation with N = {N} with N_steps = {N_steps} and tol = {md_variables.tol}')
+    logger.info(f'Initialization is done with CG and preconditioning: {preconditioning}')
+    logger.info(f'Parameters: h = {h_ang} A \ndt = {dt_fs} fs \nstride = {stride} \nL = {L_ang} A \ngamma = {md_variables.gamma}')
+    logger.info(f'Potential: {md_variables.potential}')
+    logger.info(f'Elec: {elec} \tNotElec: {not_elec}')
+    logger.info(f'Temperature: {T} K \tNumerical density: {N_p / L**3} a.u.')
+    logger.info(f'Print solute: {output_settings.print_solute} \tPrint field: {output_settings.print_field} \tPrint tot_force: {output_settings.print_tot_force}')
+    logger.info(f'Print energy: {output_settings.print_energy} \tPrint temperature: {output_settings.print_temperature}')
+    logger.info(f'Print performance: {output_settings.print_performance} \tRestart: {output_settings.restart}')
+    logger.info(f'Thermostat: {thermostat} \tRescaling of the velocities: {rescale}')
 
     ################################ STEP 0 Verlet ##########################################
     #########################################################################################
@@ -75,28 +67,28 @@ def main(grid_setting, output_settings, md_variables):
     #compute 8 nearest neighbors for any particle
     grid.particles.NearestNeighbors()
     q_tot = np.sum(grid.particles.charges)
-    print('Total charge q = ',q_tot)
-    logger_func('Total charge q = '+str(q_tot), 'i')
+    logger.info('Total charge q = '+str(q_tot))
 
     # set charges with the weight function
     grid.SetCharges()
-    #logger_func('Charges are set', 'i')
+    #logger.info('Charges are set')
 
     # initialize the electrostatic field with CG                  
     if preconditioning == "Yes":
-        #logger_func('Preconditioning being done for elec field', 'i')
+        #logger.info('Preconditioning being done for elec field')
         grid.phi_prev, _ = PrecondLinearConjGradPoisson(- 4 * np.pi * grid.q / h, tol=tol)
 
     if not_elec:
         grid.particles.ComputeForceNotElec()
-        #logger_func('Non_elec force being computed', 'i')
+        #logger.info('Non_elec force being computed')
 
     if elec:
         grid.particles.ComputeForce_FD(prev=True) 
-        #logger_func('Elec force being computed', 'i')
+        #logger.info('Elec force being computed')
     
     else:
-        logger_func("There is an error here", 'e')
+        logger.error("There is an error here")
+        raise ValueError("There is an error here")
 
     ################################ STEP 1 Verlet ##########################################
     #########################################################################################
@@ -104,32 +96,31 @@ def main(grid_setting, output_settings, md_variables):
     # Velocity Verlet for the solute
     if md_variables.integrator == 'OVRVO':
         grid.particles = OVRVO_part1(grid, thermostat = thermostat)
-        #logger_func('Thermostat being applied', 'i')
+        #logger.info('Thermostat being applied')
     else:
         grid.particles = VerletSolutePart1(grid, thermostat=thermostat)
-        #logger_func('Thermostat is not applied', 'i')
+        #logger.info('Thermostat is not applied')
 
     # compute 8 nearest neighbors for any particle
     grid.particles.NearestNeighbors()
-    #logger_func('Nearest neighbours calculated', 'i')
+    #logger.info('Nearest neighbours calculated')
 
     # set charges with the weight function
     grid.SetCharges()
-    #logger_func("Charges set with weight function", 'i')
+    #logger.info("Charges set with weight function")
         
     if preconditioning == "Yes":
         grid.phi, _ = PrecondLinearConjGradPoisson(- 4 * np.pi * grid.q / h, tol=tol, x0=grid.phi_prev)
 
     if md_variables.integrator == 'OVRVO':
         grid.particles = OVRVO_part2(grid, thermostat = thermostat)
-        #logger_func('OVRVO part 2 being run', 'i')
+        #logger.info('OVRVO part 2 being run')
     else:
         grid = VerletSolutePart2(grid)
 
     # rescaling of the velocities to get total momentum = 0
     if rescale:
-        print('\nRescaling of the velocities in progress...')
-        logger_func('Rescaling of the velocities in progress...', 'i')
+        logger.info('Rescaling of the velocities in progress...')
         grid.RescaleVelocities()
 
     ################################ FINE INIZIALIZZAZIONE ##########################################
@@ -140,17 +131,17 @@ def main(grid_setting, output_settings, md_variables):
     k = int(grid.particles.pos[0,2] / h)
 
     end_initialization = time.time()
-    print("\nInitialization time: {:.2f} s \n".format(end_initialization - start_initialization))
-    logger_func('Initialization ends', 'i')
-    logger_func('Initialization time: '+str((end_initialization - start_initialization)), 'i')
+    # print("\nInitialization time: {:.2f} s \n".format(end_initialization - start_initialization))
+    logger.info('Initialization ends')
+    logger.info('Initialization time: '+str((end_initialization - start_initialization)))
 
     if output_settings.restart == True and thermostat == False:
         init_steps = 0
     else:
         init_steps = md_variables.init_steps
         
-    print('Number of initialization steps:', init_steps,'\n')
-    logger_func('No. of  initialization steps '+str(init_steps), 'i')
+    # print('Number of initialization steps:', init_steps,'\n')
+    logger.info('Number of initialization steps '+str(init_steps))
 
     y = np.zeros_like(grid.q) 
 
@@ -199,7 +190,7 @@ def main(grid_setting, output_settings, md_variables):
         if i % stride == 0 and i >= init_steps:
             if counter == 0 and thermostat == True:
                 print('End of thermostatting')
-                logger_func('End of thermostatting', 'i')
+                logger.info('End of thermostatting')
                 thermostat = False
                 counter = counter + 1
             
@@ -245,11 +236,10 @@ def main(grid_setting, output_settings, md_variables):
 
     if output_settings.generate_restart_file:
         restart_file = generate_restart(grid_setting, output_settings, iter_restart)
-        print('Restart file generated: ', restart_file)
-        logger_func('Restart file generated: '+str(restart_file), 'i')
+        # print('Restart file generated: ', restart_file)
+        logger.info(f'Restart file generated: {restart_file}')
         
     end_time = time.time()
-    print('\nTotal time: {:.2f} s\n'.format(end_time - begin_time))
-    logger_func('Total time taken: '+str((end_time - begin_time)), 'i')
-    logger_func('--------------END RUN---------------------', 'i')
-    logger_func('-----------------------------------', 'i')
+    # print('\nTotal time: {:.2f} s\n'.format(end_time - begin_time))
+    logger.info(f'Total time taken: {end_time - begin_time}')
+    logger.info('--------------END RUN---------------------')
