@@ -117,6 +117,8 @@ int conj_grad(double *b, double *x0, double *x, double tol, int n) {
     long int n3 = n * n * n;
     int iter = 0;
 
+    // printf("Running conjugate gradient with %d elements\n", n3);
+
     double *v = (double *)malloc(n3 * sizeof(double));
     double *r = (double *)malloc(n3 * sizeof(double));
     double *p = (double *)malloc(n3 * sizeof(double));
@@ -159,6 +161,16 @@ int conj_grad(double *b, double *x0, double *x, double tol, int n) {
         for (i = 0; i < n3; i++) {
             p[i] = beta * p[i] - v[i];
         }        
+
+        // if (iter % 100 == 0) {
+        //     printf("Iteration %d: %16.8ff %16.8f\n", iter, norm(r, n3), tol);
+        // }
+
+        if (iter > n3) {
+            // printf("ERROR: Conjugate gradient did not converge %.10f (> %.10f): \n", norm(r, n3), tol);
+            iter = -1;
+            break;
+        }
 
     } while(norm(r, n3) > tol);
 

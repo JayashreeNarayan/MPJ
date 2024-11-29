@@ -4,8 +4,9 @@ from math import exp, tanh
 import numpy as np
 
 from .c_api import c_conj_grad, c_laplace
-from .profiling import profile
 from .constants import kB
+from .profiling import profile
+
 
 def VerletSolutePart1(grid, thermostat=False):
     dt = grid.md_variables.dt
@@ -186,6 +187,8 @@ def PrecondLinearConjGradPoisson(b, x0 = None, tol=1e-7):
     if x0 is None:
         x0 = np.zeros_like(b)
     i = c_conj_grad(b, x0, x, tol, b.shape[0])
+    if i == -1:
+        raise ValueError('Conjugate gradient did not converge')
     return x, i
     # N_tot = b.size
     # if x0 is None:
