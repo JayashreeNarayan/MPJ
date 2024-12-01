@@ -3,8 +3,8 @@ import click
 from .maze import maze
 from .plotters.plot_force import plot_force, plot_forcemod
 from .plotters.plot_T_E_tot import PlotT, store_T_analysys
+from .plotters.plot_scaling import *
 
-path = 'Outputs'
 filename_argument = click.argument(
     'filename',
     type=click.Path(exists=True),
@@ -40,3 +40,7 @@ def forcemod(filename, dt):
 @dt_option
 def temperature(filename, dt):
     PlotT(filename, dt)
+
+@plot.command()
+def time_iterNgrid():
+    plot_time_iterNgrid()

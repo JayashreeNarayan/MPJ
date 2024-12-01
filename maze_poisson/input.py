@@ -70,7 +70,7 @@ class GridSetting:
     @property
     def input_file(self):
         if self._input_file is None:
-            self._input_file = 'input_files_new/input_coord'+str(self.N_p)+'.csv'
+            self._input_file = 'input_files_new/input_coord'+str(100)+'.csv'
         return self._input_file
 
     @property
