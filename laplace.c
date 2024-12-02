@@ -2,13 +2,19 @@
 #include <stdlib.h>
 #include <math.h>
 
+#ifdef __cplusplus
+#define EXTERN_C extern "C"
+#else
+#define EXTERN_C
+#endif
+
 /*
 Apply a 3-D Laplace filter to a 3-D array with cyclic boundary conditions
 @param u: the input array
 @param u_new: the output array
 @param n: the size of the array in each dimension
 */
-void laplace_filter(double *u, double *u_new, int n) {
+EXTERN_C void laplace_filter(double *u, double *u_new, int n) {
     int i, j, k;
     int i_prev, i_next, j_prev, j_next, k_prev, k_next;
     long int i0, i1, i2;
@@ -51,8 +57,8 @@ Compute the dot product of two vectors
 @param n: the size of the vectors
 @return the dot product of the two vectors
 */
-double ddot(double *u, double *v, int n) {
-    int i;
+EXTERN_C double ddot(double *u, double *v, long int n) {
+    long int i;
     double result = 0.0;
     #pragma omp parallel for reduction(+:result)
     for (i = 0; i < n; i++) {
@@ -70,8 +76,8 @@ and store the result in a third vector
 @param alpha: the scaling constant
 @param n: the size of the vectors
 */
-void daxpy(double *v, double *u, double *result, double alpha, int n) {
-    int i;
+EXTERN_C void daxpy(double *v, double *u, double *result, double alpha, long int n) {
+    long int i;
     #pragma omp parallel for
     for (i = 0; i < n; i++) {
         result[i] = u[i] + alpha * v[i];
@@ -86,8 +92,8 @@ and store the result in the second vector
 @param alpha: the scaling constant
 @param n: the size of the vectors
 */
-void daxpy2(double *v, double *u, double alpha, int n) {
-    int i;
+EXTERN_C void daxpy2(double *v, double *u, double alpha, long int n) {
+    long int i;
     #pragma omp parallel for
     for (i = 0; i < n; i++) {
         u[i] += alpha * v[i];
@@ -100,7 +106,7 @@ Compute the Euclidean norm of a vector
 @param n: the size of the vector
 @return the Euclidean norm of the vector
 */
-double norm(double *u, int n) {
+EXTERN_C double norm(double *u, long int n) {
     return sqrt(ddot(u, u, n));
 }
 
@@ -112,10 +118,10 @@ Solve the system of linear equations Ax = b using the conjugate gradient method 
 @param tol: the tolerance for the solution
 @param n: the size of the arrays (n_tot = n * n * n)
 */
-int conj_grad(double *b, double *x0, double *x, double tol, int n) {
+EXTERN_C int conj_grad(double *b, double *x0, double *x, double tol, int n) {
     long int i;
     long int n3 = n * n * n;
-    int iter = 0;
+    long int iter = 0;
 
     // printf("Running conjugate gradient with %d elements\n", n3);
 
