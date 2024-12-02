@@ -1,4 +1,4 @@
-def calculate_length_and_grid_points(Np, ref_Np=250, ref_L=20.9, ref_N=100, m_Na=22.99, m_Cl=35.453):
+def calculate_length_and_grid_points(Np, ref_Np=216, ref_L=19.659, ref_N=100, m_Na=22.99, m_Cl=35.453):
     """
     Calculate the side length (L) and the number of grid points (N) for a given number of particles (Np)
     based on the density of a reference system with half Na and half Cl atoms.

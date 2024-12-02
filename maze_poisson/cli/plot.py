@@ -44,3 +44,5 @@ def temperature(filename, dt):
 @plot.command()
 def time_iterNgrid():
     plot_time_iterNgrid()
+    plot_convNgrid()
+    plot_scaling_particles_time_iters()
