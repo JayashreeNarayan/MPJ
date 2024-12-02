@@ -186,6 +186,21 @@ def main(grid_setting, output_settings, md_variables):
         grid.Energy(print_energy=output_settings.print_energy, iter=i)
         grid.Temperature(print_temperature=output_settings.print_temperature, iter=i)
         
+        if output_settings.print_solute:
+                df = pd.DataFrame(grid.particles.pos, columns=['x', 'y', 'z'])
+                df['vx'] = grid.particles.vel[:, 0]
+                df['vy'] = grid.particles.vel[:, 1]
+                df['vz'] = grid.particles.vel[:, 2]
+                df['fx_elec'] = grid.particles.forces[:, 0]
+                df['fy_elec'] = grid.particles.forces[:, 1]
+                df['fz_elec'] = grid.particles.forces[:, 2]
+                df['charge'] = grid.particles.charges
+                df['iter'] = i - init_steps
+                df['particle'] = np.arange(N_p)
+                df.to_csv(
+                    ofiles.file_output_solute, index=False, header=False, mode='a',
+                    columns=['charge', 'iter', 'particle', 'x', 'y', 'z', 'vx', 'vy', 'vz', 'fx_elec', 'fy_elec', 'fz_elec']
+                    )
                 
         if i % stride == 0 and i >= init_steps:
             if counter == 0 and thermostat == True:
@@ -193,7 +208,7 @@ def main(grid_setting, output_settings, md_variables):
                 logger.info('End of thermostatting')
                 thermostat = False
                 counter = counter + 1
-            
+            '''
             if output_settings.print_solute:
                 df = pd.DataFrame(grid.particles.pos, columns=['x', 'y', 'z'])
                 df['vx'] = grid.particles.vel[:, 0]
@@ -209,7 +224,7 @@ def main(grid_setting, output_settings, md_variables):
                     ofiles.file_output_solute, index=False, header=False, mode='a',
                     columns=['charge', 'iter', 'particle', 'x', 'y', 'z', 'vx', 'vy', 'vz', 'fx_elec', 'fy_elec', 'fz_elec']
                     )
-                                    
+               '''                     
             if output_settings.print_performance and elec:
                 ofiles.file_output_performance.write(str(i - init_steps) + ',' + str(end_Verlet - start_Verlet) + ',' + str(iter_conv) + "\n") #+ ',' + str(end_Matrix - start_Matrix) + "\n"
                         

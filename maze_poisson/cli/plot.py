@@ -2,7 +2,7 @@ import click
 
 from .maze import maze
 from .plotters.plot_force import plot_force, plot_forcemod
-from .plotters.plot_T_E_tot import PlotT, store_T_analysys
+from .plotters.plot_T_E_tot import *
 from .plotters.plot_scaling import *
 
 filename_argument = click.argument(
@@ -40,6 +40,12 @@ def forcemod(filename, dt):
 @dt_option
 def temperature(filename, dt):
     PlotT(filename, dt)
+    
+@plot.command()
+@filename_argument
+@dt_option
+def energy(filename, dt):
+    plot_Etot_trp(filename, dt)
 
 @plot.command()
 def time_iterNgrid():

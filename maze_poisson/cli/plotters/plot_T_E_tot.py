@@ -7,6 +7,7 @@ import pandas as pd
 from ...constants import a0, t_au
 from . import get_N
 
+path='Outputs/'
 def PlotT(filename, dt, label='iter'):
     df = pd.read_csv(filename)
     N = get_N(filename)
@@ -30,7 +31,7 @@ def PlotT(filename, dt, label='iter'):
     plt.savefig('T_N' + str(N) + '_dt' + str(dt) + '.pdf', format='pdf')
     plt.show()
 
-def plot_Etot_trp(filename, path, N, dt, N_th, L=20.9 / a0, upper_lim=None):
+def plot_Etot_trp(filename, dt, path=path, N_th=0, L=19.659 / a0, upper_lim=None):
     N = get_N(filename)
     # File paths
     work_file = path + 'work_trp_N' + str(N) + '.csv'
@@ -132,7 +133,7 @@ def plot_Etot_trp(filename, path, N, dt, N_th, L=20.9 / a0, upper_lim=None):
     plt.savefig(path + '/Energy_analysis_trp_N' + str(N) + '_dt' + str(dt) + '.pdf', format='pdf')
     plt.show()
 
-def plot_work_trp(filename, path, N_th, L=20.9 / a0):
+def plot_work_trp(filename, path, N_th, L=19.659 / a0):
     N = get_N(filename)
     # Check if the work file already exists
     work_file = path + 'work_N' + str(N) + '.csv'
@@ -847,7 +848,7 @@ def visualize_particles(Np, L):
     plt.title('Particle Visualization')
     plt.show()
 
-def plot_energy_multiple_dt(path_orig, N, dt_list=[0.025, 0.05, 0.25, 1.25, 2.5], L=20.9 / a0): # move 
+def plot_energy_multiple_dt(path_orig, N, dt_list=[0.025, 0.05, 0.25, 1.25, 2.5], L=19.659 / a0): # move 
     plt.figure(figsize=(15, 6))
     if len(dt_list) <= 2:
         color_list = ['r', 'b', 'm']
@@ -976,7 +977,7 @@ def plot_energy_multiple_dt(path_orig, N, dt_list=[0.025, 0.05, 0.25, 1.25, 2.5]
     plt.savefig(path_orig + 'energy_trp_comparison_time' + str(N) + '.pdf', format='pdf')
     plt.show()
 
-def plot_E_trp2(path, second_path, N, dt1, dt2, N_th, L=20.9 / a0, upper_lim=None): # move
+def plot_E_trp2(path, second_path, N, dt1, dt2, N_th, L=19.659 / a0, upper_lim=None): # move
     # First dataset - File paths
     work_file = path + 'work_trp_N' + str(N) + '.csv'
     df_E = pd.read_csv(path + 'energy_N' + str(N) + '.csv')
@@ -1210,7 +1211,7 @@ def plot_E_trp2(path, second_path, N, dt1, dt2, N_th, L=20.9 / a0, upper_lim=Non
     plt.savefig(path + '/Energy_trp_N' + str(N) + '_dt_comparison.pdf', format='pdf')
     plt.show()
 
-def plot_energy_multiple_runs(path_orig, N, dt=0.25, L=20.9 / a0, num_runs=10): # move
+def plot_energy_multiple_runs(path_orig, N, dt=0.25, L=19.659 / a0, num_runs=10): # move
     plt.figure(figsize=(10, 5))
     
     # Define a color palette for the different runs

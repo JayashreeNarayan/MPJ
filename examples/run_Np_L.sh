@@ -5,7 +5,7 @@ N_steps=400
 
 # Define the arrays of particle numbers, corresponding L values, and N values
 Np_array=(2 16 54 128 250 432 686 1024)
-L_array=(4.18 8.36 12.54 16.72 20.90 25.08 29.26 33.44)
+L_array=(4.18 8.36 12.54 16.72 19.6590 25.08 29.26 33.44)
 N_array=(20 40 60 80 100 120 140 160)
 
 # Ensure all arrays have the same length

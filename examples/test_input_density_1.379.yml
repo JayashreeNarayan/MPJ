@@ -1,25 +1,25 @@
 grid_setting:
-  N: 90
+  N: 100
   L: 19.659
-  N_p: 216
+  N_p: 2
 
 md_variables:
-  N_steps: 200
+  N_steps: 1000
   T: 1550 # Kelvin
   dt_fs: 0.25 # in fs
   rescale: TRUE # rescaling of the initial momenta to have tot momenta = 0
   tol: 1.e-7
-  init_steps: 0
-  thermostat: False
+  init_steps: 1000
+  thermostat: True
   elec: True 
   not_elec: True 
 
 output_settings: 
-  restart: TRUE
+  restart: false
   print_tot_force: FALSE
   print_field: FALSE
-  print_performance: TRUE
-  print_solute: FALSE
-  print_energy: FALSE
-  print_temperature: FALSE
-  generate_restart_file: False
+  print_performance: false
+  print_solute: TRUE
+  print_energy: TRUE
+  print_temperature: TRUE
+  generate_restart_file: True

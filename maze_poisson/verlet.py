@@ -83,7 +83,7 @@ def R_block(x,v, gamma, dt, L):
 @profile
 def OVRVO_part1(grid, thermostat=False):
     if thermostat:
-        gamma_sim = grid.md_variables.gamma_inpt
+        gamma_sim = grid.md_variables.gamma
     else:
         gamma_sim = 0
 
@@ -105,7 +105,7 @@ def OVRVO_part2(grid, prev=False, thermostat=False):
     N_p = grid.N_p
 
     if thermostat:
-        gamma_sim = grid.md_variables.gamma_inpt
+        gamma_sim = grid.md_variables.gamma
     else:
         gamma_sim = 0
         

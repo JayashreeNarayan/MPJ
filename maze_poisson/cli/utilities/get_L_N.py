@@ -5,8 +5,8 @@ def calculate_length_and_grid_points(Np, ref_Np=216, ref_L=19.659, ref_N=100, m_
 
     Parameters:
     Np (int): Number of particles.
-    ref_Np (int): Number of particles in the reference system (default is 250).
-    ref_L (float): Side length of the reference system in Angstroms (default is 20.9).
+    ref_Np (int): Number of particles in the reference system (default is 216).
+    ref_L (float): Side length of the reference system in Angstroms (default is 19.659).
     ref_N (int): Number of grid points per side in the reference system (default is 100).
     m_Na (float): Mass of a sodium atom (default is 22.99).
     m_Cl (float): Mass of a chlorine atom (default is 35.453).
@@ -38,7 +38,7 @@ def get_L_N():
     m_Na=22.99
     m_Cl=35.453
     # Example usage
-    Np_values = [2, 16, 54, 128, 250, 432, 686, 1024]
+    Np_values = [2, 16, 54, 128, 250, 432, 686, 1024] # [2,16,54,128,216,432,686,1024]
     results = {Np: calculate_length_and_grid_points(Np) for Np in Np_values}
     avg_mass_ref = (m_Na + m_Cl) / 2
     for Np, (L, N, density) in results.items():

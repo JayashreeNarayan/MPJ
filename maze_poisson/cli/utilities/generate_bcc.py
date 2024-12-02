@@ -81,7 +81,7 @@ def lattice(nmol, ndim, boxl, natoms, partner):
 # Set parameters for NaCl simulation
 # nmol = 250  # Total number of particles (125 NaCl molecules)
 # ndim = 3    # Number of dimensions
-# boxl = 20.9 # Length of the simulation box in angstroms
+# boxl = 19.659 # Length of the simulation box in angstroms
 # partner = np.arange(nmol)  # Example partner array
 # filen = 'input_files_new/input_coord' + str(nmol)  # Output filename
 

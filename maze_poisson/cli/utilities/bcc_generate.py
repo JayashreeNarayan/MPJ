@@ -43,7 +43,7 @@ def generate_bcc_positions(box_size, num_particles, epsilon=0.2):
     return positions
 
 # Define the dimensions of the box
-# L =  [4.18, 8.36, 12.54, 16.72, 20.9, 25.08, 29.26, 33.44]
+# L =  [4.18, 8.36, 12.54, 16.72, 19.659, 25.08, 29.26, 33.44]
 
 # # Number of particles
 # num_particles = [2, 16, 54, 128, 250, 432, 686, 1024]
