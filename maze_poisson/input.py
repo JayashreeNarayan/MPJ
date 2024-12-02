@@ -78,7 +78,8 @@ class GridSetting:
         #if self.N!=100:
            #raise NotImplementedError("Only restart file for N_100 is available")
         if self._restart_file is None:
-            self._restart_file = 'restart_files/density_'+str(np.round((self.N_p/2)*(m_Na+m_Cl)*1000 / (self.L_ang*1.e-8)**3, 3))+'/restart_N'+str(100)+'_step9999.csv'
+            self._restart_file = 'restart_files/density_1.379/restart_N100_iter981.csv'
+            #self._restart_file = 'restart_files/density_'+str(np.round((self.N_p/2)*(m_Na+m_Cl)*1000 / (self.L_ang*1.e-8)**3, 3))+'/restart_N'+str(100)+'_iter981.csv'
         return self._restart_file
 
 ###################################################################################

@@ -61,15 +61,8 @@ def plot_Etot_trp(filename, dt, path=path, N_th=0, L=19.659 / a0, upper_lim=None
     N_steps = int(iterations.max() + 1)
     print('N_steps =', N_steps)
     if recompute_work:
-
-        # If the file doesn't exist, compute the work
-        # df = pd.read_csv(path + 'solute_N' + str(N) + '.csv')
         Np = int(df['particle'].max() + 1)
-        # df_list = [df[df['particle'] == p].reset_index(drop=True) for p in range(Np)]
-        # iterations = df['iter']
-        # N_steps = int(iterations.max() + 1)
         Ework = np.zeros(N_steps)
-        # print('N_steps =', N_steps)
         print('Np =', Np)
 
         gb = df.groupby('particle')
