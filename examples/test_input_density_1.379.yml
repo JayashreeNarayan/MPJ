@@ -15,7 +15,7 @@ md_variables:
   not_elec: True 
 
 output_settings: 
-  restart: FALSE
+  restart: TRUE
   print_tot_force: FALSE
   print_field: FALSE
   print_performance: TRUE
