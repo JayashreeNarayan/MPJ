@@ -70,13 +70,15 @@ class GridSetting:
     @property
     def input_file(self):
         if self._input_file is None:
-            self._input_file = 'input_files_new/input_coord'+str(100)+'.csv'
+            self._input_file = 'input_files_new/input_coord'+str(self.N_p)+'.csv'
         return self._input_file
 
     @property
     def restart_file(self):
+        if self.N!=100:
+            NotImplementedError("Only restart file for N_100 is available")
         if self._restart_file is None:
-            self._restart_file = 'restart_files/density_'+str(np.round((self.N_p/2)*(m_Na+m_Cl)*1000 / (self.L_ang*1.e-8)**3, 3))+'/restart_N'+str(self.N)+'_step9999.csv'
+            self._restart_file = 'restart_files/density_'+str(np.round((self.N_p/2)*(m_Na+m_Cl)*1000 / (self.L_ang*1.e-8)**3, 3))+'/restart_N'+str(100)+'_step9999.csv'
         return self._restart_file
 
 ###################################################################################
