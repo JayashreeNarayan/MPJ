@@ -1,4 +1,4 @@
-a0 = 0.529177210903 #Angstrom 
+a0 = 0.529177210903 # in Angstrom units
 t_au = 2.4188843265857 * 1e-2 # fs = 1 a.u. of time 
 
 amu_to_kg = 1.66054 * 1e-27 # conversion 

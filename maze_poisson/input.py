@@ -59,8 +59,7 @@ class GridSetting:
     @N_p.setter
     def N_p(self, value):
         self._N_p = value
-        self._L = (((value/2)*(m_Cl+m_Na))**(1/3))*1.e9 # in g/cm^3
-        self.L_ang = self._L*a0 # value in angstroms
+        self._L = (((value*(m_Cl + m_Na)) / (2*density))  **(1/3)) *1.e9 *a0 # in amu
         
     @property
     def L(self):

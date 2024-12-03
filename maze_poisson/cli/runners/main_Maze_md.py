@@ -23,7 +23,7 @@ def main(grid_setting, output_settings, md_variables):
     # get variables from input
     h = grid_setting.h
     L = grid_setting.L
-    L_ang = grid_setting.L_ang
+    L_ang = L/a0 # converting from cm to angstrom
     N = grid_setting.N
     N_p = grid_setting.N_p
     h_ang = L_ang/N
