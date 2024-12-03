@@ -183,8 +183,8 @@ def main(grid_setting, output_settings, md_variables):
             ofiles.file_output_tot_force.write(str(i) + ',' + str(tot_force[0]) + ',' + str(tot_force[1]) + ','+ str(tot_force[2]) + "\n") 
             ofiles.file_output_tot_force.flush()
 
-        grid.Energy(print_energy=output_settings.print_energy, iter=i)
-        grid.Temperature(print_temperature=output_settings.print_temperature, iter=i)
+        grid.Energy(print_energy=output_settings.print_energy, iter=i) # prints the energy out
+        grid.Temperature(print_temperature=output_settings.print_temperature, iter=i) # prints the temperature
         
         if output_settings.print_solute:
                 df = pd.DataFrame(grid.particles.pos, columns=['x', 'y', 'z'])

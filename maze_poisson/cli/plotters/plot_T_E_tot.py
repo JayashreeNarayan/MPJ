@@ -41,18 +41,20 @@ def PlotT(filename, dt, label='iter'):
 def plot_Etot_trp(filename, dt, N_th=0, L=19.659 / a0, upper_lim=None):
     N = get_N(filename)
     # File paths
-    work_file = path + 'work_trp_N' + str(N) + '.csv'
-    df_E = pd.read_csv(path + 'energy_N' + str(N) + '.csv')
+    work_file = path+'Thermostatted/' + 'work_trp_N' + str(N) + '.csv'
+    df_E = pd.read_csv(path + 'Thermostatted'+ '/Energy/energy_N' + str(N) + '.csv')
 
     # Energy file columns
     K = df_E['K']
     V_notelec = df_E['V_notelec']
     N_steps_energy = len(df_E)
     recompute_work = False
+    iterations = 0.
 
     # Check if the work file exists and has the correct number of lines
     if os.path.exists(work_file):
         work_df = pd.read_csv(work_file)
+        iterations = work_df['iter']
         if len(work_df) == N_steps_energy:
 
             # If the file exists and has the correct number of rows, use the work data
@@ -63,11 +65,8 @@ def plot_Etot_trp(filename, dt, N_th=0, L=19.659 / a0, upper_lim=None):
             recompute_work = True
     else:
         recompute_work = True
-    df = pd.read_csv(path + 'solute_N' + str(N) + '.csv')
-    iterations = df['iter']
-    N_steps = 6000 # just for this run
-    #N_steps = int(iterations.max() + 1)
-    print('N_steps =', N_steps)
+    df = pd.read_csv(path+ 'Thermostatted/' + 'Solute/solute_N' + str(N) + '.csv')
+    N_steps = int(iterations.max() + 1)
     if recompute_work:
         Np = int(df['particle'].max() + 1)
         Ework = np.zeros(N_steps)
