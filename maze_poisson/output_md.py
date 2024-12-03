@@ -1,6 +1,6 @@
 import atexit
 import os
-
+from .cli.utilities.run_shell_cmd import run_shell_command
 
 class OutputFiles:
     file_output_field = None
@@ -27,9 +27,13 @@ def generate_output_file(out_path, overwrite=True):
 def generate_output_files(grid):
     N = grid.N
     output_settings = grid.output_settings
+    md_variables = grid.md_variables
     path = output_settings.path
 
     output_files = OutputFiles()
+
+    if not os.path.isdir(path+'Thermostatted/'): run_shell_command('mkdir '+path+'Thermostatted/')  # to make the directory if it doesnt exist, will run on a system only once
+    if md_variables.thermostat: path += 'Thermostatted/'  # if thermostating is true then this has to take place.
 
     if output_settings.print_field:
         output_field = os.path.join(path, 'field_N' + str(N) + '.csv')
@@ -40,7 +44,6 @@ def generate_output_files(grid):
         output_performance = os.path.join(path, 'performance_N' + str(N) + '.csv')
         output_files.file_output_performance = generate_output_file(output_performance)
         output_files.file_output_performance.write("iter,time,n_iters\n")
-
 
     if output_settings.print_iters:
         output_iters = os.path.join(path,'iters_N' + str(N) + '.csv')

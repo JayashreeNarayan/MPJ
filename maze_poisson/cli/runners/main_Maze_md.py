@@ -204,11 +204,12 @@ def main(grid_setting, output_settings, md_variables):
                 
         if i % stride == 0 and i >= init_steps:
             if counter == 0 and thermostat == True:
-                print('End of thermostatting')
-                logger.info('End of thermostatting')
-                thermostat = False
-                counter = counter + 1
-            '''
+                if np.abs(T - 1550) <= 100:    
+                    print('End of thermostatting')
+                    logger.info('End of thermostatting')
+                    thermostat = False
+                    counter = counter + 1
+                '''
             if output_settings.print_solute:
                 df = pd.DataFrame(grid.particles.pos, columns=['x', 'y', 'z'])
                 df['vx'] = grid.particles.vel[:, 0]
