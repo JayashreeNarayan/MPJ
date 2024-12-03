@@ -36,38 +36,45 @@ def generate_output_files(grid):
     if md_variables.thermostat: path += 'Thermostatted/'  # if thermostating is true then this has to take place.
 
     if output_settings.print_field:
-        output_field = os.path.join(path, 'field_N' + str(N) + '.csv')
+        if not os.path.isdir(path+'Field/'): run_shell_command('mkdir '+path+'Field/')  # to make the directory if it doesnt exist, will run on a system only once
+        output_field = os.path.join(path+'Field/', 'field_N' + str(N) + '.csv')
         output_files.file_output_field = generate_output_file(output_field)
         output_files.file_output_field.write("iter,x,MaZe\n")
 
     if output_settings.print_performance:
-        output_performance = os.path.join(path, 'performance_N' + str(N) + '.csv')
+        if not os.path.isdir(path+'Performance/'): run_shell_command('mkdir '+path+'Performance/')
+        output_performance = os.path.join(path+'Performance/', 'performance_N' + str(N) + '.csv')
         output_files.file_output_performance = generate_output_file(output_performance)
         output_files.file_output_performance.write("iter,time,n_iters\n")
 
     if output_settings.print_iters:
-        output_iters = os.path.join(path,'iters_N' + str(N) + '.csv')
+        if not os.path.isdir(path+'Iterations/'): run_shell_command('mkdir '+path+'Iterations/')
+        output_iters = os.path.join(path+'Iterations/','iters_N' + str(N) + '.csv')
         output_files.file_output_iters = generate_output_file(output_iters)
         output_files.file_output_iters.write("iter,max_sigma,norm\n")
 
     # prints only kinetic and non electrostatic potential
     if output_settings.print_energy:
-        output_energy = os.path.join(path, 'energy_N' + str(N) + '.csv')
+        if not os.path.isdir(path+'Energy/'): run_shell_command('mkdir '+path+'Energy/')
+        output_energy = os.path.join(path+'Energy/', 'energy_N' + str(N) + '.csv')
         output_files.file_output_energy = generate_output_file(output_energy)
         output_files.file_output_energy.write("iter,K,V_notelec\n")
 
     if output_settings.print_temperature:
-        output_temperature = os.path.join(path, 'temperature_N' + str(N) + '.csv')
+        if not os.path.isdir(path+'Temperature/'): run_shell_command('mkdir '+path+'Temperature/')
+        output_temperature = os.path.join(path+'Temperature/', 'temperature_N' + str(N) + '.csv')
         output_files.file_output_temperature = generate_output_file(output_temperature)
         output_files.file_output_temperature.write("iter,T\n")
 
     if output_settings.print_solute:
-        output_solute = os.path.join(path, 'solute_N' + str(N) + '.csv')
+        if not os.path.isdir(path+'Solute/'): run_shell_command('mkdir '+path+'Solute/')
+        output_solute = os.path.join(path+'Solute/', 'solute_N' + str(N) + '.csv')
         output_files.file_output_solute = generate_output_file(output_solute)
         output_files.file_output_solute.write("charge,iter,particle,x,y,z,vx,vy,vz,fx_elec,fy_elec,fz_elec\n")
 
     if output_settings.print_tot_force:
-        output_tot_force = os.path.join(path, 'tot_force_N' + str(N) + '.csv')
+        if not os.path.isdir(path+'Tot_Force/'): run_shell_command('mkdir '+path+'Tot_Force/')
+        output_tot_force = os.path.join(path+'Tot_force/', 'tot_force_N' + str(N) + '.csv')
         output_files.file_output_tot_force = generate_output_file(output_tot_force)
         output_files.file_output_tot_force.write("iter,Fx,Fy,Fz\n")
 

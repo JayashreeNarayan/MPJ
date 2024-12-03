@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import yaml
 
-from .constants import a0, kB, m_Cl, m_Na, t_au
+from .constants import a0, kB, m_Cl, m_Na, t_au, density
 from .loggers import logger
 
 ###################################################################################
@@ -31,11 +31,12 @@ class GridSetting:
     def __init__(self):
         self._N = None
         self._L = None
-        self.N_p = None
+        self._N_p = None
         self._N_tot = None
         self._h = None
         self._input_file = None
         self._restart_file = None
+        
 
     @property
     def N(self):
@@ -46,25 +47,29 @@ class GridSetting:
         self._N = value
         self._N_tot = int(value ** 3)
         self._h = None
-
+    
     @property
     def N_tot(self):
         return self._N_tot
+    
+    @property
+    def N_p(self):
+        return self._N_p
+
+    @N_p.setter
+    def N_p(self, value):
+        self._N_p = value
+        self._L = (((value/2)*(m_Cl+m_Na))**(1/3))*1.e9 # in g/cm^3
+        self.L_ang = self._L*a0 # value in angstroms
         
     @property
     def L(self):
         return self._L
-    
-    @L.setter
-    def L(self, value):
-        self._h = None
-        self.L_ang = value
-        self._L = value / a0
 
     @property
     def h(self):
         if self._h is None:
-            self._h = self.L / self.N
+            self._h = self._L / self.N
         return self._h
 
     @property
@@ -78,8 +83,7 @@ class GridSetting:
         #if self.N!=100:
            #raise NotImplementedError("Only restart file for N_100 is available")
         if self._restart_file is None:
-            self._restart_file = 'restart_files/density_1.379/restart_N100_iter981.csv'
-            #self._restart_file = 'restart_files/density_'+str(np.round((self.N_p/2)*(m_Na+m_Cl)*1000 / (self.L_ang*1.e-8)**3, 3))+'/restart_N'+str(100)+'_iter981.csv'
+            self._restart_file = 'restart_files/density_'+str(np.round(density, 3))+'/restart_N'+str(self.N)+'_N_p='+str(self.N_p)+'_iter999.csv'
         return self._restart_file
 
 ###################################################################################
@@ -131,7 +135,7 @@ class MDVariables:
         return self._dt
 
 required_inputs = {
-    'grid_setting': ['N', 'L', 'N_p'],
+    'grid_setting': ['N', 'N_p'],
     'output_settings': ['restart'],
     'md_variables': ['N_steps', 'tol', 'rescale', 'T']
 }

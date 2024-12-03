@@ -204,7 +204,7 @@ def main(grid_setting, output_settings, md_variables):
                 
         if i % stride == 0 and i >= init_steps:
             if counter == 0 and thermostat == True:
-                if np.abs(T - 1550) <= 100:    
+                if np.abs(grid.temperature - 1550) <= 100:    
                     print('End of thermostatting')
                     logger.info('End of thermostatting')
                     thermostat = False
@@ -235,7 +235,7 @@ def main(grid_setting, output_settings, md_variables):
                     ofiles.file_output_field.write(str(i - init_steps) + ',' + str(X[n] * a0) + ',' + str(field_x_MaZe[n] * V) + '\n')
 
     if output_settings.generate_restart_file:
-        restart_file = generate_restart(grid_setting, output_settings, iter_restart)
+        restart_file = generate_restart(md_variables, grid_setting, output_settings, iter_restart)
         # print('Restart file generated: ', restart_file)
         logger.info(f'Restart file generated: {restart_file}')
         

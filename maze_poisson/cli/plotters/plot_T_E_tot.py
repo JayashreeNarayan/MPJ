@@ -1,4 +1,5 @@
 import os
+from ..utilities.run_shell_cmd import run_shell_command
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -7,7 +8,12 @@ import pandas as pd
 from ...constants import a0, t_au
 from . import get_N
 
-path='Outputs/'
+#path='Outputs/Thermostatted/'
+
+path = 'Outputs/'
+if not os.path.isdir(path+'PDFs/'): run_shell_command('mkdir '+path+'PDFs/')
+path_pdf = path + 'PDFs/'
+
 def PlotT(filename, dt, label='iter'):
     df = pd.read_csv(filename)
     N = get_N(filename)
@@ -23,15 +29,16 @@ def PlotT(filename, dt, label='iter'):
     print('relative error:', rel_err)
     plt.figure(figsize=(15, 6))
     plt.plot(iter, T, marker='.', color='red', markersize=5, label='T - mean value = ' + str(np.mean(T)) + '$\pm$' + str(np.std(T)))
-    plt.title('Temperature - dt =' + str(dt) + ' fs - N =' + str(N), fontsize=22)
+    plt.title('Temperature - dt =' + str(np.round(dt,4)) + ' fs - N =' + str(N), fontsize=22)
     plt.xlabel('iter', fontsize=15)
     plt.ylabel('T (K)', fontsize=15)
     plt.axhline(1550)
     plt.legend()
-    plt.savefig('T_N' + str(N) + '_dt' + str(dt) + '.pdf', format='pdf')
+    plt.grid()
+    plt.savefig(path_pdf+'T_N' + str(N) + '_dt' + str(np.round(dt,4)) + '.pdf', format='pdf')
     plt.show()
 
-def plot_Etot_trp(filename, dt, path=path, N_th=0, L=19.659 / a0, upper_lim=None):
+def plot_Etot_trp(filename, dt, N_th=0, L=19.659 / a0, upper_lim=None):
     N = get_N(filename)
     # File paths
     work_file = path + 'work_trp_N' + str(N) + '.csv'
@@ -58,7 +65,8 @@ def plot_Etot_trp(filename, dt, path=path, N_th=0, L=19.659 / a0, upper_lim=None
         recompute_work = True
     df = pd.read_csv(path + 'solute_N' + str(N) + '.csv')
     iterations = df['iter']
-    N_steps = int(iterations.max() + 1)
+    N_steps = 6000 # just for this run
+    #N_steps = int(iterations.max() + 1)
     print('N_steps =', N_steps)
     if recompute_work:
         Np = int(df['particle'].max() + 1)
@@ -123,7 +131,7 @@ def plot_Etot_trp(filename, dt, path=path, N_th=0, L=19.659 / a0, upper_lim=None
     ax3.legend(loc='upper right')
     ax3.grid(True)
     plt.tight_layout()
-    plt.savefig(path + '/Energy_analysis_trp_N' + str(N) + '_dt' + str(dt) + '.pdf', format='pdf')
+    plt.savefig(path_pdf + '/Energy_analysis_trp_N' + str(N) + '_dt' + str(dt) + '.pdf', format='pdf')
     plt.show()
 
 def plot_work_trp(filename, path, N_th, L=19.659 / a0):
@@ -191,7 +199,7 @@ def plot_work_trp(filename, path, N_th, L=19.659 / a0):
     plt.xlabel('iter', fontsize=15)
     plt.ylabel('Work ($E_H$)', fontsize=15)
     plt.legend(loc='upper left')
-    plt.savefig(path + '/Work_trp_N' + str(N) + '.pdf', format='pdf')
+    plt.savefig(path_pdf + '/Work_trp_N' + str(N) + '.pdf', format='pdf')
     plt.show()
 
 def store_T_analysys(filename, path, n_runs=10): 
@@ -230,7 +238,7 @@ def store_T_analysys(filename, path, n_runs=10):
     plt.legend()
     #plt.title('Study of the temperature')
     #plt.grid(True)
-    plt.savefig(path + 'temperature_study_N' + str(N) + '.pdf', format='pdf')
+    plt.savefig(path_pdf + 'temperature_study_N' + str(N) + '.pdf', format='pdf')
     # Display the plots
     plt.show()
 

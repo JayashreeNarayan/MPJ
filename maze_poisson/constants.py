@@ -8,3 +8,4 @@ kB = 3.1668 * 1e-6 #E_h/K
 
 m_Na = 22.99 * amu_to_kg
 m_Cl = 35.453 * amu_to_kg
+density = 1.379498809787351 # this is the new value, g/cm^3

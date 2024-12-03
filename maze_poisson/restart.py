@@ -1,12 +1,14 @@
 import numpy as np
 import pandas as pd
 import os
-from.constants import a0
+from.constants import a0, density
 
-def generate_restart(grid_setting, output_settings, iter = None):
+def generate_restart(md_variables, grid_setting, output_settings, iter = None):
+    #thermostat = md_variables.thermostat
     N_p = grid_setting.N_p
     N = grid_setting.N
     path = output_settings.path
+    restart_path = 'restart_files/density_'+str(np.round(density,3))+'/'
     filename = path + 'solute_N' + str(N) + '.csv'
 
     df = pd.read_csv(filename)
@@ -31,10 +33,11 @@ def generate_restart(grid_setting, output_settings, iter = None):
     new_df['z'] = new_df['z'] * a0
 
     print(new_df.head())
+
     if iter == None:
-        filename_output = os.path.join(path, 'restart_N' + str(N) + '_iter' + str(max) + '.csv')
+        filename_output = os.path.join(restart_path, 'restart_N' + str(N) + '_N_p='+ str(N_p) + '_iter' + str(max) + '.csv')
     else:
-        filename_output = os.path.join(path, 'restart_N' + str(N) + '_iter' + str(iter) + '.csv')
+        filename_output = os.path.join(restart_path, 'restart_N' + str(N) + '_N_p='+ str(N_p) + '_iter' + str(iter) + '.csv')
 
     new_df.to_csv(filename_output, index=False)
     return filename_output

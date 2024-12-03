@@ -38,11 +38,9 @@ def get_L_N():
     m_Na=22.99
     m_Cl=35.453
     # Example usage
-    Np_values = [2, 16, 54, 128, 250, 432, 686, 1024] # [2,16,54,128,216,432,686,1024]
+    Np_values = [2, 16, 54, 128, 216, 432, 686, 1024] 
     results = {Np: calculate_length_and_grid_points(Np) for Np in Np_values}
     avg_mass_ref = (m_Na + m_Cl) / 2
     for Np, (L, N, density) in results.items():
         print(f"Np = {Np}: L = {L:.2f} Å, N = {N} grid points, Density = {density:.5f} g/Å^3", Np / L**3)
         #print(L / N)
-
-
