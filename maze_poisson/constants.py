@@ -6,6 +6,10 @@ m_e = 9.1093837 * 1e-31 # kg
 conv_mass = amu_to_kg / m_e
 kB = 3.1668 * 1e-6 #E_h/K
 
-m_Na = 22.99 * amu_to_kg
-m_Cl = 35.453 * amu_to_kg
-density = 1.379498809787351 # this is the new value, g/cm^3
+m_Na_amu = 22.99
+m_Cl_amu = 35.453
+
+m_Na = m_Na_amu * amu_to_kg
+m_Cl = m_Cl_amu * amu_to_kg
+
+density = 1.379 # this is the new value, g/cm^3
