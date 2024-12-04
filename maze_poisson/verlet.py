@@ -2,6 +2,7 @@ import os
 from math import exp, tanh
 
 import numpy as np
+from scipy.sparse.linalg import LinearOperator, cg
 
 from .c_api import c_conj_grad, c_laplace
 from .constants import kB
@@ -122,33 +123,35 @@ def OVRVO_part2(grid, prev=False, thermostat=False):
 
 
 @profile
-def MatrixVectorProduct_manual(v):
-    # print('MatrixVectorProduct_manual')
-    # print(v.flags)
-    # exit()
+def MatrixVectorProduct_C(v,):
     res = np.empty_like(v)
     c_laplace(v, res, v.shape[0])
     return res
-    # res = -6 * np.copy(v)
 
-    # res[1:,:,:] += v[:-1,:,:]
-    # res[:-1,:,:] += v[1:,:,:]
-    # res[-1,:,:] += v[0,:,:]
-    # res[0,:,:] += v[-1,:,:]
+def MatrixVectorProduct_manual(v):
+    # N = int(v.shape[0]**(1/3) + 0.5)
+    N = 100
+    v = v.reshape((N,N,N))
+    res = -6 * np.copy(v)
 
-    # res[:,1:,:] += v[:,:-1,:]
-    # res[:,:-1,:] += v[:,1:,:]
-    # res[:,-1,:] += v[:,0,:]
-    # res[:,0,:] += v[:,-1,:]
+    res[1:,:,:] += v[:-1,:,:]
+    res[:-1,:,:] += v[1:,:,:]
+    res[-1,:,:] += v[0,:,:]
+    res[0,:,:] += v[-1,:,:]
 
-    # res[:,:,1:] += v[:,:,:-1]
-    # res[:,:,:-1] += v[:,:,1:]
-    # res[:,:,-1] += v[:,:,0]
-    # res[:,:,0] += v[:,:,-1]
+    res[:,1:,:] += v[:,:-1,:]
+    res[:,:-1,:] += v[:,1:,:]
+    res[:,-1,:] += v[:,0,:]
+    res[:,0,:] += v[:,-1,:]
 
-    # return res
+    res[:,:,1:] += v[:,:,:-1]
+    res[:,:,:-1] += v[:,:,1:]
+    res[:,:,-1] += v[:,:,0]
+    res[:,:,0] += v[:,:,-1]
 
-MatrixVectorProduct = MatrixVectorProduct_manual
+    return res
+
+MatrixVectorProduct = MatrixVectorProduct_C
 
 # apply Verlet algorithm to compute the updated value of the field phi, with LCG + SHAKE
 def VerletPoisson(grid, y):
@@ -181,8 +184,17 @@ def VerletPoisson(grid, y):
     
     return grid, y_new, iter_conv
 
-@profile
-def PrecondLinearConjGradPoisson(b, x0 = None, tol=1e-7):
+def PrecondLinearConjGradPoisson_scipy(b, x0 = None, tol=1e-7):
+    if x0 is not None:
+        x0 = x0.flatten()
+    func = lambda x: MatrixVectorProduct(x.reshape(b.shape)).flatten()
+    x, i = cg(LinearOperator((b.size, b.size), matvec=func), b.flatten(), x0=x0, atol=tol)
+    if i > 0:
+        raise ValueError(f'Conjugate gradient did not converge {i} iterations')
+    x = x.reshape(b.shape)
+    return x, i
+
+def PrecondLinearConjGradPoisson_C(b, x0 = None, tol=1e-7):
     x = np.empty_like(b)
     if x0 is None:
         x0 = np.zeros_like(b)
@@ -190,53 +202,64 @@ def PrecondLinearConjGradPoisson(b, x0 = None, tol=1e-7):
     if i == -1:
         raise ValueError('Conjugate gradient did not converge')
     return x, i
-    # N_tot = b.size
-    # if x0 is None:
-    #     x0 = np.zeros_like(b)
-    # P_inv = - 1 / 6
-    # x = np.copy(x0)
-    # r = MatrixVectorProduct(x) - b
-    # v = P_inv * r  
-    # p = -v
+
+def PrecondLinearConjGradPoisson_OLD(b, x0 = None, tol=1e-7):
+    N_tot = b.size
+    if x0 is None:
+        x0 = np.zeros_like(b)
+    P_inv = - 1 / 6
+    x = np.copy(x0)
+    r = MatrixVectorProduct(x) - b
+    v = P_inv * r  
+    p = -v
     
-    # r_new = np.ones_like(r)
-    # iter = 0
+    r_new = np.ones_like(r)
+    iter = 0
 
-    # while np.linalg.norm(r_new) > tol:
-    #     iter = iter + 1
-    #     Ap = MatrixVectorProduct(p) # A @ d for row-by-column product
-    #     # r_dot_v = blas.ddot(r, v, N_tot)
-    #     # r_dot_v = np.sum(r * v)
-    #     r_dot_v = c_ddot(r, v, N_tot)
+    while np.linalg.norm(r_new) > tol:
+        iter = iter + 1
+        if iter > N_tot:
+            raise ValueError('Conjugate gradient did not converge')
+        if iter % 100 == 0:
+            print('iter=',iter, np.linalg.norm(r_new))
+        Ap = MatrixVectorProduct(p) # A @ d for row-by-column product
+        # r_dot_v = blas.ddot(r, v, N_tot)
+        r_dot_v = np.sum(r * v)
+        # r_dot_v = c_ddot(r, v, N_tot)
 
-    #     # alpha = r_dot_v / blas.ddot(p, Ap, N_tot)
-    #     # alpha = r_dot_v / np.sum(p * Ap)
-    #     alpha = r_dot_v / c_ddot(p, Ap, N_tot)
-    #     # x = blas.daxpy(p, x , N_tot, alpha)
-    #     # x = alpha * p + x
-    #     c_daxpy(p, x, x, alpha, N_tot)
-    #     # c_daxpy2(p, x, alpha, N_tot)
+        # alpha = r_dot_v / blas.ddot(p, Ap, N_tot)
+        alpha = r_dot_v / np.sum(p * Ap)
+        # alpha = r_dot_v / c_ddot(p, Ap, N_tot)
+        # x = blas.daxpy(p, x , N_tot, alpha)
+        x = alpha * p + x
+        # c_daxpy(p, x, x, alpha, N_tot)
+        # c_daxpy2(p, x, alpha, N_tot)
  
-    #     # r_new = blas.daxpy(Ap, r, N_tot, alpha)
-    #     # r_new = alpha * Ap + r
-    #     c_daxpy(Ap, r, r_new, alpha, N_tot)
-    #     # c_daxpy2(Ap, r, alpha, N_tot)
-    #     # r_new = r
-    #     v_new =  P_inv * r_new
+        # r_new = blas.daxpy(Ap, r, N_tot, alpha)
+        r_new = alpha * Ap + r
+        # c_daxpy(Ap, r, r_new, alpha, N_tot)
+        # c_daxpy2(Ap, r, alpha, N_tot)
+        # r_new = r
+        v_new =  P_inv * r_new
 
-    #     # beta = blas.ddot(r_new, v_new, N_tot) / r_dot_v
-    #     # beta = np.sum(r_new * v_new) / r_dot_v
-    #     beta = c_ddot(r_new, v_new, N_tot) / r_dot_v
-    #     # p = blas.daxpy(p, -v_new, N_tot, beta)
-    #     # p = beta * p - v_new
-    #     c_daxpy(p, -v_new, p, beta, N_tot)
-    #     # v_new = -v_new
-    #     # c_daxpy2(p, v_new, beta, N_tot)
+        # beta = blas.ddot(r_new, v_new, N_tot) / r_dot_v
+        beta = np.sum(r_new * v_new) / r_dot_v
+        # beta = c_ddot(r_new, v_new, N_tot) / r_dot_v
+
+        # p = blas.daxpy(p, -v_new, N_tot, beta)
+        p = beta * p - v_new
+        # c_daxpy(p, -v_new, p, beta, N_tot)
+        # v_new = -v_new
+        # c_daxpy2(p, v_new, beta, N_tot)
         
-    #     r = r_new
-    #     v = v_new
+        r = r_new
+        v = v_new
 
-    # return x, iter
+    return x, iter
+
+PrecondLinearConjGradPoisson = PrecondLinearConjGradPoisson_C
+# PrecondLinearConjGradPoisson = PrecondLinearConjGradPoisson_scipy
+# PrecondLinearConjGradPoisson = PrecondLinearConjGradPoisson_OLD
 
 # alternative function for matrix-vector product
 def MatrixVectorProduct_7entries(M, v, index):
