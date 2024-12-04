@@ -71,7 +71,7 @@ def generate_lattice(nmol, ndim, boxl, natoms, lattice_type, output):
 @click.argument('box_size', type=float)
 @click.argument('num_particles', type=int)
 @click.argument('epsilon', type=float, default=0.2)
-def generate_positions(box_size, num_particles, epsilon, lattice_type, output):
+def generate_positions(box_size, num_particles, epsilon, lattice_type, output):  # main function to use
     if output is None:
         output = sys.stdout
     if lattice_type == 'bcc':
