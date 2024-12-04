@@ -54,7 +54,7 @@ def main(grid_setting, output_settings, md_variables):
     logger.info(f'Parameters: h = {h_ang} A \ndt = {dt_fs} fs \nstride = {stride} \nL = {L_ang} A \ngamma = {md_variables.gamma}')
     logger.info(f'Potential: {md_variables.potential}')
     logger.info(f'Elec: {elec} \tNotElec: {not_elec}')
-    logger.info(f'Temperature: {T} K \tNumerical density: {N_p / L**3} a.u.')
+    logger.info(f'Temperature: {T} K \tNumerical density: {N_p / L_ang**3} a.u.')
     logger.info(f'Print solute: {output_settings.print_solute} \tPrint field: {output_settings.print_field} \tPrint tot_force: {output_settings.print_tot_force}')
     logger.info(f'Print energy: {output_settings.print_energy} \tPrint temperature: {output_settings.print_temperature}')
     logger.info(f'Print performance: {output_settings.print_performance} \tRestart: {output_settings.restart}')
