@@ -3,6 +3,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from ...loggers import logger
 
 from ...constants import a0, t_au
 from . import get_N
@@ -10,8 +11,10 @@ from . import get_N
 #path='Outputs/Thermostatted/'
 
 path = 'Outputs/'
-path_pdf = os.path.join(path, 'PDFs')
-os.makedirs(path_pdf, exist_ok=True)
+isExist = os.path.exists(path)
+if not isExist:
+    os.makedirs(path)
+path_pdf = path + 'PDFs/'
 
 def PlotT(filename, dt, label='iter'):
     df = pd.read_csv(filename)
@@ -34,13 +37,14 @@ def PlotT(filename, dt, label='iter'):
     plt.axhline(1550)
     plt.legend()
     plt.grid()
-    plt.savefig(path_pdf+'T_N' + str(N) + '_dt' + str(np.round(dt,4)) + '.pdf', format='pdf')
+    plt.savefig(path_pdf+'T_N' + str(N) + '_dt_' + str(np.round(dt,4)) + '.pdf', format='pdf')
+    logger.info("file saved at "+path_pdf+'T_N' + str(N) + '_dt' + str(np.round(dt,4)) + '.pdf')
     plt.show()
 
 def plot_Etot_trp(filename, dt, N_th=0, L=19.659 / a0, upper_lim=None):
     N = get_N(filename)
     # File paths
-    work_file = path+'Thermostatted/' + 'work_trp_N' + str(N) + '.csv'
+    work_file = path+'Thermostatted/Energy/' + 'work_trp_N' + str(N) + '.csv'
     df_E = pd.read_csv(path + 'Thermostatted'+ '/Energy/energy_N' + str(N) + '.csv')
 
     # Energy file columns
@@ -58,14 +62,19 @@ def plot_Etot_trp(filename, dt, N_th=0, L=19.659 / a0, upper_lim=None):
 
             # If the file exists and has the correct number of rows, use the work data
             Ework = work_df['work'].tolist()
-            print(f"Work data loaded from {work_file}")
+            #print(f"Work data loaded from {work_file}")
+            logger.info(f"Work data loaded from {work_file}")
         else:
-            print(f"Work file exists but has incorrect number of lines. Recomputing work.")
+            #print(f"Work file exists but has incorrect number of lines. Recomputing work.")
+            logger.info("Work file exists but has incorrect number of lines. Recomputing work.")
             recompute_work = True
     else:
+        logger.error(f"Work file doesnt exist in specified path {work_file}")
         recompute_work = True
-    df = pd.read_csv(path+ 'Thermostatted/' + 'Solute/solute_N' + str(N) + '.csv')
+    
     N_steps = int(iterations.max() + 1)
+
+    df = pd.read_csv(path+ 'Thermostatted/' + 'Solute/solute_N' + str(N) + '.csv')
     if recompute_work:
         Np = int(df['particle'].max() + 1)
         Ework = np.zeros(N_steps)
@@ -129,7 +138,8 @@ def plot_Etot_trp(filename, dt, N_th=0, L=19.659 / a0, upper_lim=None):
     ax3.legend(loc='upper right')
     ax3.grid(True)
     plt.tight_layout()
-    plt.savefig(path_pdf + '/Energy_analysis_trp_N' + str(N) + '_dt' + str(dt) + '.pdf', format='pdf')
+    plt.savefig(path_pdf + 'Energy_analysis_trp_N' + str(N) + '_dt_' + str(dt) + '.pdf', format='pdf')
+    logger.info("file saved at "+path_pdf + 'Energy_analysis_trp_N' + str(N) + '_dt_' + str(dt) + '.pdf')
     plt.show()
 
 def plot_work_trp(filename, path, N_th, L=19.659 / a0):
