@@ -1,5 +1,6 @@
 import ctypes
 import os
+import signal
 
 import numpy as np
 import numpy.ctypeslib as npct
@@ -58,3 +59,6 @@ c_conj_grad.argtypes = [
     ctypes.c_double,
     ctypes.c_int
 ]
+
+# Enable Ctrl-C to interrupt the C code
+signal.signal(signal.SIGINT, signal.SIG_DFL)
