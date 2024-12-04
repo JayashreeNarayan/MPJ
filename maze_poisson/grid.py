@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 
 from .constants import a0, conv_mass, kB
+from .loggers import logger
 from .output_md import generate_output_files
 from .particles import Particles, g
 
@@ -222,7 +223,8 @@ class Grid:
         q_tot = np.sum(self.q)
 
         if q_tot + 1e-6 < q_tot_expected:
-            print('Error: change initial position, charge is not preserved - q_tot =', q_tot) 
+            logger.error('Error: change initial position, charge is not preserved: q_tot ='+str(q_tot))
+            exit() # exits runinning otherwise it hangs the code
                 
     # returns only kinetic energy and not electrostatic one
     def Energy(self, iter, print_energy):
