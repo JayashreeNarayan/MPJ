@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import yaml
 
-from .constants import a0, kB, m_Cl, m_Na, t_au, density
+from .constants import a0, density, kB, m_Cl, m_Na, t_au
 from .loggers import logger
 
 ###################################################################################

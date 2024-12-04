@@ -1,6 +1,8 @@
+import os
+
 import numpy as np
 import pandas as pd
-import os
+
 from.constants import a0, density
 
 def generate_restart(md_variables, grid_setting, output_settings, iter = None):
@@ -8,9 +10,11 @@ def generate_restart(md_variables, grid_setting, output_settings, iter = None):
     N_p = grid_setting.N_p
     N = grid_setting.N
     path = output_settings.path
-    restart_path = 'restart_files/density_'+str(np.round(density,3))+'/'
-    if thermostat == True: path+= 'Thermostatted/Solute/'
-    filename = path + 'solute_N' + str(N) + '.csv'
+    restart_path = os.path.join('restart_files', 'density_'+str(np.round(density,3)))
+    if thermostat == True: 
+        path = os.path.join(path, 'Thermostatted')
+    path = os.path.join(path, 'Solute')
+    filename = os.path.join(path, 'solute_N' + str(N) + '.csv')
 
     df = pd.read_csv(filename)
     m_Na = 22.99

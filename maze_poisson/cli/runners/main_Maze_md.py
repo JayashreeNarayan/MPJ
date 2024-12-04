@@ -218,6 +218,7 @@ def main(grid_setting, output_settings, md_variables):
                     ofiles.file_output_field.write(str(i - init_steps) + ',' + str(X[n] * a0) + ',' + str(field_x_MaZe[n] * V) + '\n')
 
     if output_settings.generate_restart_file:
+        ofiles.file_output_solute.flush()
         restart_file = generate_restart(md_variables, grid_setting, output_settings, iter_restart)
         # print('Restart file generated: ', restart_file)
         logger.info(f'Restart file generated: {restart_file}')
