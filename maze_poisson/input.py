@@ -59,8 +59,8 @@ class GridSetting:
     @N_p.setter
     def N_p(self, value):
         self._N_p = value
-        self.L_ang = (((value*(m_Cl + m_Na)) / (2*density))  **(1/3)) *1.e9
-        self.L = self.L_ang / a0
+        self.L_ang = (((value*(m_Cl + m_Na)) / (2*density))  **(1/3)) *1.e9 # in A
+        self.L = self.L_ang / a0 # in amu
         
     # @property
     # def L(self):
