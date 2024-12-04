@@ -49,7 +49,7 @@ def main(grid_setting, output_settings, md_variables):
     ofiles = grid.output_files
 
     # log all the relevant info 
-    logger.info(f'Simulation with N = {N} with N_steps = {N_steps} and tol = {md_variables.tol}')
+    logger.info(f'Simulation with N_p = {N_p}, N = {N} with N_steps = {N_steps} and tol = {md_variables.tol}')
     logger.info(f'Initialization is done with CG and preconditioning: {preconditioning}')
     logger.info(f'Parameters: h = {h_ang} A \ndt = {dt_fs} fs \nstride = {stride} \nL = {L_ang} A \ngamma = {md_variables.gamma}')
     logger.info(f'Potential: {md_variables.potential}')
