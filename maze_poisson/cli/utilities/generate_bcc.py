@@ -1,5 +1,16 @@
 import numpy as np
 
+# Set parameters for NaCl simulation
+# nmol = 250  # Total number of particles (125 NaCl molecules)
+# ndim = 3    # Number of dimensions
+# boxl = 19.659 # Length of the simulation box in angstroms
+# partner = np.arange(nmol)  # Example partner array
+# filen = 'input_files_new/input_coord' + str(nmol)  # Output filename
+
+# natoms = 2  # Number of atom types (Na and Cl)
+
+# # Run the simulation
+# lattice(nmol, ndim, boxl, partner, filen, natoms)
 
 def lattice(nmol, ndim, boxl, natoms, partner):
     na = int((nmol / 2) ** (1/3)) + 1
@@ -78,14 +89,3 @@ def lattice(nmol, ndim, boxl, natoms, partner):
 
     return x,y,z, charges, masses, radii
 
-# Set parameters for NaCl simulation
-# nmol = 250  # Total number of particles (125 NaCl molecules)
-# ndim = 3    # Number of dimensions
-# boxl = 19.659 # Length of the simulation box in angstroms
-# partner = np.arange(nmol)  # Example partner array
-# filen = 'input_files_new/input_coord' + str(nmol)  # Output filename
-
-# natoms = 2  # Number of atom types (Na and Cl)
-
-# # Run the simulation
-# lattice(nmol, ndim, boxl, partner, filen, natoms)
