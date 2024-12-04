@@ -89,7 +89,7 @@ def generate_positions(box_size, num_particles, epsilon, lattice_type, output): 
         'x': positions[:, 0],
         'y': positions[:, 1],
         'z': positions[:, 2],
-    }).to_csv(output, index=False)
+    }).to_csv("input_files_new/"+output, index=False)
 
 @utils.command()
 @output_option
