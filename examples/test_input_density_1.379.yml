@@ -1,7 +1,7 @@
 # N_p : [2,16,54,128,216,432,686,1024]
 grid_setting:
   N: 100
-  N_p: 54
+  N_p: 128
 
 md_variables:
   N_steps: 600
