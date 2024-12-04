@@ -51,4 +51,7 @@ def energy(filename, dt):
 def time_iterNgrid():
     plot_time_iterNgrid()
     plot_convNgrid()
+
+@plot.command()
+def time_iterN_p():
     plot_scaling_particles_time_iters()

@@ -8,6 +8,7 @@ from scipy.optimize import curve_fit
 from ...constants import a0
 
 N_vector = [30,40,50,60,70,80,90,100] # will change from 10 to 100 once the CG works for 10,20
+N_vector = np.array(N_vector)
 N_p_vector = [2,16,54,128,216,432,686,1024]
 
 path = 'Outputs/'
@@ -28,7 +29,6 @@ def plot_time_iterNgrid():
     filename_MaZe=path+'Performance/performance_N'
     data1 = "time" 
     data2 = 'n_iters'
-    N_vector = np.array(N_vector)
     df_list_MaZe = [pd.read_csv(filename_MaZe + str(i) + '.csv') for i in N_vector]
 
     avg1 = []
