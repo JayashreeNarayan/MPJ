@@ -1,17 +1,18 @@
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from ..utilities.run_shell_cmd import run_shell_command
-import os
-from ...constants import a0
 from scipy.optimize import curve_fit
+
+from ...constants import a0
 
 N_vector = [30,40,50,60,70,80,90,100] # will change from 10 to 100 once the CG works for 10,20
 N_p_vector = [2,16,54,128,216,432,686,1024]
 
 path = 'Outputs/'
-if not os.path.isdir(path+'PDFs/'): run_shell_command('mkdir '+path+'PDFs/')
-path_pdf = path + 'PDFs/'
+path_pdf = os.path.join(path, 'PDFs')
+os.makedirs(path_pdf, exist_ok=True)
 
 def g(x,a,b):
     return a * x**b

@@ -1,5 +1,4 @@
 import os
-from ..utilities.run_shell_cmd import run_shell_command
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -11,8 +10,8 @@ from . import get_N
 #path='Outputs/Thermostatted/'
 
 path = 'Outputs/'
-if not os.path.isdir(path+'PDFs/'): run_shell_command('mkdir '+path+'PDFs/')
-path_pdf = path + 'PDFs/'
+path_pdf = os.path.join(path, 'PDFs')
+os.makedirs(path_pdf, exist_ok=True)
 
 def PlotT(filename, dt, label='iter'):
     df = pd.read_csv(filename)
