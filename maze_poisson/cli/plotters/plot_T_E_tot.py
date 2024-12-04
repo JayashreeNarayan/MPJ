@@ -71,6 +71,7 @@ def plot_Etot_trp(filename, dt, N_th=0, L=19.659 / a0, upper_lim=None):
     else:
         logger.error(f"Work file doesnt exist in specified path {work_file}")
         recompute_work = True
+        raise FileNotFoundError(f"Work file doesnt exist in specified path {work_file}")
     
     N_steps = int(iterations.max() + 1)
 

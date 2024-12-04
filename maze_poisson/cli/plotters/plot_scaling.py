@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.optimize import curve_fit
-
+from ...loggers import logger
 from ...constants import a0
 
 N_vector = [30,40,50,60,70,80,90,100] # will change from 10 to 100 once the CG works for 10,20
@@ -29,7 +29,14 @@ def plot_time_iterNgrid():
     filename_MaZe=path+'Performance/performance_N'
     data1 = "time" 
     data2 = 'n_iters'
-    df_list_MaZe = [pd.read_csv(filename_MaZe + str(i) + '.csv') for i in N_vector]
+
+    path_all_files = [(filename_MaZe + str(i) + '.csv') for i in N_vector]
+    isExist = [os.path.exists(i) for i in path_all_files]
+    if all(isExist) == False:
+        logger.error("The files needed do not exist at "+filename_MaZe +'N_value.csv')
+        raise FileNotFoundError("The files needed do not exist at "+filename_MaZe +'N_value.csv')
+    elif all(isExist) == True:
+        df_list_MaZe = [pd.read_csv(filename_MaZe + str(i) + '.csv') for i in N_vector]
 
     avg1 = []
     sd1 = []
