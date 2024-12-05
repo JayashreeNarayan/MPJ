@@ -2,13 +2,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from . import get_N
+from . import get_N, get_Np
 
 
 def plot_force(filename, dt):
     df = pd.read_csv(filename, encoding='utf-8')
 
     N = get_N(filename)
+    N_p = get_Np(filename)
 
     plt.figure(figsize=(10, 6))
     plt.plot(df['iter'] * dt / 1000, df['Fx'], 'r', linestyle='-', label='Fx')
@@ -16,12 +17,12 @@ def plot_force(filename, dt):
     plt.plot(df['iter'] * dt / 1000, df['Fz'], 'g', linestyle='-', label='Fz')
     plt.ylabel('Total force [a.u.]')
     plt.xlabel('Time [ps]')
-    plt.title('Total force acting on the system for dt = ' + str(dt) + ' and N = ' + str(N))
+    plt.title('Total force acting on the system for dt = ' + str(dt) + ' N = ' + str(N), 'and N_p = ', str(N_p))
     #plt.axhline(np.mean(df['Fx']), label='avg = '+str(np.mean(df['Fx'])))
     #plt.axhline(np.mean(df['Fy']), label='avg = '+str(np.mean(df['Fy'])))
     #plt.axhline(np.mean(df['Fz']), label='avg = '+str(np.mean(df['Fz'])))
     
-    title = 'force_tot_N_' + str(N) + '_dt_' + str(dt)
+    title = 'force_tot_N_' + str(N) + '_dt_' + str(dt) + '_N_p_'+str(N_p)
     name = title + ".pdf"
     plt.legend()
     plt.savefig(name, format='pdf')
@@ -31,6 +32,7 @@ def plot_forcemod(filename, dt):
     df = pd.read_csv(filename)
 
     N = get_N(filename)
+    N_p = get_Np(filename)
 
     Fx = df['Fx']
     Fy = df['Fy']
@@ -40,7 +42,7 @@ def plot_forcemod(filename, dt):
     plt.ylabel('Total force on x axis (a.u.)')
     plt.xlabel('t (a.u.)')
     plt.axhline(np.mean(Fmod), label='avg = '+str(np.mean(Fmod)))
-    plt.title('Total force acting on the system for dt = ' + str(dt) + ' and N = ' + str(N))
+    plt.title('Total force acting on the system for dt = ' + str(dt) + ' and N = ' + str(N), 'and N_p = ', str(N_p))
     title = 'force_totmod_N_' + str(N) + '_dt_' + str(dt)
     name = title + ".pdf"
     plt.legend()

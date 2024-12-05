@@ -4,13 +4,13 @@ grid_setting:
   N_p: 216
 
 md_variables:
-  N_steps: 6000
+  N_steps: 20
   T: 1550 # Kelvin
   dt_fs: 0.25 # in fs
   rescale: true # rescaling of the initial momenta to have tot momenta = 0, always true 
   tol: 1.e-7
-  init_steps: 5000
-  thermostat: True
+  init_steps: 10
+  thermostat: true
   elec: True 
   not_elec: True 
 

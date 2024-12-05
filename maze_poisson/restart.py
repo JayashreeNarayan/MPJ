@@ -14,7 +14,7 @@ def generate_restart(md_variables, grid_setting, output_settings, iter = None):
     if thermostat == True: 
         path = os.path.join(path, 'Thermostatted')
     path = os.path.join(path, 'Solute')
-    filename = os.path.join(path, 'solute_N' + str(N) + '.csv')
+    filename = os.path.join(path, 'solute_N' + str(N) + '_N_p_'+str(N_p)+ '.csv')
 
     df = pd.read_csv(filename)
     m_Na = 22.99

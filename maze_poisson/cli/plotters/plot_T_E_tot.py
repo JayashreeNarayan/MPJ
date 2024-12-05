@@ -104,7 +104,7 @@ def plot_Etot_trp(filename, dt, therm, N_th=0, L=19.659 / a0, upper_lim=None):
     
     N_steps = int(iterations.max() + 1)
 
-    df = pd.read_csv(path + 'Solute/solute_N' + str(N) + '.csv')
+    df = pd.read_csv(path + 'Solute/solute_N' + str(N) +'_N_p_'+str(N_p)+ '.csv')
     if recompute_work:
         Np = int(df['particle'].max() + 1)
         Ework = np.zeros(N_steps)
@@ -174,8 +174,9 @@ def plot_Etot_trp(filename, dt, therm, N_th=0, L=19.659 / a0, upper_lim=None):
 
 def plot_work_trp(filename, path, N_th, L=19.659 / a0):
     N = get_N(filename)
+    N_p = get_Np(filename)
     # Check if the work file already exists
-    work_file = path + 'work_N' + str(N) + '.csv'
+    work_file = path + 'work_N' + str(N) +'_N_p_'+str(N_p)+ '.csv'
     if os.path.exists(work_file):
         # If the file exists, read the work from it
         work_df = pd.read_csv(work_file)
@@ -184,7 +185,7 @@ def plot_work_trp(filename, path, N_th, L=19.659 / a0):
         print(f"Work data loaded from {work_file}")
     else:
         # If the file doesn't exist, compute the work
-        df = pd.read_csv(path + 'solute_N' + str(N) + '.csv')
+        df = pd.read_csv(path + 'solute_N' + str(N) +'_N_p_'+str(N_p)+ '.csv')
         Np = int(df['particle'].max() + 1)
         df_list = [df[df['particle'] == p].reset_index(drop=True) for p in range(Np)]
         iterations = df['iter']
@@ -237,23 +238,24 @@ def plot_work_trp(filename, path, N_th, L=19.659 / a0):
     plt.xlabel('iter', fontsize=15)
     plt.ylabel('Work ($E_H$)', fontsize=15)
     plt.legend(loc='upper left')
-    plt.savefig(path_pdf + '/Work_trp_N' + str(N) + '.pdf', format='pdf')
+    plt.savefig(path_pdf + '/Work_trp_N' + str(N) +'_N_p_'+str(N_p)+ '.pdf', format='pdf')
     plt.show()
 
 def store_T_analysys(filename, path, n_runs=10): 
     N = get_N(filename)
+    N_p = get_Np(filename)
     avg_T_list = []
     std_T_list = []
     run_list = list(range(1, n_runs + 1))
 
     # Open a file to store the results
-    with open(path + '/temperature_analysis_N' + str(N) + '.txt', 'w') as file:
+    with open(path + '/temperature_analysis_N' + str(N)+'_N_p_'+str(N_p) + '.txt', 'w') as file:
         # Write the header of the file
         file.write('Run, Avg_T, Std_T\n')
 
         # Perform the runs and store the data
         for i in range(1,n_runs + 1):
-            df = pd.read_csv(path + 'run_' + str(i) + '/output/temperature_N' + str(N) + '.csv')
+            df = pd.read_csv(path + 'run_' + str(i) + '/output/temperature_N' + str(N) +'_N_p_'+str(N_p)+ '.csv')
             T = df['T']
             avg_T = np.mean(T)
             std_T = np.std(T)
@@ -276,7 +278,7 @@ def store_T_analysys(filename, path, n_runs=10):
     plt.legend()
     #plt.title('Study of the temperature')
     #plt.grid(True)
-    plt.savefig(path_pdf + 'temperature_study_N' + str(N) + '.pdf', format='pdf')
+    plt.savefig(path_pdf + 'temperature_study_N' + str(N) +'_N_p_'+str(N_p)+ '.pdf', format='pdf')
     # Display the plots
     plt.show()
 
@@ -888,6 +890,7 @@ def visualize_particles(Np, L):
     plt.show()
 
 def plot_energy_multiple_dt(path_orig, N, dt_list=[0.025, 0.05, 0.25, 1.25, 2.5], L=19.659 / a0): # move 
+    N_p = get_Np(path_orig)
     plt.figure(figsize=(15, 6))
     if len(dt_list) <= 2:
         color_list = ['r', 'b', 'm']
@@ -899,8 +902,8 @@ def plot_energy_multiple_dt(path_orig, N, dt_list=[0.025, 0.05, 0.25, 1.25, 2.5]
         path = path_orig + 'dt_' + str(dt) + '/'+ 'output/'
        
         # Load the solute and energy data
-        df = pd.read_csv(path + 'solute_N' + str(N) + '.csv')
-        df_E = pd.read_csv(path + 'energy_N' + str(N) + '.csv')
+        df = pd.read_csv(path + 'solute_N' + str(N) +'_N_p_'+str(N_p)+ '.csv')
+        df_E = pd.read_csv(path + 'energy_N' + str(N)+'_N_p_'+str(N_p) + '.csv')
 
         K = df_E['K']
         V_notelec = df_E['V_notelec']
@@ -927,7 +930,7 @@ def plot_energy_multiple_dt(path_orig, N, dt_list=[0.025, 0.05, 0.25, 1.25, 2.5]
             print(f'{work_file} not found. Computing work...')
 
                             # If the file doesn't exist, compute the work
-            df = pd.read_csv(path + 'solute_N' + str(N) + '.csv')
+            df = pd.read_csv(path + 'solute_N' + str(N)+'_N_p_'+str(N_p) + '.csv')
             Np = int(df['particle'].max() + 1)   
 
             df_list = [df[df['particle'] == p].reset_index(drop=True) for p in range(Np)]
@@ -1013,17 +1016,18 @@ def plot_energy_multiple_dt(path_orig, N, dt_list=[0.025, 0.05, 0.25, 1.25, 2.5]
     plt.xlim([0,250])
 
     # Save the figure as a PDF
-    plt.savefig(path_orig + 'energy_trp_comparison_time' + str(N) + '.pdf', format='pdf')
+    plt.savefig(path_orig + 'energy_trp_comparison_time' + str(N) +'_N_p_'+str(N_p)+ '.pdf', format='pdf')
     plt.show()
 
 def plot_E_trp2(path, second_path, N, dt1, dt2, N_th, L=19.659 / a0, upper_lim=None): # move
+    N_p =get_Np(path)
     # First dataset - File paths
-    work_file = path + 'work_trp_N' + str(N) + '.csv'
-    df_E = pd.read_csv(path + 'energy_N' + str(N) + '.csv')
+    work_file = path + 'work_trp_N' + str(N)+'_N_p_'+str(N_p) + '.csv'
+    df_E = pd.read_csv(path + 'energy_N' + str(N)+'_N_p_'+str(N_p) + '.csv')
 
     # Second dataset - File paths
-    second_work_file = second_path + 'work_trp_N' + str(N) + '.csv'
-    second_df_E = pd.read_csv(second_path + 'energy_N' + str(N) + '.csv')
+    second_work_file = second_path + 'work_trp_N' + str(N) +'_N_p_'+str(N_p) + '.csv'
+    second_df_E = pd.read_csv(second_path + 'energy_N' + str(N) +'_N_p_'+str(N_p)+ '.csv')
 
     # Energy file columns for the first dataset
     K = df_E['K']
@@ -1060,7 +1064,7 @@ def plot_E_trp2(path, second_path, N, dt1, dt2, N_th, L=19.659 / a0, upper_lim=N
 
     if recompute_work:
         # If the file doesn't exist, compute the work
-        df = pd.read_csv(path + 'solute_N' + str(N) + '.csv')
+        df = pd.read_csv(path + 'solute_N' + str(N) +'_N_p_'+str(N_p)+ '.csv')
         Np = int(df['particle'].max() + 1)   
 
         df_list = [df[df['particle'] == p].reset_index(drop=True) for p in range(Np)]
@@ -1119,7 +1123,7 @@ def plot_E_trp2(path, second_path, N, dt1, dt2, N_th, L=19.659 / a0, upper_lim=N
     
     if recompute_work2:
         # If the second work file doesn't exist, compute the work for the second dataset
-        df2 = pd.read_csv(second_path + 'solute_N' + str(N) + '.csv')
+        df2 = pd.read_csv(second_path + 'solute_N' + str(N) +'_N_p_'+str(N_p)+ '.csv')
         Np2 = int(df2['particle'].max() + 1)
 
         df_list2 = [df2[df2['particle'] == p].reset_index(drop=True) for p in range(Np2)]
@@ -1176,11 +1180,11 @@ def plot_E_trp2(path, second_path, N, dt1, dt2, N_th, L=19.659 / a0, upper_lim=N
         work_df2.to_csv(second_work_file, index=False)
         print(f"Work data saved to {second_work_file}")
 
-    df = pd.read_csv(path + 'solute_N' + str(N) + '.csv')
+    df = pd.read_csv(path + 'solute_N' + str(N) +'_N_p_'+str(N_p)+ '.csv')
     iterations = df['iter']
     N_steps = int(iterations.max() + 1)
 
-    df2 = pd.read_csv(path2 + 'solute_N' + str(N) + '.csv')
+    df2 = pd.read_csv(path + 'solute_N' + str(N) +'_N_p_'+str(N_p)+ '.csv')
     iterations2 = df2['iter']
     N_steps2 = int(iterations2.max() + 1)
 
@@ -1247,10 +1251,11 @@ def plot_E_trp2(path, second_path, N, dt1, dt2, N_th, L=19.659 / a0, upper_lim=N
     plt.tight_layout()
 
     # Save the figure
-    plt.savefig(path + '/Energy_trp_N' + str(N) + '_dt_comparison.pdf', format='pdf')
+    plt.savefig(path + '/Energy_trp_N' + str(N) +'_N_p_'+str(N_p)+ '_dt_comparison.pdf', format='pdf')
     plt.show()
 
 def plot_energy_multiple_runs(path_orig, N, dt=0.25, L=19.659 / a0, num_runs=10): # move
+    N_p = get_Np(path_orig)
     plt.figure(figsize=(10, 5))
     
     # Define a color palette for the different runs
@@ -1261,8 +1266,8 @@ def plot_energy_multiple_runs(path_orig, N, dt=0.25, L=19.659 / a0, num_runs=10)
         path = path_orig + f'run_{run}/output/'
        
         # Load the solute and energy data
-        df = pd.read_csv(path + 'solute_N' + str(N) + '.csv')
-        df_E = pd.read_csv(path + 'energy_N' + str(N) + '.csv')
+        df = pd.read_csv(path + 'solute_N' + str(N) +'_N_p_'+str(N_p)+ '.csv')
+        df_E = pd.read_csv(path + 'energy_N' + str(N) +'_N_p_'+str(N_p)+ '.csv')
 
         K = df_E['K']
         V_notelec = df_E['V_notelec']
@@ -1289,7 +1294,7 @@ def plot_energy_multiple_runs(path_orig, N, dt=0.25, L=19.659 / a0, num_runs=10)
             print(f'{work_file} not found for run {run}. Computing work...')
 
             # If the file doesn't exist, compute the work
-            df = pd.read_csv(path + 'solute_N' + str(N) + '.csv')
+            df = pd.read_csv(path + 'solute_N' + str(N) +'_N_p_'+str(N_p)+ '.csv')
             Np = int(df['particle'].max() + 1)   
 
             df_list = [df[df['particle'] == p].reset_index(drop=True) for p in range(Np)]
