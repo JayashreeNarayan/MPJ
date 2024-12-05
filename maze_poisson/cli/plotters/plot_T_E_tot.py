@@ -6,19 +6,34 @@ import pandas as pd
 from ...loggers import logger
 
 from ...constants import a0, t_au
-from . import get_N
-
-#path='Outputs/Thermostatted/'
+from . import get_N, get_Np
 
 path = 'Outputs/'
 isExist = os.path.exists(path)
 if not isExist:
     os.makedirs(path)
-path_pdf = path + 'PDFs/'
 
-def PlotT(filename, dt, label='iter'):
+path_pdf = path + 'PDFs/'
+isExist = os.path.exists(path_pdf)
+if not isExist:
+    os.makedirs(path_pdf)
+
+def PlotT(filename, dt, therm, label='iter'):
+    path = 'Outputs/'
+    path_pdf = path + 'PDFs/'
+    if therm == 'Y':  # save to a different sub-folder inside Outputs/
+        path += 'Thermostatted/'
+        isExist = os.path.exists(path)
+        if not isExist:
+            os.makedirs(path)
+        path_pdf+='Thermostatted/'
+        isExist = os.path.exists(path_pdf)
+        if not isExist:
+            os.makedirs(path_pdf)
+    
     df = pd.read_csv(filename)
     N = get_N(filename)
+    N_p = get_Np(filename)
 
     dt /=  t_au
 
@@ -31,21 +46,35 @@ def PlotT(filename, dt, label='iter'):
     print('relative error:', rel_err)
     plt.figure(figsize=(15, 6))
     plt.plot(iter, T, marker='.', color='red', markersize=5, label='T - mean value = ' + str(np.mean(T)) + '$\pm$' + str(np.std(T)))
-    plt.title('Temperature - dt =' + str(np.round(dt,4)) + ' fs - N =' + str(N), fontsize=22)
+    plt.title('Temperature - dt =' + str(np.round(dt,4)) + ' fs - N =' + str(N) + '; N_p = '+str(N_p), fontsize=22)
     plt.xlabel('iter', fontsize=15)
     plt.ylabel('T (K)', fontsize=15)
     plt.axhline(1550)
     plt.legend()
     plt.grid()
-    plt.savefig(path_pdf+'T_N' + str(N) + '_dt_' + str(np.round(dt,4)) + '.pdf', format='pdf')
-    logger.info("file saved at "+path_pdf+'T_N' + str(N) + '_dt' + str(np.round(dt,4)) + '.pdf')
+    plt.savefig(path_pdf+'T_N' + str(N) + '_dt_' + str(np.round(dt,4)) + '_N_p='+str(N_p)+'.pdf', format='pdf')
+    logger.info("file saved at "+path_pdf+'T_N' + str(N) + '_dt' + str(np.round(dt,4)) + '_N_p='+str(N_p)+'.pdf')
     plt.show()
 
-def plot_Etot_trp(filename, dt, N_th=0, L=19.659 / a0, upper_lim=None):
+def plot_Etot_trp(filename, dt, therm, N_th=0, L=19.659 / a0, upper_lim=None):
+    path = 'Outputs/'
+    path_pdf = path + 'PDFs/'
+    if therm == 'Y':  # save to a different sub-folder inside Outputs/
+        path += 'Thermostatted/'
+        isExist = os.path.exists(path)
+        if not isExist:
+            os.makedirs(path)
+        path_pdf+='Thermostatted/'
+        isExist = os.path.exists(path_pdf)
+        if not isExist:
+            os.makedirs(path_pdf)
+        
     N = get_N(filename)
+    N_p = get_Np(filename)
+    
     # File paths
-    work_file = path+'Thermostatted/Energy/' + 'work_trp_N' + str(N) + '.csv'
-    df_E = pd.read_csv(path + 'Thermostatted'+ '/Energy/energy_N' + str(N) + '.csv')
+    work_file = path+'Thermostatted/Energy/' + 'work_trp_N' + str(N)+'_N_p_'+str(N_p) + '.csv'
+    df_E = pd.read_csv(path + 'Thermostatted'+ '/Energy/energy_N' + str(N)+'_N_p_'+str(N_p) + '.csv')
 
     # Energy file columns
     K = df_E['K']
@@ -118,7 +147,7 @@ def plot_Etot_trp(filename, dt, N_th=0, L=19.659 / a0, upper_lim=None):
     ax1.plot(iter_E[N_th:upper_lim], K[N_th:upper_lim], marker='.', color='b', markersize=5, label=f'Kinetic energy - $|\\frac{{<K>}}{{<V_{{elec}}>}}| ={np.abs(mean_K/mean_work):.4f}$')
     ax1.set_xlabel('Iteration')
     ax1.set_ylabel('Energy')
-    ax1.set_title('Contributions to the total energy of the system - N = ' + str(N) + ', dt = ' + str(dt) + ' fs')
+    ax1.set_title('Contributions to the total energy of the system - N = ' + str(N) + ', dt = ' + str(dt) + ' fs'+'; N_p='+str(N_p))
     ax1.legend(loc='upper right')
     ax1.grid(True)
     
@@ -139,8 +168,8 @@ def plot_Etot_trp(filename, dt, N_th=0, L=19.659 / a0, upper_lim=None):
     ax3.legend(loc='upper right')
     ax3.grid(True)
     plt.tight_layout()
-    plt.savefig(path_pdf + 'Energy_analysis_trp_N' + str(N) + '_dt_' + str(dt) + '.pdf', format='pdf')
-    logger.info("file saved at "+path_pdf + 'Energy_analysis_trp_N' + str(N) + '_dt_' + str(dt) + '.pdf')
+    plt.savefig(path_pdf + 'Energy_analysis_trp_N' + str(N) + '_dt_' + str(dt) +'_N_p='+str(N_p)+ '.pdf', format='pdf')
+    logger.info("file saved at "+path_pdf + 'Energy_analysis_trp_N' + str(N) + '_dt_' + str(dt) + '_N_p='+str(N_p)+'.pdf')
     plt.show()
 
 def plot_work_trp(filename, path, N_th, L=19.659 / a0):

@@ -40,9 +40,9 @@ def generate_restart(md_variables, grid_setting, output_settings, iter = None):
     print(new_df.head())
 
     if iter == None:
-        filename_output = os.path.join(restart_path, 'restart_N' + str(N) + '_N_p='+ str(N_p) + '_iter' + str(max) + '.csv')
+        filename_output = os.path.join(restart_path, 'restart_N' + str(N) + '_N_p='+ str(N_p) + '.csv')
     else:
-        filename_output = os.path.join(restart_path, 'restart_N' + str(N) + '_N_p='+ str(N_p) + '_iter' + str(iter) + '.csv')
+        filename_output = os.path.join(restart_path, 'restart_N' + str(N) + '_N_p='+ str(N_p) + '.csv')
 
     new_df.to_csv(filename_output, index=False)
     return filename_output

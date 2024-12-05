@@ -9,7 +9,7 @@ filename_argument = click.argument(
     'filename',
     type=click.Path(exists=True),
     required=True,
-    metavar='CSV_FORCE_FILE',
+    metavar='CSV_FILE',
     )
 
 dt_option = click.option(
@@ -19,6 +19,20 @@ dt_option = click.option(
     help='Timestep for the solute evolution given in fs and converted in a.u.',
     )
 
+therm_option = click.option(
+    '--therm', 'therm',
+    type=str,
+    default='N',
+    help='Did you previously run with a Thermostat? (Y/N)',
+    )
+
+Np_option = click.option(
+    '--np', 'np',
+    type=int,
+    default=216,
+    help='Value of total number of particles (N_p)',
+    )
+
 @maze.group()
 def plot():
     pass
@@ -26,32 +40,45 @@ def plot():
 @plot.command()
 @filename_argument
 @dt_option
-def force(filename, dt):
-    plot_force(filename, dt)
+@therm_option
+def force(filename, dt, therm): 
+    plot_force(filename, dt, therm)
 
 @plot.command()
 @filename_argument
 @dt_option
-def forcemod(filename, dt):
-    plot_forcemod(filename, dt)
+@therm_option
+def forcemod(filename, dt, therm):
+    plot_forcemod(filename, dt, therm)
     
 @plot.command()
 @filename_argument
 @dt_option
-def temperature(filename, dt):
-    PlotT(filename, dt)
+@therm_option
+def temperature(filename, dt, therm):
+    PlotT(filename, dt, therm)
     
 @plot.command()
 @filename_argument
 @dt_option
-def energy(filename, dt):
-    plot_Etot_trp(filename, dt)
+@therm_option
+def energy(filename, dt, therm):
+    plot_Etot_trp(filename, dt, therm)
 
 @plot.command()
-def time_iterNgrid():
-    plot_time_iterNgrid()
-    plot_convNgrid()
+@therm_option
+@Np_option
+def time_vs_N3(np, therm):
+    plot_time_iterNgrid(np, therm)
 
 @plot.command()
-def time_iterN_p():
-    plot_scaling_particles_time_iters()
+@therm_option
+@Np_option
+def n_iter_vs_N3(np, therm):
+    plot_convNgrid(np, therm)
+    
+@plot.command()
+@filename_argument
+@therm_option
+def time_vs_Np(filename, therm):
+    plot_scaling_particles_time_iters(filename, therm)

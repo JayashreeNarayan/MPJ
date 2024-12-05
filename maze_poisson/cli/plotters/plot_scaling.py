@@ -12,8 +12,14 @@ N_vector = np.array(N_vector)
 N_p_vector = [2,16,54,128,216,432,686,1024]
 
 path = 'Outputs/'
-path_pdf = os.path.join(path, 'PDFs')
-os.makedirs(path_pdf, exist_ok=True)
+isExist = os.path.exists(path)
+if not isExist:
+    os.makedirs(path)
+
+path_pdf = path + 'PDFs/'
+isExist = os.path.exists(path_pdf)
+if not isExist:
+    os.makedirs(path_pdf)
 
 def g(x,a,b):
     return a * x**b
@@ -25,18 +31,30 @@ def f(x,a,b):
     return a * x**b * np.log(x**b)
 
 # plot of time/iter VS N_grid = N^3
-def plot_time_iterNgrid():
+def plot_time_iterNgrid(N_p, therm):
+    path = 'Outputs/'
+    path_pdf = path + 'PDFs/'
     filename_MaZe=path+'Performance/performance_N'
     data1 = "time" 
     data2 = 'n_iters'
-
-    path_all_files = [(filename_MaZe + str(i) + '.csv') for i in N_vector]
+    
+    if therm == 'Y':  # save to a different sub-folder inside Outputs/
+        path += 'Thermostatted/'
+        isExist = os.path.exists(path)
+        if not isExist:
+            os.makedirs(path)
+        path_pdf+='Thermostatted/'
+        isExist = os.path.exists(path_pdf)
+        if not isExist:
+            os.makedirs(path_pdf)
+    
+    path_all_files = [(filename_MaZe + str(i) + '_N_p_'+str(N_p)+'.csv') for i in N_vector]
     isExist = [os.path.exists(i) for i in path_all_files]
     if all(isExist) == False:
-        logger.error("The files needed do not exist at "+filename_MaZe +'N_value.csv')
-        raise FileNotFoundError("The files needed do not exist at "+filename_MaZe +'N_value.csv')
+        logger.error(str(len(N_vector))+ " files are needed. The files needed do not exist at "+filename_MaZe)
+        raise FileNotFoundError(str(len(N_vector))+ " files are needed. The files needed do not exist at "+filename_MaZe)
     elif all(isExist) == True:
-        df_list_MaZe = [pd.read_csv(filename_MaZe + str(i) + '.csv') for i in N_vector]
+        df_list_MaZe = [pd.read_csv(filename_MaZe + str(i) + '_N_p_'+str(N_p)+'.csv') for i in N_vector]
 
     avg1 = []
     sd1 = []
@@ -60,8 +78,8 @@ def plot_time_iterNgrid():
     plt.xlabel('Number of grid points', fontsize=18)
     plt.ylabel('Time (s)', fontsize=18)
     plt.legend(frameon=False, loc='upper left', fontsize=15)
-    title = 'time_per_iter_VS_N_grid'
-    name =  title + ".pdf"
+    title = 'time_per_iter_VS_N3_N_p_'
+    name =  title +str(N_p)+ ".pdf"
     plt.savefig(path_pdf+name, format='pdf')
     plt.show()
 
@@ -70,12 +88,29 @@ def f(x,a,b):
     return a * x + b
 
 # plot of n iterations VS N_grid = N^3
-def plot_convNgrid():
+def plot_convNgrid(N_p, therm):
+    path = 'Outputs/'
+    path_pdf = path + 'PDFs/'
     filename_MaZe=path+'Performance/performance_N'
     data1 = "n_iters"
-    N_vector = np.array(N_vector)
 
-    df_list_MaZe = [pd.read_csv(filename_MaZe + str(i) + '.csv') for i in N_vector]
+    if therm == 'Y':  # save to a different sub-folder inside Outputs/
+        path += 'Thermostatted/'
+        isExist = os.path.exists(path)
+        if not isExist:
+            os.makedirs(path)
+        path_pdf+='Thermostatted/'
+        isExist = os.path.exists(path_pdf)
+        if not isExist:
+            os.makedirs(path_pdf)
+
+    path_all_files = [(filename_MaZe + str(i) + '_N_p_'+str(N_p)+'.csv') for i in N_vector]
+    isExist = [os.path.exists(i) for i in path_all_files]
+    if all(isExist) == False:
+        logger.error(str(len(N_vector))+ " files are needed. The files needed do not exist at "+filename_MaZe)
+        raise FileNotFoundError(str(len(N_vector))+ " files are needed. The files needed do not exist at "+filename_MaZe)
+    elif all(isExist) == True:
+        df_list_MaZe = [pd.read_csv(filename_MaZe + str(i) + '_N_p_'+str(N_p)+'.csv') for i in N_vector]
 
     avg1 = []
     sd1 = []
@@ -105,20 +140,33 @@ def plot_convNgrid():
     plt.xlabel('Number of grid points', fontsize=18)
     plt.ylabel('Number of iterations', fontsize=18)
     plt.legend(frameon=False, loc='upper left', fontsize=15)
-    title='n_iterations_vs_N_grid'
-    name = title + ".pdf"
-    plt.savefig(name, format='pdf')
+    title='n_iterations_vs_N_grid_N_p_'
+    name =  title +str(N_p)+ ".pdf"
+    plt.savefig(path_pdf + name, format='pdf')
     plt.show()
 
 
 #### PLOT FUNCTION OF Number of particles ####
 
 # plot time / n iterations VS number of particles
-def plot_scaling_particles_time_iters():
+def plot_scaling_particles_time_iters(filename_MaZe, therm):
     data1 = "time"
     data2 = "n_iters"
+
+    path = 'Outputs/'
+    path_pdf = path + 'PDFs/'
+    
+    if therm == 'Y':  # save to a different sub-folder inside Outputs/
+        path += 'Thermostatted/'
+        isExist = os.path.exists(path)
+        if not isExist:
+            os.makedirs(path)
+        path_pdf+='Thermostatted/'
+        isExist = os.path.exists(path_pdf)
+        if not isExist:
+            os.makedirs(path_pdf)
+    
     N=N_vector
-    filename_MaZe=path+'Performance/performance_N'
     N_p=N_p_vector
     N_p = np.array(N_p)
     df_list_MaZe = [pd.read_csv(filename_MaZe + str(N[i]) + '.csv') for i, n in enumerate(N_p)]
