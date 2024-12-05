@@ -59,6 +59,7 @@ def PlotT(filename, dt, therm, label='iter'):
 def plot_Etot_trp(filename, dt, therm, N_th=0, L=19.659 / a0, upper_lim=None):
     path = 'Outputs/'
     path_pdf = path + 'PDFs/'
+
     if therm == 'Y':  # save to a different sub-folder inside Outputs/
         path += 'Thermostatted/'
         isExist = os.path.exists(path)
@@ -73,20 +74,19 @@ def plot_Etot_trp(filename, dt, therm, N_th=0, L=19.659 / a0, upper_lim=None):
     N_p = get_Np(filename)
     
     # File paths
-    work_file = path+'Thermostatted/Energy/' + 'work_trp_N' + str(N)+'_N_p_'+str(N_p) + '.csv'
-    df_E = pd.read_csv(path + 'Thermostatted'+ '/Energy/energy_N' + str(N)+'_N_p_'+str(N_p) + '.csv')
+    work_file = path+'Energy/' + 'work_trp_N' + str(N)+'_N_p_'+str(N_p) + '.csv'
+    df_E = pd.read_csv(path + 'Energy/energy_N' + str(N)+'_N_p_'+str(N_p) + '.csv')
 
     # Energy file columns
     K = df_E['K']
     V_notelec = df_E['V_notelec']
     N_steps_energy = len(df_E)
     recompute_work = False
-    iterations = 0.
+    iterations = df_E['iter']
 
     # Check if the work file exists and has the correct number of lines
     if os.path.exists(work_file):
         work_df = pd.read_csv(work_file)
-        iterations = work_df['iter']
         if len(work_df) == N_steps_energy:
 
             # If the file exists and has the correct number of rows, use the work data
@@ -98,13 +98,13 @@ def plot_Etot_trp(filename, dt, therm, N_th=0, L=19.659 / a0, upper_lim=None):
             logger.info("Work file exists but has incorrect number of lines. Recomputing work.")
             recompute_work = True
     else:
-        logger.error(f"Work file doesnt exist in specified path {work_file}")
+        #logger.error(f"Work file doesnt exist in specified path {work_file}")
         recompute_work = True
-        raise FileNotFoundError(f"Work file doesnt exist in specified path {work_file}")
+        #raise FileNotFoundError(f"Work file doesnt exist in specified path {work_file}")
     
     N_steps = int(iterations.max() + 1)
 
-    df = pd.read_csv(path+ 'Thermostatted/' + 'Solute/solute_N' + str(N) + '.csv')
+    df = pd.read_csv(path + 'Solute/solute_N' + str(N) + '.csv')
     if recompute_work:
         Np = int(df['particle'].max() + 1)
         Ework = np.zeros(N_steps)

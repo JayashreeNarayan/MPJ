@@ -1,28 +1,28 @@
 # N_p : [2,16,54,128,216,432,686,1024]
 grid_setting:
   N: 100
-  N_p: 16
+  N_p: 216
 
 md_variables:
-  N_steps: 500
+  N_steps: 6000
   T: 1550 # Kelvin
   dt_fs: 0.25 # in fs
   rescale: true # rescaling of the initial momenta to have tot momenta = 0, always true 
   tol: 1.e-7
-  init_steps: 0
-  thermostat: False
+  init_steps: 5000
+  thermostat: True
   elec: True 
   not_elec: True 
 
 output_settings: 
-  restart: true
+  restart: false
   print_tot_force: FALSE
   print_field: FALSE
-  print_performance: true
+  print_performance: false
   print_solute: true
   print_energy: true 
   print_temperature: true
-  generate_restart_file: false
+  generate_restart_file: true
 
-  # for eqm: N_steps=6000, init_steps=5000, True, True, True, false, false, false, false, true, true, true, true
-  # for restart: N_steps=200, init_steps=0, False, True, True, true, false, false, true, true, true, true, false
+  # for eqm: N_steps=6000, init_steps=5000, True, True, True, false, false, false, false, true, true, true, true (ignore rescale)
+  # for restart: N_steps=200, init_steps=0, False, True, True, true, false, false, true, true, true, true, false (ignore rescale)
