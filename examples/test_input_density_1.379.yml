@@ -2,7 +2,7 @@
 # At N_p=2, N_steps>10,000
 grid_setting:
   #N: 100
-  N_p: 128 # at N_p=2, rescale=False
+  N_p: 432 # at N_p=2, rescale=False
 
 md_variables:
   N_steps: 5000
