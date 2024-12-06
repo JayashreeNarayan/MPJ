@@ -130,19 +130,16 @@ EXTERN_C int conj_grad(double *b, double *x0, double *x, double tol, int n) {
     double *Ap = (double *)malloc(n3 * sizeof(double));
     double alpha, beta, r_dot_v, rn_dot_rn, rn_dot_vn;
 
-    double app;
-
     #pragma omp parallel for
     for (i = 0; i < n3; i++) {
         x[i] = x0[i];
     }
-    laplace_filter(x, r, n);
-    daxpy2(b, r, -1.0, n3);
+    laplace_filter(x, r, n);  // r = A . x
+    daxpy2(b, r, -1.0, n3);  // r = b - A . x
 
     #pragma omp parallel for
     for (i = 0; i < n3; i++) {
-        app = r[i] / 6.0;
-        p[i] = app;
+        p[i] = r[i] / 6.0;  // p = -v = -(P^-1 . r) = - ( -r / 6.0 ) = r / 6.0
     }
 
     // Since v = P^-1 . r = -r / 6.0 we do not need to ever compute v
@@ -151,9 +148,7 @@ EXTERN_C int conj_grad(double *b, double *x0, double *x, double tol, int n) {
     r_dot_v = - ddot(r, r, n3) / 6.0;  // <r, v>
 
     while(iter < n3) {
-        iter++;
         laplace_filter(p, Ap, n);
-        // r_dot_v = ddot(r, v, n3);  // <r, v>
 
         alpha = r_dot_v / ddot(p, Ap, n3);  // alpha = <r, v> / <p | A | p>
         daxpy2(p, x, alpha, n3);  // x_new = x + alpha * p
@@ -173,6 +168,7 @@ EXTERN_C int conj_grad(double *b, double *x0, double *x, double tol, int n) {
             p[i] = beta * p[i] + r[i] / 6.0;  // p = -v + beta * p
         }        
 
+        iter++;
         // if (iter % 100 == 0) {
         //     printf("Iteration %d: %16.8ff %16.8f\n", iter, norm(r, n3), tol);
         // }
