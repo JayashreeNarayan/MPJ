@@ -125,62 +125,60 @@ EXTERN_C int conj_grad(double *b, double *x0, double *x, double tol, int n) {
 
     // printf("Running conjugate gradient with %d elements\n", n3);
 
-    double *v = (double *)malloc(n3 * sizeof(double));
     double *r = (double *)malloc(n3 * sizeof(double));
     double *p = (double *)malloc(n3 * sizeof(double));
     double *Ap = (double *)malloc(n3 * sizeof(double));
-    double alpha, beta, r_dot_v;
-
-    double app;
+    double alpha, beta, r_dot_v, rn_dot_rn, rn_dot_vn;
 
     #pragma omp parallel for
     for (i = 0; i < n3; i++) {
         x[i] = x0[i];
     }
-    laplace_filter(x, r, n);
-    daxpy2(b, r, -1.0, n3);
+    laplace_filter(x, r, n);  // r = A . x
+    daxpy2(b, r, -1.0, n3);  // r = b - A . x
 
     #pragma omp parallel for
     for (i = 0; i < n3; i++) {
-        app = r[i] / 6.0;
-        p[i] = app;
-        v[i] = -app;
+        p[i] = r[i] / 6.0;  // p = -v = -(P^-1 . r) = - ( -r / 6.0 ) = r / 6.0
     }
 
-    do {
-        iter++;
+    // Since v = P^-1 . r = -r / 6.0 we do not need to ever compute v
+    // We can also remove 2 dot products per iteration by computing
+    //   r_dot_v and rn_dot_vn directly from the previous values
+    r_dot_v = - ddot(r, r, n3) / 6.0;  // <r, v>
+
+    while(iter < n3) {
         laplace_filter(p, Ap, n);
-        r_dot_v = ddot(r, v, n3);
 
-        alpha = r_dot_v / ddot(p, Ap, n3);
-        daxpy2(p, x, alpha, n3);
-        daxpy2(Ap, r, alpha, n3);
+        alpha = r_dot_v / ddot(p, Ap, n3);  // alpha = <r, v> / <p | A | p>
+        daxpy2(p, x, alpha, n3);  // x_new = x + alpha * p
+        daxpy2(Ap, r, alpha, n3);  // r_new = r + alpha * Ap
 
-        #pragma omp parallel for
-        for (i = 0; i < n3; i++) {
-            v[i] = -r[i] / 6.0;
-        }
-
-        beta = ddot(r, v, n3) / r_dot_v;
-
-        #pragma omp parallel for
-        for (i = 0; i < n3; i++) {
-            p[i] = beta * p[i] - v[i];
-        }        
-
-        // if (iter % 100 == 0) {
-        //     printf("Iteration %d: %16.8ff %16.8f\n", iter, norm(r, n3), tol);
-        // }
-
-        if (iter > n3) {
-            // printf("ERROR: Conjugate gradient did not converge %.10f (> %.10f): \n", norm(r, n3), tol);
-            iter = -1;
+        rn_dot_rn = ddot(r, r, n3);  // <r_new, r_new>
+        if (sqrt(rn_dot_rn) <= tol) {
             break;
         }
 
-    } while(norm(r, n3) > tol);
+        rn_dot_vn = - rn_dot_rn / 6.0;  // <r_new, v_new>
+        beta = rn_dot_vn / r_dot_v;  // beta = <r_new, v_new> / <r, v>
+        r_dot_v = rn_dot_vn;  // <r, v> = <r_new, v_new>
 
-    free(v);
+        #pragma omp parallel for
+        for (i = 0; i < n3; i++) {
+            p[i] = beta * p[i] + r[i] / 6.0;  // p = -v + beta * p
+        }        
+
+        iter++;
+        // if (iter % 100 == 0) {
+        //     printf("Iteration %d: %16.8ff %16.8f\n", iter, norm(r, n3), tol);
+        // }
+    }
+
+    if (iter >= n3) {
+        // printf("ERROR: Conjugate gradient did not converge %.10f (> %.10f): \n", norm(r, n3), tol);
+        iter = -1;
+    }
+
     free(r);
     free(p);
     free(Ap);
