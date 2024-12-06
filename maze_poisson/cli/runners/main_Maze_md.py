@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from ...constants import a0, t_au
+from ...constants import a0, t_au, density
 from ...grid import *
 from ...loggers import logger
 from ...restart import generate_restart
@@ -54,7 +54,7 @@ def main(grid_setting, output_settings, md_variables):
     logger.info(f'Parameters: h = {h_ang} A \ndt = {dt_fs} fs \nstride = {stride} \nL = {L_ang} A \ngamma = {md_variables.gamma}')
     logger.info(f'Potential: {md_variables.potential}')
     logger.info(f'Elec: {elec} \tNotElec: {not_elec}')
-    logger.info(f'Temperature: {T} K \tNumerical density: {N_p / L_ang**3} a.u.')
+    logger.info(f'Temperature: {T} K \tDensity: {density} g/cm3.')
     logger.info(f'Print solute: {output_settings.print_solute} \tPrint field: {output_settings.print_field} \tPrint tot_force: {output_settings.print_tot_force}')
     logger.info(f'Print energy: {output_settings.print_energy} \tPrint temperature: {output_settings.print_temperature}')
     logger.info(f'Print performance: {output_settings.print_performance} \tRestart: {output_settings.restart}')
@@ -205,7 +205,7 @@ def main(grid_setting, output_settings, md_variables):
         if i % stride == 0 and i >= init_steps:
             if counter == 0 and thermostat == True:
                 if np.abs(grid.temperature - 1550) <= 100:    
-                    print('End of thermostatting')
+                    #print('End of thermostatting')
                     logger.info('End of thermostatting')
                     thermostat = False
                     counter = counter + 1

@@ -198,3 +198,4 @@ examples/Outputs/temperature_N100.csv
 examples/Outputs/tot_force_N100.csv
 examples/Outputs/energy_N100.csv
 functions.cpp
+.DS_Store

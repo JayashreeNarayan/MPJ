@@ -12,4 +12,7 @@ m_Cl_amu = 35.453
 m_Na = m_Na_amu * amu_to_kg
 m_Cl = m_Cl_amu * amu_to_kg
 
-density = 1.379 # this is the new value, g/cm^3
+# STUFF TO BE MADE INTO INPUTS FROM USER
+density = 1.3793 # this is the new value, g/cm^3
+ref_L=19.659
+ref_N=100

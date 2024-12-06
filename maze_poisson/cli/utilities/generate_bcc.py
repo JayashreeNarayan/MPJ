@@ -5,14 +5,14 @@ import numpy as np
 # ndim = 3    # Number of dimensions
 # boxl = 19.659 # Length of the simulation box in angstroms
 # partner = np.arange(nmol)  # Example partner array
-# filen = 'input_files_new/input_coord' + str(nmol)  # Output filename
+# filen = 'input_files/input_coord' + str(nmol)  # Output filename
 
 # natoms = 2  # Number of atom types (Na and Cl)
 
 # # Run the simulation
 # lattice(nmol, ndim, boxl, partner, filen, natoms)
 
-def lattice(nmol, ndim, boxl, natoms, partner):
+def lattice(nmol, ndim, boxl, natoms, partner): 
     na = int((nmol / 2) ** (1/3)) + 1
     del_spacing = 1.0 / na
     bond = 0.2 / boxl
@@ -20,6 +20,9 @@ def lattice(nmol, ndim, boxl, natoms, partner):
 
     r = np.zeros((ndim, nmol))
     itel = 0
+    x = np.zeros(nmol)
+    y = np.zeros(nmol)
+    z = np.zeros(nmol)
 
     # Define charges, masses, and radii for Na and Cl atoms
     charge_Na, mass_Na, radius_Na = 1, 22.99, 1.0  # Example values
@@ -82,7 +85,7 @@ def lattice(nmol, ndim, boxl, natoms, partner):
                 raise ValueError('Position out of range -0.5:0.5')
 
         # Convert to box units and center around [0, L] by adding boxl/2
-        x, y, z = r[0, i] * boxl + boxl/2, r[1, i] * boxl + boxl/2, r[2, i] * boxl + boxl/2
+        x[i], y[i], z[i] = r[0, i] * boxl + boxl/2, r[1, i] * boxl + boxl/2, r[2, i] * boxl + boxl/2
 
         # Write charge, mass, radius, x, y, z to the file
         # file.write(f"{charges[i]},{masses[i]},{radii[i]},{x},{y},{z}\n")

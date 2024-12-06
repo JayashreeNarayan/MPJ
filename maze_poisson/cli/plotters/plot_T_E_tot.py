@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 from ...loggers import logger
 
-from ...constants import a0, t_au
-from . import get_N, get_Np
+from ...constants import a0, t_au, m_Cl, m_Na, density
+from . import get_N, get_Np, get_Np_input
 
 path = 'Outputs/'
 isExist = os.path.exists(path)
@@ -52,11 +52,11 @@ def PlotT(filename, dt, therm, label='iter'):
     plt.axhline(1550)
     plt.legend()
     plt.grid()
-    plt.savefig(path_pdf+'T_N' + str(N) + '_dt_' + str(np.round(dt,4)) + '_N_p='+str(N_p)+'.pdf', format='pdf')
-    logger.info("file saved at "+path_pdf+'T_N' + str(N) + '_dt' + str(np.round(dt,4)) + '_N_p='+str(N_p)+'.pdf')
+    plt.savefig(path_pdf+'T_N' + str(N) + '_dt_' + str(np.round(dt,4)) + '_N_p_'+str(N_p)+'.pdf', format='pdf')
+    logger.info("file saved at "+path_pdf+'T_N' + str(N) + '_dt' + str(np.round(dt,4)) + '_N_p_'+str(N_p)+'.pdf')
     plt.show()
 
-def plot_Etot_trp(filename, dt, therm, N_th=0, L=19.659 / a0, upper_lim=None):
+def plot_Etot_trp(filename, dt, therm, N_th=0, upper_lim=None):
     path = 'Outputs/'
     path_pdf = path + 'PDFs/'
 
@@ -72,7 +72,8 @@ def plot_Etot_trp(filename, dt, therm, N_th=0, L=19.659 / a0, upper_lim=None):
         
     N = get_N(filename)
     N_p = get_Np(filename)
-    
+    L = np.round((((N_p*(m_Cl + m_Na)) / (2*density))  **(1/3)) *1.e9, 4) / a0
+
     # File paths
     work_file = path+'Energy/' + 'work_trp_N' + str(N)+'_N_p_'+str(N_p) + '.csv'
     df_E = pd.read_csv(path + 'Energy/energy_N' + str(N)+'_N_p_'+str(N_p) + '.csv')
@@ -82,7 +83,7 @@ def plot_Etot_trp(filename, dt, therm, N_th=0, L=19.659 / a0, upper_lim=None):
     V_notelec = df_E['V_notelec']
     N_steps_energy = len(df_E)
     recompute_work = False
-    iterations = df_E['iter']
+    iterations = np.max(df_E['iter']) + 1
 
     # Check if the work file exists and has the correct number of lines
     if os.path.exists(work_file):
@@ -102,11 +103,10 @@ def plot_Etot_trp(filename, dt, therm, N_th=0, L=19.659 / a0, upper_lim=None):
         recompute_work = True
         #raise FileNotFoundError(f"Work file doesnt exist in specified path {work_file}")
     
-    N_steps = int(iterations.max() + 1)
-
+    N_steps = iterations
     df = pd.read_csv(path + 'Solute/solute_N' + str(N) +'_N_p_'+str(N_p)+ '.csv')
     if recompute_work:
-        Np = int(df['particle'].max() + 1)
+        Np = get_Np(filename)
         Ework = np.zeros(N_steps)
         print('Np =', Np)
 
@@ -147,7 +147,7 @@ def plot_Etot_trp(filename, dt, therm, N_th=0, L=19.659 / a0, upper_lim=None):
     ax1.plot(iter_E[N_th:upper_lim], K[N_th:upper_lim], marker='.', color='b', markersize=5, label=f'Kinetic energy - $|\\frac{{<K>}}{{<V_{{elec}}>}}| ={np.abs(mean_K/mean_work):.4f}$')
     ax1.set_xlabel('Iteration')
     ax1.set_ylabel('Energy')
-    ax1.set_title('Contributions to the total energy of the system - N = ' + str(N) + ', dt = ' + str(dt) + ' fs'+'; N_p='+str(N_p))
+    ax1.set_title('Contributions to the total energy of the system - N = ' + str(N) + ', dt = ' + str(dt) + ' fs'+'; N_p_'+str(N_p))
     ax1.legend(loc='upper right')
     ax1.grid(True)
     
@@ -168,8 +168,8 @@ def plot_Etot_trp(filename, dt, therm, N_th=0, L=19.659 / a0, upper_lim=None):
     ax3.legend(loc='upper right')
     ax3.grid(True)
     plt.tight_layout()
-    plt.savefig(path_pdf + 'Energy_analysis_trp_N' + str(N) + '_dt_' + str(dt) +'_N_p='+str(N_p)+ '.pdf', format='pdf')
-    logger.info("file saved at "+path_pdf + 'Energy_analysis_trp_N' + str(N) + '_dt_' + str(dt) + '_N_p='+str(N_p)+'.pdf')
+    plt.savefig(path_pdf + 'Energy_analysis_trp_N' + str(N) + '_dt_' + str(dt) +'_N_p_'+str(N_p)+ '.pdf', format='pdf')
+    logger.info("file saved at "+path_pdf + 'Energy_analysis_trp_N' + str(N) + '_dt_' + str(dt) + '_N_p_'+str(N_p)+'.pdf')
     plt.show()
 
 def plot_work_trp(filename, path, N_th, L=19.659 / a0):
@@ -859,11 +859,12 @@ def plot_integrals_comparison_shift(input_path, dt_fs, xlim=None, ylim=None, D_s
     plt.show()
     plt.close()
 
-def visualize_particles(Np, L):
-    filename = '../MaZe_Poisson/input_files_new/input_coord' + str(Np) + '.csv'
-    #filename = "test_diffusione/new_input/output/restart_N100_step5006.csv"
+def visualize_particles(filename):
+    #N_p = get_Np(filename)
+    N_p = get_Np_input(filename)
+    L = np.round((((N_p*(m_Cl + m_Na)) / (2*density))  **(1/3)) *1.e9, 4)
     particles_df = pd.read_csv(filename)
-    num_particles = Np
+    num_particles = N_p
 
     # Extract particle positions
     x = particles_df['x'][:num_particles]

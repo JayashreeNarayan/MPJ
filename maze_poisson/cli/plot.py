@@ -82,3 +82,9 @@ def n_iter_vs_N3(np, therm):
 @therm_option
 def time_vs_Np(filename, therm):
     plot_scaling_particles_time_iters(filename, therm)
+
+@plot.command()
+@filename_argument
+def visualize(filename):
+    visualize_particles(filename)
+

@@ -38,19 +38,17 @@ input_option = click.option(
     help='Input file to convert.',
 )
 
+# main function to use
 @utils.command()
 @lattice_option
 @output_option
 @click.argument('nmol', type=int)
-@click.argument('ndim', type=int)
-@click.argument('boxl', type=float)
-@click.argument('natoms', type=int)
-def generate_lattice(nmol, ndim, boxl, natoms, lattice_type, output):
+def generate_lattice(nmol, output, ndim=3, natoms=2, lattice_type='bcc'): # num_particles = [2, 16, 54, 128, 216, 432, 686, 1024]
     if output is None:
         output = sys.stdout
 
     partner = np.arange(nmol)
-
+    boxl = np.round((((nmol*(m_Cl + m_Na)) / (2*density))  **(1/3)) *1.e9, 4)
     if lattice_type == 'bcc':
         x,y,z, charges, masses, radii = bcc_lattice(nmol, ndim, boxl, natoms, partner=partner)
     else:
@@ -65,11 +63,10 @@ def generate_lattice(nmol, ndim, boxl, natoms, lattice_type, output):
         'z': z,
     }).to_csv(output, index=False)
 
-# main function to use
 @utils.command()
 @lattice_option
 @output_option
-@click.argument('num_particles', type=int) # num_particles = [2, 16, 54, 128, 216, 432, 686, 1024]
+@click.argument('num_particles', type=int) 
 @click.argument('epsilon', type=float, default=0.2)
 def generate_positions(num_particles, epsilon, lattice_type, output): 
     box_size = np.round((((num_particles*(m_Cl + m_Na)) / (2*density))  **(1/3)) *1.e9, 2)
@@ -87,7 +84,7 @@ def generate_positions(num_particles, epsilon, lattice_type, output):
         'x': positions[:, 0],
         'y': positions[:, 1],
         'z': positions[:, 2],
-    }).to_csv("input_files_new/"+output, index=False)
+    }).to_csv("input_files/"+output, index=False)
 
 @utils.command()
 @output_option
