@@ -30,6 +30,9 @@ def g1(x, a, b):
 def f(x,a,b):
     return a * x**b * np.log(x**b)
 
+def k(x, a, b):
+    return a*x + b*x**2
+
 # plot of time/iter VS N_grid = N^3
 def plot_time_iterNgrid(N_p, therm):
     path = 'Outputs/'
@@ -74,11 +77,14 @@ def plot_time_iterNgrid(N_p, therm):
 
     plt.figure(figsize=(10, 8))
     plt.errorbar(x**3, avg1,sd1, label = 'MaZe', color='r',marker='o', linestyle='', linewidth=1.5, markersize=6,capsize=4)
-    plt.plot(x**3, g1(x**3, a_optMaZe, b_optMaZe), label=f'fit $ax+b$, b = {b_optMaZe:.4f},  a = {a_optMaZe:.4f}')
+    plt.plot(x**3, g1(x**3, a_optMaZe, b_optMaZe), label=f'fit $ax+b$, b = {b_optMaZe:.6f},  a = {a_optMaZe}')
+    plt.ylim(0, 0.02)
+    plt.xlim(20**3, 110**3)
     plt.xlabel('Number of grid points', fontsize=18)
     plt.ylabel('Time (s)', fontsize=18)
     plt.legend(frameon=False, loc='upper left', fontsize=15)
     title = 'time_per_iter_VS_N3_N_p_'
+    plt.grid()
     name =  title +str(N_p)+ ".pdf"
     plt.savefig(path_pdf+name, format='pdf')
     plt.show()
@@ -136,10 +142,13 @@ def plot_convNgrid(N_p, therm):
 
     plt.figure(figsize=(10, 8))
     plt.errorbar(N_vector**3, avg1,sd1, label = 'MaZe', color='r',marker='o', linestyle='', markersize=6,capsize=4)
-    plt.plot(x, g(x, a_optMaZe, b_optMaZe),  label=f'fit $ax^b$, b = {b_optMaZe:.2f} $\\approx 1/3$')
+    plt.plot(x, g(x, a_optMaZe, b_optMaZe),  label=f'fit $ax^b$, b = {b_optMaZe:.2f}  $\\approx 1/3$ a = {a_optMaZe:.2f}')
     plt.xlabel('Number of grid points', fontsize=18)
-    plt.ylabel('Number of iterations', fontsize=18)
+    plt.ylabel('# of iterations', fontsize=18)
+    plt.ylim(0,200)
+    #plt.xscale('log')
     plt.legend(frameon=False, loc='upper left', fontsize=15)
+    plt.grid()
     title='n_iterations_vs_N_grid_N_p_'
     name =  title +str(N_p)+ ".pdf"
     plt.savefig(path_pdf + name, format='pdf')
@@ -229,6 +238,7 @@ def plot_scaling_particles_conv(filename_MaZe, N_p, title,  N=N_vector, data1 = 
     plt.xlabel('Number of particles', fontsize=18)
     plt.ylabel('# Iterations', fontsize=18)
     plt.legend(frameon=False, loc='upper left', fontsize=15)
+    plt.grid()
     name =  title + ".pdf"
     plt.savefig(name, format='pdf')
     plt.show()
