@@ -37,7 +37,7 @@ def k(x, a, b):
 def plot_time_iterNgrid(N_p, therm):
     path = 'Outputs/'
     path_pdf = path + 'PDFs/'
-    filename_MaZe=path+'Performance/performance_N'
+    filename_MaZe=path+'performance_N'
     data1 = "time" 
     data2 = 'n_iters'
     
@@ -97,7 +97,7 @@ def f(x,a,b):
 def plot_convNgrid(N_p, therm):
     path = 'Outputs/'
     path_pdf = path + 'PDFs/'
-    filename_MaZe=path+'Performance/performance_N'
+    filename_MaZe=path+'performance_N'
     data1 = "n_iters"
 
     if therm == 'Y':  # save to a different sub-folder inside Outputs/

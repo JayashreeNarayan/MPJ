@@ -75,8 +75,8 @@ def plot_Etot_trp(filename, dt, therm, N_th=0, upper_lim=None):
     L = np.round((((N_p*(m_Cl + m_Na)) / (2*density))  **(1/3)) *1.e9, 4) / a0
 
     # File paths
-    work_file = path+'Energy/' + 'work_trp_N' + str(N)+'_N_p_'+str(N_p) + '.csv'
-    df_E = pd.read_csv(path + 'Energy/energy_N' + str(N)+'_N_p_'+str(N_p) + '.csv')
+    work_file = path + 'work_trp_N' + str(N)+'_N_p_'+str(N_p) + '.csv'
+    df_E = pd.read_csv(path + 'energy_N' + str(N)+'_N_p_'+str(N_p) + '.csv')
 
     # Energy file columns
     K = df_E['K']
@@ -104,7 +104,7 @@ def plot_Etot_trp(filename, dt, therm, N_th=0, upper_lim=None):
         #raise FileNotFoundError(f"Work file doesnt exist in specified path {work_file}")
     
     N_steps = iterations
-    df = pd.read_csv(path + 'Solute/solute_N' + str(N) +'_N_p_'+str(N_p)+ '.csv')
+    df = pd.read_csv(path + 'solute_N' + str(N) +'_N_p_'+str(N_p)+ '.csv')
     if recompute_work:
         Np = get_Np(filename)
         Ework = np.zeros(N_steps)

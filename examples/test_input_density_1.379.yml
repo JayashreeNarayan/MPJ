@@ -1,7 +1,7 @@
 # N_p : [128,250,432,686,1024,1458 | 2000, 2626, 3456, 4394]
 # At N_p=2, N_steps>10,000
 grid_setting:
-  N: 10
+  N: 30
   N_p: 250 # at N_p=2, rescale=False
 
 md_variables:
