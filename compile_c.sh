@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# how to run this: ./compile_c.sh   
 # Print a message indicating the start of the build process
 echo "Building the shared library..."
 

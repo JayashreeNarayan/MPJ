@@ -43,7 +43,7 @@ input_option = click.option(
 @lattice_option
 @output_option
 @click.argument('nmol', type=int)
-def generate_lattice(nmol, output, ndim=3, natoms=2, lattice_type='bcc'): # num_particles = [2, 16, 54, 128, 216, 432, 686, 1024]
+def generate_lattice(nmol, output, ndim=3, natoms=2, lattice_type='bcc'): # N_p : [128,250,432,686,1024,1458 | 2000, 2626, 3456, 4394]
     if output is None:
         output = sys.stdout
 
