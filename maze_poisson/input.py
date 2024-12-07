@@ -37,7 +37,7 @@ class GridSetting:
         self._input_file = None
         self._restart_file = None
         
-    
+    '''
     @property
     def N(self):
         return self._N
@@ -47,7 +47,7 @@ class GridSetting:
         self._N = value
         self._N_tot = int(value ** 3)
         self._h = None
-    
+    '''
     @property
     def N_p(self):
         return self._N_p
@@ -56,8 +56,8 @@ class GridSetting:
     def N_p(self, value):
         self._N_p = value
         self.L_ang = np.round((((value*(m_Cl + m_Na)) / (2*density))  **(1/3)) *1.e9, 4) # in A
-        #self.N = int(round((self.L_ang / ref_L )* ref_N))
-        #self._N_tot = int(self.N ** 3)
+        self.N = int(round((self.L_ang / ref_L )* ref_N))
+        self._N_tot = int(self.N ** 3)
         self.L = self.L_ang / a0 # in amu
     
     @property
