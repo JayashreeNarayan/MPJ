@@ -165,17 +165,7 @@ def plot_scaling_particles_time_iters(therm):
     path = 'Outputs/'
     path_pdf = path + 'PDFs/'
     
-    if therm == 'Y':  # save to a different sub-folder inside Outputs/
-        path += 'Thermostatted/'
-        isExist = os.path.exists(path)
-        if not isExist:
-            os.makedirs(path)
-        path_pdf+='Thermostatted/'
-        isExist = os.path.exists(path_pdf)
-        if not isExist:
-            os.makedirs(path_pdf)
-    
-    N=N_vector
+    N_vector = [80, 100, 120, 140, 160, 180]
     N_p=N_p_vector
     N_p = np.array(N_p)
     df_list_MaZe = [pd.read_csv(path+filename_MaZe + str(i) + '.csv') for i in N_vector]
@@ -201,6 +191,7 @@ def plot_scaling_particles_time_iters(therm):
     plt.xlabel('Number of particles', fontsize=18)
     plt.ylabel('Time (s)', fontsize=18)
     plt.legend(frameon=False, loc='upper left', fontsize=15)
+    plt.grid()
     title='time_per_n_iterations_vs_N_p'
     name =  title + ".pdf"
     plt.savefig(path_pdf+name, format='pdf')
@@ -218,6 +209,7 @@ def plot_scaling_particles_conv():
     path_pdf = path + 'PDFs/'
 
     data1 = "n_iters"
+    N_vector = [80, 100, 120, 140, 160, 180]
     N_p = np.array(N_p_vector)
     df_list_MaZe = [pd.read_csv(path+filename_MaZe + str(i) +'.csv') for i in N_vector]
     avg1 = []
