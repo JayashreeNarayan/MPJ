@@ -7,9 +7,9 @@ from scipy.optimize import curve_fit
 from ...loggers import logger
 from ...constants import a0
 
-N_vector = [30,40,50,60,70,80,90,100] # will change from 10 to 100 once the CG works for 10,20
+N_vector = [30,40,50,60,70,80,90,100, 110, 120] # will change from 10 to 100 once the CG works for 10,20
 N_vector = np.array(N_vector)
-N_p_vector = [2,16,54,128,216,432,686,1024]
+N_p_vector = [128,250,432,686,1024,1458]
 
 path = 'Outputs/'
 isExist = os.path.exists(path)
@@ -97,7 +97,7 @@ def f(x,a,b):
 def plot_convNgrid(N_p, therm):
     path = 'Outputs/'
     path_pdf = path + 'PDFs/'
-    filename_MaZe=path+'performance_N'
+    filename_MaZe=path+'performance_N100'
     data1 = "n_iters"
 
     if therm == 'Y':  # save to a different sub-folder inside Outputs/
@@ -158,10 +158,10 @@ def plot_convNgrid(N_p, therm):
 #### PLOT FUNCTION OF Number of particles ####
 
 # plot time / n iterations VS number of particles
-def plot_scaling_particles_time_iters(filename_MaZe, therm):
+def plot_scaling_particles_time_iters(therm):
     data1 = "time"
     data2 = "n_iters"
-
+    filename_MaZe='performance_N'
     path = 'Outputs/'
     path_pdf = path + 'PDFs/'
     
@@ -178,7 +178,7 @@ def plot_scaling_particles_time_iters(filename_MaZe, therm):
     N=N_vector
     N_p=N_p_vector
     N_p = np.array(N_p)
-    df_list_MaZe = [pd.read_csv(filename_MaZe + str(N[i]) + '.csv') for i, n in enumerate(N_p)]
+    df_list_MaZe = [pd.read_csv(path+filename_MaZe + str(i) + '.csv') for i in N_vector]
     avg1 = []
     sd1 = []
 
@@ -203,7 +203,7 @@ def plot_scaling_particles_time_iters(filename_MaZe, therm):
     plt.legend(frameon=False, loc='upper left', fontsize=15)
     title='time_per_n_iterations_vs_N_p'
     name =  title + ".pdf"
-    plt.savefig(name, format='pdf')
+    plt.savefig(path_pdf+name, format='pdf')
     plt.show()
 
 
@@ -212,9 +212,14 @@ def f(x,a,b):
 
 
 # plot n iterations VS number of particles
-def plot_scaling_particles_conv(filename_MaZe, N_p, title,  N=N_vector, data1 = "n_iters"):
-    N_p = np.array(N_p)
-    df_list_MaZe = [pd.read_csv(filename_MaZe + '/performance_N' + str(N[i]) + '.csv') for i, n in enumerate(N_p)]
+def plot_scaling_particles_conv():
+    filename_MaZe='performance_N'
+    path = 'Outputs/'
+    path_pdf = path + 'PDFs/'
+
+    data1 = "n_iters"
+    N_p = np.array(N_p_vector)
+    df_list_MaZe = [pd.read_csv(path+filename_MaZe + str(i) +'.csv') for i in N_vector]
     avg1 = []
     sd1 = []
 
@@ -237,8 +242,10 @@ def plot_scaling_particles_conv(filename_MaZe, N_p, title,  N=N_vector, data1 = 
     plt.plot(x, f(x, a_optMaZe, b_optMaZe), label=f'fit $a\\log{{x}}^b$, b = {b_optMaZe:.2f}') 
     plt.xlabel('Number of particles', fontsize=18)
     plt.ylabel('# Iterations', fontsize=18)
+    plt.xscale('log')
     plt.legend(frameon=False, loc='upper left', fontsize=15)
     plt.grid()
+    title='iterations_vs_N_p'
     name =  title + ".pdf"
-    plt.savefig(name, format='pdf')
+    plt.savefig(path_pdf+name, format='pdf')
     plt.show()

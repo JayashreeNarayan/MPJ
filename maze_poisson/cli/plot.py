@@ -78,10 +78,13 @@ def n_iter_vs_N3(np, therm):
     plot_convNgrid(np, therm)
     
 @plot.command()
-@filename_argument
 @therm_option
-def time_vs_Np(filename, therm):
-    plot_scaling_particles_time_iters(filename, therm)
+def time_vs_Np(therm):
+    plot_scaling_particles_time_iters(therm)
+
+@plot.command()
+def iter_vs_Np():
+    plot_scaling_particles_conv()
 
 @plot.command()
 @filename_argument

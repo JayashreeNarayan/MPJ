@@ -13,7 +13,6 @@ def generate_restart(md_variables, grid_setting, output_settings, iter = None):
     restart_path = os.path.join('restart_files', 'density_'+str(np.round(density,3)))
     if thermostat == True: 
         path = os.path.join(path, 'Thermostatted')
-    path = os.path.join(path, 'Solute')
     filename = os.path.join(path, 'solute_N' + str(N) + '_N_p_'+str(N_p)+ '.csv')
 
     df = pd.read_csv(filename)
