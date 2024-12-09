@@ -33,23 +33,13 @@ def f(x,a,b):
 def k(x, a, b):
     return a*x + b*x**2
 
-# plot of time/iter VS N_grid = N^3
-def plot_time_iterNgrid(N_p, therm):
+# time-vs-n3:  plot of time/iter VS N_grid = N^3
+def plot_time_iterNgrid(N_p):
     path = 'Outputs/'
     path_pdf = path + 'PDFs/'
     filename_MaZe=path+'performance_N'
     data1 = "time" 
     data2 = 'n_iters'
-    
-    if therm == 'Y':  # save to a different sub-folder inside Outputs/
-        path += 'Thermostatted/'
-        isExist = os.path.exists(path)
-        if not isExist:
-            os.makedirs(path)
-        path_pdf+='Thermostatted/'
-        isExist = os.path.exists(path_pdf)
-        if not isExist:
-            os.makedirs(path_pdf)
     
     path_all_files = [(filename_MaZe + str(i) + '_N_p_'+str(N_p)+'.csv') for i in N_vector]
     isExist = [os.path.exists(i) for i in path_all_files]
@@ -78,8 +68,10 @@ def plot_time_iterNgrid(N_p, therm):
     plt.figure(figsize=(10, 8))
     plt.errorbar(x**3, avg1,sd1, label = 'MaZe', color='r',marker='o', linestyle='', linewidth=1.5, markersize=6,capsize=4)
     plt.plot(x**3, g1(x**3, a_optMaZe, b_optMaZe), label=f'fit $ax+b$, b = {b_optMaZe:.6f},  a = {a_optMaZe}')
-    plt.ylim(0, 0.02)
-    plt.xlim(20**3, 110**3)
+    #plt.ylim(0, 0.02)
+    #plt.xlim(20**3, 120**3)
+    #plt.xscale('log')
+    #plt.yscale('log')
     plt.xlabel('Number of grid points', fontsize=18)
     plt.ylabel('Time (s)', fontsize=18)
     plt.legend(frameon=False, loc='upper left', fontsize=15)
@@ -93,22 +85,12 @@ def plot_time_iterNgrid(N_p, therm):
 def f(x,a,b):
     return a * x + b
 
-# plot of n iterations VS N_grid = N^3
-def plot_convNgrid(N_p, therm):
+# iter-vs-n3: plot of n iterations VS N_grid = N^3
+def plot_convNgrid(N_p):
     path = 'Outputs/'
     path_pdf = path + 'PDFs/'
-    filename_MaZe=path+'performance_N100'
+    filename_MaZe=path+'performance_N'
     data1 = "n_iters"
-
-    if therm == 'Y':  # save to a different sub-folder inside Outputs/
-        path += 'Thermostatted/'
-        isExist = os.path.exists(path)
-        if not isExist:
-            os.makedirs(path)
-        path_pdf+='Thermostatted/'
-        isExist = os.path.exists(path_pdf)
-        if not isExist:
-            os.makedirs(path_pdf)
 
     path_all_files = [(filename_MaZe + str(i) + '_N_p_'+str(N_p)+'.csv') for i in N_vector]
     isExist = [os.path.exists(i) for i in path_all_files]
@@ -121,20 +103,12 @@ def plot_convNgrid(N_p, therm):
     avg1 = []
     sd1 = []
 
-    avg2 = []
-    sd2 = []
-
     for df in df_list_MaZe:
-        avg1.append(np.mean(df[data1]))
-        sd1.append(np.std(df[data1]))
-        #print(avg1,sd1)
-        avg2.append(np.mean(df[data1][3:]))
-        sd2.append(np.std(df[data1][3:]))
+        avg1.append(np.mean(df[data1][100:]))
+        sd1.append(np.std(df[data1][100:]))
         
     avg1 = np.array(avg1)
     sd1 = np.array(sd1)
-    avg2 = np.array(avg2)
-    sd2 = np.array(sd2)
 
     x = N_vector**3
     poptMaZe, _ = curve_fit(g, x, avg1, sigma = sd1, absolute_sigma=True)
@@ -145,8 +119,8 @@ def plot_convNgrid(N_p, therm):
     plt.plot(x, g(x, a_optMaZe, b_optMaZe),  label=f'fit $ax^b$, b = {b_optMaZe:.2f}  $\\approx 1/3$ a = {a_optMaZe:.2f}')
     plt.xlabel('Number of grid points', fontsize=18)
     plt.ylabel('# of iterations', fontsize=18)
-    plt.ylim(0,200)
-    #plt.xscale('log')
+    #plt.ylim(0,200)
+    plt.xscale('log')
     plt.legend(frameon=False, loc='upper left', fontsize=15)
     plt.grid()
     title='n_iterations_vs_N_grid_N_p_'
@@ -157,8 +131,8 @@ def plot_convNgrid(N_p, therm):
 
 #### PLOT FUNCTION OF Number of particles ####
 
-# plot time / n iterations VS number of particles
-def plot_scaling_particles_time_iters(therm):
+# time-vs-np: plot time / n iterations VS number of particles
+def plot_scaling_particles_time_iters():
     data1 = "time"
     data2 = "n_iters"
     filename_MaZe='performance_N'
@@ -202,7 +176,7 @@ def f(x,a,b):
     return a * np.log(x)**b
 
 
-# plot n iterations VS number of particles
+# iter-vs-np: plot n iterations VS number of particles
 def plot_scaling_particles_conv():
     filename_MaZe='performance_N'
     path = 'Outputs/'
@@ -238,6 +212,80 @@ def plot_scaling_particles_conv():
     plt.legend(frameon=False, loc='upper left', fontsize=15)
     plt.grid()
     title='iterations_vs_N_p'
+    name =  title + ".pdf"
+    plt.savefig(path_pdf+name, format='pdf')
+    plt.show()
+
+# iter-vs-threads: plot number of iterations vs. number of threads
+# SANITY CHECK GRAPH
+def iter_vs_threads():
+    filename_MaZe='performance_N100_N_p_250_'
+    path = 'Outputs/'
+    path_pdf = path + 'PDFs/'
+
+    data1 = "n_iters"
+    threads = np.array([5, 6, 7, 8, 9, 10, 11, 12])
+    df_list_MaZe = [pd.read_csv(path+filename_MaZe + str(i) +'.csv') for i in threads]
+    avg1 = []
+    sd1 = []
+
+    for df in df_list_MaZe:
+        avg1.append(np.mean(df[data1][-50:]))
+        sd1.append(np.std(df[data1][-50:]))
+     
+    avg1 = np.array(avg1)
+    sd1 = np.array(sd1)
+
+    x = threads
+    poptMaZe, _ = curve_fit(g, x, avg1, sigma = sd1, absolute_sigma=True)
+    a_optMaZe, b_optMaZe = poptMaZe
+
+    plt.figure(figsize=(10, 8))
+    plt.errorbar(x, avg1, yerr=sd1, label = 'MaZe', color='r', marker='o', linestyle='', linewidth=1.5, markersize=6, capsize=5)
+    plt.plot(x, g(x, a_optMaZe, b_optMaZe), label=f'fit $ax^b$, b = {b_optMaZe:.2f} a = {a_optMaZe:.2f}') 
+    plt.xlabel('Number of threads', fontsize=18)
+    plt.ylabel('# of iterations', fontsize=18)
+    #plt.xscale('log')
+    plt.legend(frameon=False, loc='upper left', fontsize=15)
+    plt.grid()
+    title='iterations_vs_threads'
+    name =  title + ".pdf"
+    plt.savefig(path_pdf+name, format='pdf')
+    plt.show()
+
+# time-vs-threads: plot time vs. number of threads
+def time_vs_threads():
+    # plotting strong scaling and weak scaling as references
+    filename_strong='performance_strong_'
+    path = 'Outputs/'
+    path_pdf = path + 'PDFs/'
+
+    data1 = "time"
+    threads = np.array([1, 2, 4, 8, 16, 32, 64, 128])
+    df_list_strong = [pd.read_csv(path+filename_strong + str(i) +'.csv') for i in threads]
+    avg1 = []
+    sd1 = []
+
+    for df in df_list_strong:
+        avg1.append(np.mean(df[data1]))
+        sd1.append(np.std(df[data1]))
+     
+    avg1 = np.array(avg1)
+    sd1 = np.array(sd1)
+
+    x = threads
+    poptMaZe, _ = curve_fit(g, x, avg1, sigma = sd1, absolute_sigma=True)
+    a_optMaZe, b_optMaZe = poptMaZe
+
+    plt.figure(figsize=(10, 8))
+    plt.errorbar(x, avg1, yerr=sd1, label = 'MaZe', color='r', marker='o', linestyle='', linewidth=1.5, markersize=6, capsize=5)
+    plt.plot(x, g(x, a_optMaZe, b_optMaZe), label=f'fit $ax^b$, b = {b_optMaZe:.2f} a = {a_optMaZe:.2f}') 
+    plt.xlabel('Number of threads', fontsize=18)
+    plt.ylabel('time (s)', fontsize=18)
+    #plt.xscale('log')
+    plt.legend(frameon=False, loc='upper left', fontsize=15)
+    plt.grid()
+    title='time_vs_threads'
     name =  title + ".pdf"
     plt.savefig(path_pdf+name, format='pdf')
     plt.show()
