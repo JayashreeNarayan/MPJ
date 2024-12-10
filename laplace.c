@@ -1,12 +1,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <omp.h>
 
 #ifdef __cplusplus
 #define EXTERN_C extern "C"
 #else
 #define EXTERN_C
 #endif
+
+/*
+Print information about the OpenMP number of threads
+*/
+EXTERN_C int get_omp_info(void) {
+#ifdef _OPENMP
+    return omp_get_max_threads();
+#else
+    return 0;
+#endif
+}
 
 /*
 Apply a 3-D Laplace filter to a 3-D array with cyclic boundary conditions
@@ -170,7 +182,7 @@ EXTERN_C int conj_grad(double *b, double *x0, double *x, double tol, int n) {
 
         iter++;
         // if (iter % 100 == 0) {
-        //     printf("Iteration %d: %16.8ff %16.8f\n", iter, norm(r, n3), tol);
+        //     printf("Iteration %ld: %16.8ff %16.8f\n", iter, norm(r, n3), tol);
         // }
     }
 

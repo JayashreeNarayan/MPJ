@@ -5,10 +5,20 @@ import signal
 import numpy as np
 import numpy.ctypeslib as npct
 
+from .loggers import logger
+
 __all__ = ['c_laplace', 'c_ddot', 'c_daxpy', 'c_daxpy2']
 
 # Import from shared library next to this file as a package
-liblaplace = ctypes.cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), 'liblaplace.so'))
+liblaplace = ctypes.cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), 'libmaze_poisson.so'))
+
+# int get_omp_info()
+try:
+    c_get_omp_info = liblaplace.get_omp_info
+    c_get_omp_info.restype = ctypes.c_int
+    c_get_omp_info.argtypes = []
+except:
+    c_get_omp_info = lambda: 0
 
 # void laplace_filter(long double *u, long double *u_new, int n)
 c_laplace = liblaplace.laplace_filter
@@ -62,3 +72,10 @@ c_conj_grad.argtypes = [
 
 # Enable Ctrl-C to interrupt the C code
 signal.signal(signal.SIGINT, signal.SIG_DFL)
+
+logger.info("C API loaded successfully")
+num_threads = c_get_omp_info()
+if num_threads > 0:
+    logger.info("Number of OpenMP threads: %d", c_get_omp_info())
+else:
+    logger.warning("OpenMP not enabled")
