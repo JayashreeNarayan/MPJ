@@ -36,7 +36,7 @@ class Grid:
             [0, 0, 0]
             ])
         
-        self.output_files = generate_output_files(self)
+        self.output_files = generate_output_files(self, md_variables)
 
         self.particles = [] # list of class instances of class particle
         

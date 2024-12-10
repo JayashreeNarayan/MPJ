@@ -96,3 +96,7 @@ def iter_vs_thread():
 @plot.command()
 def time_vs_thread():
     time_vs_threads()
+
+@plot.command()
+def iters_vs_tol():
+    iter_vs_tol()

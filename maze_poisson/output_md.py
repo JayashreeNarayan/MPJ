@@ -23,7 +23,7 @@ def generate_output_file(out_path, overwrite=True):
     return res
 
 
-def generate_output_files(grid):
+def generate_output_files(grid, md_variables):
     N = grid.N
     N_p = grid.N_p
     output_settings = grid.output_settings
@@ -45,7 +45,7 @@ def generate_output_files(grid):
 
     if output_settings.print_performance:
         os.makedirs(path, exist_ok=True)
-        output_performance = os.path.join(path, 'performance_N' + str(N) + '_N_p'+str(N_p)+'.csv')
+        output_performance = os.path.join(path, 'performance_tol'+str(md_variables.tol)+'.csv')
         output_files.file_output_performance = generate_output_file(output_performance)
         output_files.file_output_performance.write("iter,time,n_iters\n")
 

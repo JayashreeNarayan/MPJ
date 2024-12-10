@@ -289,3 +289,39 @@ def time_vs_threads():
     name =  title + ".pdf"
     plt.savefig(path_pdf+name, format='pdf')
     plt.show()
+
+def iter_vs_tol():
+    filename_MaZe='performance_tol'
+    path = 'Outputs/'
+    path_pdf = path + 'PDFs/'
+
+    data1 = "n_iters"
+    tolerance = np.array([1.e-5, 1.e-6, 1.e-7, 1.e-8, 1.e-9, 1.e-10])
+    df_list_MaZe = [pd.read_csv(path+filename_MaZe + str(i) +'.csv') for i in tolerance]
+    avg1 = []
+    sd1 = []
+
+    for df in df_list_MaZe:
+        avg1.append(np.mean(df[data1]))
+        sd1.append(np.std(df[data1]))
+     
+    avg1 = np.array(avg1)
+    sd1 = np.array(sd1)
+
+    x = tolerance
+    poptMaZe, _ = curve_fit(g1, np.log10(x), avg1, sigma = sd1, absolute_sigma=True)
+    a_optMaZe, b_optMaZe = poptMaZe
+
+    plt.figure(figsize=(10, 8))
+    plt.errorbar(np.log10(x), avg1, yerr=sd1, label = 'MaZe', color='r', marker='o', linestyle='', linewidth=1.5, markersize=6, capsize=5)
+    plt.plot(np.log10(x), g1(np.log10(x), a_optMaZe, b_optMaZe), label=f'fit $ax^b$, b = {b_optMaZe:.2f} a = {a_optMaZe:.2f}') 
+    plt.xlabel(r'log$_{10}$(Tolerance)', fontsize=18)
+    plt.ylabel('# of iterations', fontsize=18)
+    #plt.xscale('log')
+    plt.legend(frameon=False, loc='upper right', fontsize=15)
+    plt.grid()
+    plt.title("N_p=250, N=100, dt=0.25")
+    title='iterations_vs_tol'
+    name =  title + ".pdf"
+    plt.savefig(path_pdf+name, format='pdf')
+    plt.show()
