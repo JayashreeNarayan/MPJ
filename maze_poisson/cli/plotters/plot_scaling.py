@@ -41,13 +41,13 @@ def plot_time_iterNgrid(N_p):
     data1 = "time" 
     data2 = 'n_iters'
     
-    path_all_files = [(filename_MaZe + str(i) + '_N_p_'+str(N_p)+'.csv') for i in N_vector]
+    path_all_files = [(filename_MaZe + str(i) + '_N_p'+str(N_p)+'.csv') for i in N_vector]
     isExist = [os.path.exists(i) for i in path_all_files]
     if all(isExist) == False:
         logger.error(str(len(N_vector))+ " files are needed. The files needed do not exist at "+filename_MaZe)
         raise FileNotFoundError(str(len(N_vector))+ " files are needed. The files needed do not exist at "+filename_MaZe)
     elif all(isExist) == True:
-        df_list_MaZe = [pd.read_csv(filename_MaZe + str(i) + '_N_p_'+str(N_p)+'.csv') for i in N_vector]
+        df_list_MaZe = [pd.read_csv(filename_MaZe + str(i) + '_N_p'+str(N_p)+'.csv') for i in N_vector]
 
     avg1 = []
     sd1 = []
@@ -70,8 +70,8 @@ def plot_time_iterNgrid(N_p):
     plt.plot(x**3, g1(x**3, a_optMaZe, b_optMaZe), label=f'fit $ax+b$, b = {b_optMaZe:.6f},  a = {a_optMaZe}')
     #plt.ylim(0, 0.02)
     #plt.xlim(20**3, 120**3)
-    #plt.xscale('log')
-    #plt.yscale('log')
+    plt.xscale('log')
+    plt.yscale('log')
     plt.xlabel('Number of grid points', fontsize=18)
     plt.ylabel('Time (s)', fontsize=18)
     plt.legend(frameon=False, loc='upper left', fontsize=15)
@@ -92,13 +92,13 @@ def plot_convNgrid(N_p):
     filename_MaZe=path+'performance_N'
     data1 = "n_iters"
 
-    path_all_files = [(filename_MaZe + str(i) + '_N_p_'+str(N_p)+'.csv') for i in N_vector]
+    path_all_files = [(filename_MaZe + str(i) + '_N_p'+str(N_p)+'.csv') for i in N_vector]
     isExist = [os.path.exists(i) for i in path_all_files]
     if all(isExist) == False:
         logger.error(str(len(N_vector))+ " files are needed. The files needed do not exist at "+filename_MaZe)
         raise FileNotFoundError(str(len(N_vector))+ " files are needed. The files needed do not exist at "+filename_MaZe)
     elif all(isExist) == True:
-        df_list_MaZe = [pd.read_csv(filename_MaZe + str(i) + '_N_p_'+str(N_p)+'.csv') for i in N_vector]
+        df_list_MaZe = [pd.read_csv(filename_MaZe + str(i) + '_N_p'+str(N_p)+'.csv') for i in N_vector]
 
     avg1 = []
     sd1 = []
@@ -120,7 +120,7 @@ def plot_convNgrid(N_p):
     plt.xlabel('Number of grid points', fontsize=18)
     plt.ylabel('# of iterations', fontsize=18)
     #plt.ylim(0,200)
-    plt.xscale('log')
+    #plt.xscale('log')
     plt.legend(frameon=False, loc='upper left', fontsize=15)
     plt.grid()
     title='n_iterations_vs_N_grid_N_p_'

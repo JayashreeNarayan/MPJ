@@ -38,7 +38,7 @@ class GridSetting:
         self._restart_file = None
         
     # uncomment this block if you want to change N on your own
-    '''
+    
     @property
     def N(self):
         return self._N
@@ -48,7 +48,7 @@ class GridSetting:
         self._N = value
         self._N_tot = int(value ** 3)
         self._h = None
-    '''
+    
     @property
     def N_p(self):
         return self._N_p
@@ -57,8 +57,8 @@ class GridSetting:
     def N_p(self, value):
         self._N_p = value
         self.L_ang = np.round((((value*(m_Cl + m_Na)) / (2*density))  **(1/3)) *1.e9, 4) # in A
-        self.N = int(round((self.L_ang / ref_L )* ref_N))  # comment this line
-        self._N_tot = int(self.N ** 3)                     # and this line when u want to change N on your own
+        #self.N = int(round((self.L_ang / ref_L )* ref_N))  # comment this line
+        #self._N_tot = int(self.N ** 3)                     # and this line when u want to change N on your own
         self.L = self.L_ang / a0 # in amu
     
     @property
@@ -82,8 +82,8 @@ class GridSetting:
         #if self.N!=100:
            #raise NotImplementedError("Only restart file for N_100 is available")
         if self._restart_file is None:
-            #self._restart_file = 'restart_files/density_'+str(np.round(density, 3))+'/restart_N'+str(self.N)+'_N_p_'+str(self.N_p)+'_9999_iter1.csv'
             self._restart_file = 'restart_files/density_'+str(np.round(density, 3))+'/restart_N100'+'_N_p_'+str(self.N_p)+'_9999_iter1.csv'
+            #self._restart_file = 'restart_files/density_'+str(np.round(density, 3))+'/restart_N'+str(self.N)+'_N_p_'+str(self.N_p)+'_iter1.csv'
         return self._restart_file
 
 ###################################################################################
