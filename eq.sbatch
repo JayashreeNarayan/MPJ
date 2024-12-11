@@ -6,7 +6,7 @@
 #SBATCH --mem=30G
 #SBATCH --account=cecam_premium
 #SBATCH --output="log_N100_%j.out"
-#SBATCH --mail-user=federica.troni@epfl.ch
+#SBATCH --mail-user=jayashree.narayan@epfl.ch
 #SBATCH --mail-type=END
 
 # Load necessary modules
@@ -19,4 +19,4 @@ gcc -O3 --fast-math -shared ../laplace.c -o ../maze_poisson/liblaplace.so -fopen
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
 # Run the code
-maze run main-maze-md input_N100.yml
+maze run main-maze-md test_input_density_1.379.yml
