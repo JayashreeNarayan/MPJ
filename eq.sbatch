@@ -10,13 +10,14 @@
 #SBATCH --mail-type=END
 
 # Load necessary modules
-module load gcc mvapich2 libxc fftw openblas netlib-scalapack
+module load gcc libxc openmpi fftw openblas netlib-scalapack
 
 # Compile the shared library
-gcc -O3 --fast-math -shared ../laplace.c -o ../maze_poisson/liblaplace.so -fopenmp -fPIC
+gcc -O3 --fast-math -shared laplace.c -o maze_poisson/liblaplace.so -fopenmp -fPIC
 
 # Set the number of OpenMP threads dynamically
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
 # Run the code
-maze run main-maze-md test_input_density_1.379.yml
+source venv/bin/activate maze run main-maze-md ../../examples/test_input_density_1.379.yml
+
