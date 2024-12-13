@@ -278,6 +278,48 @@ def time_vs_threads():
         speedup.append(avg1[0]/avg1[i])
 
     x = threads
+    poptMaZe, _ = curve_fit(g, x, avg1, sigma = sd1, absolute_sigma=True)
+    a_optMaZe, b_optMaZe = poptMaZe
+
+    plt.figure(figsize=(10, 8))
+    plt.errorbar(x, avg1, yerr=sd1, label = 'MaZe', color='r', marker='o', linestyle='', linewidth=1.5, markersize=6, capsize=5)
+    plt.plot(x, g(x, a_optMaZe, b_optMaZe), label=f'fit $ax^b$, b = {b_optMaZe:.2f} a = {a_optMaZe:.2f}') 
+    plt.xlabel('Number of threads', fontsize=18)
+    plt.ylabel('time per iteration (s)', fontsize=18)
+    #plt.xscale('log')
+    plt.legend(frameon=False, loc='upper left', fontsize=15)
+    plt.grid()
+    title='time_vs_threads'
+    name =  title + ".pdf"
+    plt.savefig(path_pdf+name, format='pdf')
+    plt.show()
+
+
+# speedup-vs-threads: plot speedup vs. number of threads
+def speedup_vs_threads():
+    # plotting strong scaling and weak scaling as references
+    filename_strong='performance_N100_'
+    path = 'Outputs/'
+    path_pdf = path + 'PDFs/'
+
+    data1 = "time"
+    threads = np.array([1, 2, 4, 8, 16, 32, 64])
+    df_list_strong = [pd.read_csv(path+filename_strong + str(i) +'.csv') for i in threads]
+    avg1 = []
+    sd1 = []
+
+    for df in df_list_strong:
+        avg1.append(np.mean(df[data1]))
+        sd1.append(np.std(df[data1]))
+     
+    avg1 = np.array(avg1)
+    sd1 = np.array(sd1)
+    speedup=[]
+
+    for i in range(len(avg1)):
+        speedup.append(avg1[0]/avg1[i])
+
+    x = threads
     poptMaZe, _ = curve_fit(g1, x, speedup, absolute_sigma=True)
     a_optMaZe, b_optMaZe = poptMaZe
 
@@ -297,23 +339,6 @@ def time_vs_threads():
     name =  title + ".pdf"
     plt.savefig(path_pdf+name, format='pdf')
     plt.show()
-    '''
-    poptMaZe, _ = curve_fit(g, x, avg1, sigma = sd1, absolute_sigma=True)
-    a_optMaZe, b_optMaZe = poptMaZe
-
-    plt.figure(figsize=(10, 8))
-    plt.errorbar(x, avg1, yerr=sd1, label = 'MaZe', color='r', marker='o', linestyle='', linewidth=1.5, markersize=6, capsize=5)
-    plt.plot(x, g(x, a_optMaZe, b_optMaZe), label=f'fit $ax^b$, b = {b_optMaZe:.2f} a = {a_optMaZe:.2f}') 
-    plt.xlabel('Number of threads', fontsize=18)
-    plt.ylabel('time per iteration (s)', fontsize=18)
-    #plt.xscale('log')
-    plt.legend(frameon=False, loc='upper left', fontsize=15)
-    plt.grid()
-    title='time_vs_threads'
-    name =  title + ".pdf"
-    plt.savefig(path_pdf+name, format='pdf')
-    plt.show()
-    '''
 
 def iter_vs_tol():
     filename_MaZe='performance_tol'
