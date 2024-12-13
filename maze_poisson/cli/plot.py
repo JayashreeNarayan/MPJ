@@ -90,3 +90,11 @@ def iter_vs_Np():
 @filename_argument
 def visualize(filename):
     visualize_particles(filename)
+
+@plot.command()
+def time_vs_thread():
+    time_vs_threads()
+
+@plot.command()
+def iter_vs_tols():
+    iter_vs_tol()

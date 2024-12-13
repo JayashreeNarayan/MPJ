@@ -281,7 +281,6 @@ def time_vs_threads():
     poptMaZe, _ = curve_fit(g1, x, speedup, absolute_sigma=True)
     a_optMaZe, b_optMaZe = poptMaZe
 
-    print(speedup)
     plt.figure(figsize=(10, 8))
     #plt.errorbar(x, avg1, yerr=sd1, label = 'MaZe', color='r', marker='o', linestyle='', linewidth=1.5, markersize=6, capsize=5)
     #plt.plot(x, g1(x, a_optMaZe, b_optMaZe), label=f'fit $ax^b$, b = {b_optMaZe:.2f} a = {a_optMaZe:.2f}') 
@@ -297,6 +296,7 @@ def time_vs_threads():
     title='speedup_vs_threads'
     name =  title + ".pdf"
     plt.savefig(path_pdf+name, format='pdf')
+    plt.show()
     '''
     poptMaZe, _ = curve_fit(g, x, avg1, sigma = sd1, absolute_sigma=True)
     a_optMaZe, b_optMaZe = poptMaZe

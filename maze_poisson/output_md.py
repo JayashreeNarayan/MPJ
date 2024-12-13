@@ -25,7 +25,7 @@ def generate_output_file(out_path, overwrite=True):
     return res
 
 
-def generate_output_files(grid):
+def generate_output_files(grid, md_variables):
     N = grid.N
     N_p = grid.N_p
     output_settings = grid.output_settings
