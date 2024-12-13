@@ -314,3 +314,10 @@ def time_vs_threads():
     plt.savefig(path_pdf+name, format='pdf')
     plt.show()
     '''
+
+def iter_vs_thread():
+    iter_vs_threads()
+
+@plot.command()
+def time_vs_thread():
+    time_vs_threads()
