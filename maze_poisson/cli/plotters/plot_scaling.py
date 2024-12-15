@@ -328,7 +328,7 @@ def speedup_vs_threads():
     #plt.plot(x, g1(x, a_optMaZe, b_optMaZe), label=f'fit $ax^b$, b = {b_optMaZe:.2f} a = {a_optMaZe:.2f}') 
     plt.plot(x,x, label= 'ideal strong speedup')
     plt.plot(x, speedup, color='red', marker='o', label='MaZe')
-    plt.xticks(ticks=x, lables =['1','2','4','8','16','32','64'], minor=True)
+    plt.xticks(ticks=x, labels =['1','2','4','8','16','32','64'], minor=True)
     plt.xscale('log')
     plt.yscale('log')
     plt.xlabel('Number of threads', fontsize=18)
