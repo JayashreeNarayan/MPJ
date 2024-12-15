@@ -27,7 +27,7 @@ module load gcc libxc openmpi fftw openblas netlib-scalapack || { echo "Failed t
 
 # Compile the shared library
 echo "Compiling the shared library..."
-gcc -O3 --fast-math -shared ../laplace.c -o ../maze_poisson/liblaplace.so -fopenmp -fPIC || { echo "Compilation failed"; exit 1; }
+gcc -O3 --fast-math -shared ../laplace.c -o ../maze_poisson/libmaze_poisson.so -fopenmp -fPIC || { echo "Compilation failed"; exit 1; }
 echo "Compilation completed successfully."
 
 # Activate Python virtual environment
