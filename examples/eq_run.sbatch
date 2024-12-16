@@ -26,7 +26,7 @@ source ../venv/bin/activate || { echo "Failed to activate virtual environment"; 
 
 # Run the code
 echo "Running the maze application..."
-maze plot strong-scaling-vs-thread || { echo "Plot execution failed"; exit 1; }
+maze plot weak-scaling-vs-thread || { echo "Plot execution failed"; exit 1; }
 echo "Plot application completed successfully."
 
 # Deactivate the virtual environment

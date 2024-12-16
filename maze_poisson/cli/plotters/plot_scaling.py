@@ -336,8 +336,8 @@ def strong_scaling_vs_threads():
     ax1.set_yticks([1, 2, 4, 8, 16, 32, 64])
     ax1.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
     ax1.get_yaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-    ax1.set_xlabel('Number of threads', fontsize=18)
-    ax1.set_ylabel('Speedup', fontsize=18)
+    ax1.set_xlabel('Number of threads', fontsize=15)
+    ax1.set_ylabel('Speedup', fontsize=15)
     ax1.legend(frameon=False, loc='upper left', fontsize=15)
     ax1.grid()
     title='speedup_vs_threads'
@@ -370,8 +370,11 @@ def weak_scaling_vs_threads():
     path_pdf = path + 'PDFs/'
 
     data1 = "time"
+    N_arr = [30, 38, 48, 60, 76, 95, 120]
     threads = np.array([1, 2, 4, 8, 16, 32, 64])
-    df_list_strong = [pd.read_csv(path+filename_strong + str(i) +'.csv') for i in threads]
+    one = [1,1,1,1,1,1,1]
+
+    df_list_strong = [pd.read_csv(path+filename_strong + str(i) +'_'+str(j)+'.csv') for i,j in zip(N_arr, threads)]
     avg1 = []
     sd1 = []
 
@@ -381,30 +384,28 @@ def weak_scaling_vs_threads():
      
     avg1 = np.array(avg1)
     sd1 = np.array(sd1)
-    speedup=[]
+    efficiency=[]
 
     for i in range(len(avg1)):
-        speedup.append(avg1[0]/avg1[i])
+        efficiency.append(avg1[0]/avg1[i])
 
     x = threads
-    poptMaZe, _ = curve_fit(g1, x, speedup, absolute_sigma=True)
+    poptMaZe, _ = curve_fit(g1, x, efficiency, absolute_sigma=True)
     a_optMaZe, b_optMaZe = poptMaZe
 
-    plt.figure(figsize=(10, 8))
-    #plt.errorbar(x, avg1, yerr=sd1, label = 'MaZe', color='r', marker='o', linestyle='', linewidth=1.5, markersize=6, capsize=5)
-    #plt.plot(x, g1(x, a_optMaZe, b_optMaZe), label=f'fit $ax^b$, b = {b_optMaZe:.2f} a = {a_optMaZe:.2f}') 
-    plt.plot(x,x, label= 'Ideal weak speedup')
-    plt.plot(x, speedup, color='red', marker='o', label='MaZe')
-    plt.xticks(ticks=x, labels =['1','2','4','8','16','32','64'], minor=True)
-    plt.xscale('log')
-    plt.yscale('log')
-    plt.xlabel('Number of threads', fontsize=18)
-    plt.ylabel('Speedup', fontsize=18)
-    plt.legend(frameon=False, loc='upper left', fontsize=15)
-    plt.grid()
-    title='speedup_vs_threads'
+    fig1, ax1 = plt.subplots()
+    ax1.plot(x, one, label= 'Ideal weak scaling')
+    ax1.plot(x, efficiency, color='red', marker='o', label='MaZe')
+    ax1.set_xscale('log')
+    ax1.set_xticks([1, 2, 4, 8, 16, 32, 64])
+    ax1.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+    ax1.set_xlabel('Number of threads', fontsize=15)
+    ax1.set_ylabel('Efficiency', fontsize=15)
+    ax1.legend(frameon=False, loc='lower left', fontsize=15)
+    ax1.grid()
+    title='weak_scaling_vs_threads'
     name =  title + ".pdf"
-    plt.savefig(path_pdf+name, format='pdf')
+    fig1.savefig(path_pdf+name, format='pdf')
     plt.show()
 
 def iter_vs_tol():

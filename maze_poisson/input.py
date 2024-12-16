@@ -3,8 +3,13 @@ from pathlib import Path
 import numpy as np
 import yaml
 
+import os
 from .constants import a0, density, kB, m_Cl, m_Na, t_au, ref_L, ref_N
 from .loggers import logger
+import argparse
+
+#N_from_batch = int(os.environ.get("N", 1))
+N_from_batch = 38
 
 ###################################################################################
 
@@ -38,7 +43,7 @@ class GridSetting:
         self._restart_file = None
         
     # uncomment this block if you want to change N on your own
-    
+    '''
     @property
     def N(self):
         return self._N
@@ -48,7 +53,7 @@ class GridSetting:
         self._N = value
         self._N_tot = int(value ** 3)
         self._h = None
-    
+    '''
     @property
     def N_p(self):
         return self._N_p
@@ -58,7 +63,8 @@ class GridSetting:
         self._N_p = value
         self.L_ang = np.round((((value*(m_Cl + m_Na)) / (2*density))  **(1/3)) *1.e9, 4) # in A
         #self.N = int(round((self.L_ang / ref_L )* ref_N))  # comment this line
-        #self._N_tot = int(self.N ** 3)                     # and this line when u want to change N on your own
+        self.N = N_from_batch
+        self._N_tot = int(self.N ** 3)                     # and this line when u want to change N on your own
         self.L = self.L_ang / a0 # in amu
     
     @property
