@@ -1,9 +1,9 @@
 #!/bin/bash -l
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
+#SBATCH --cpus-per-task=72
 #SBATCH --time=2:00:00
-#SBATCH --mem=30G
+#SBATCH --mem=490GB
 #SBATCH --account=cecam_premium
 #SBATCH --output="log_temp_%j.out"  # Temporary log file
 #SBATCH --mail-user=jayashree.narayan@epfl.ch
@@ -15,8 +15,8 @@ echo "Working directory: $(pwd)"
 echo "SLURM job ID: $SLURM_JOB_ID"
 
 # Dynamically set the log file name based on threads
-export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
-LOG_FILE="log_N100_threads${OMP_NUM_THREADS}_job${SLURM_JOB_ID}.out"
+export OMP_NUM_THREADS=64
+LOG_FILE="log_threads${OMP_NUM_THREADS}_job${SLURM_JOB_ID}.out"
 exec >"$LOG_FILE" 2>&1
 
 echo "Output is being redirected to $LOG_FILE"

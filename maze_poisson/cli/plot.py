@@ -96,8 +96,12 @@ def time_vs_thread():
     time_vs_threads()
 
 @plot.command()
-def speedup_vs_thread():
-    speedup_vs_threads()
+def strong_scaling_vs_thread():
+    strong_scaling_vs_threads()
+
+@plot.command()
+def weak_scaling_vs_thread():
+    weak_scaling_vs_threads()
 
 @plot.command()
 def iter_vs_tols():
