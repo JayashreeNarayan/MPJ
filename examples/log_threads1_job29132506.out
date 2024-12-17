@@ -1,0 +1,44 @@
+Output is being redirected to log_threads1_job29132506.out
+OMP_NUM_THREADS set to 1
+Compiling the shared library...
+Compilation completed successfully.
+Activating Python virtual environment...
+Running the maze application...
+C API loaded successfully
+Number of OpenMP threads: 1
+--------Initialization begins---------
+Simulation with N_p = 250, N = 30 with N_steps = 200 and tol = 1e-10
+Initialization is done with CG and preconditioning: Yes
+Parameters: h = 0.6880533333333333 A 
+dt = 0.25 fs 
+stride = 1 
+L = 20.6416 A 
+gamma = 0.001
+Potential: TF
+Elec: True 	NotElec: True
+Temperature: 1550 K 	Density: 1.3793 g/cm3.
+Print solute: False 	Print field: False 	Print tot_force: False
+Print energy: False 	Print temperature: False
+Print performance: True 	Restart: True
+Thermostat: False 	Rescaling of the velocities: True
+Total charge q = 0.0
+Rescaling of the velocities in progress...
+Initialization ends
+Initialization time: 0.4463222026824951 s
+Number of initialization steps 0
+RESTART from file:restart_files/density_1.379/restart_N100_N_p_250_9999_iter1.csv
+Total initial vel:
+Na = [-0.00393404  0.00281544 -0.0008174 ] 
+Cl = [-0.00084992  0.00041139  0.0019411 ]
+Old T = 1594.1546637139606
+
+Total scaled vel: 
+Na = [-2.05998413e-18  2.71050543e-19  8.13151629e-19] 
+Cl = [8.13151629e-19 3.25260652e-19 3.25260652e-19]
+New T = 1589.7424783649562
+
+  0%|          | 0/200 [00:00<?, ?it/s]  2%|▎         | 5/200 [00:00<00:04, 42.61it/s]  5%|▌         | 10/200 [00:00<00:04, 42.64it/s]  8%|▊         | 15/200 [00:00<00:04, 42.90it/s] 10%|█         | 20/200 [00:00<00:04, 42.78it/s] 12%|█▎        | 25/200 [00:00<00:04, 42.71it/s] 15%|█▌        | 30/200 [00:00<00:03, 42.76it/s] 18%|█▊        | 35/200 [00:00<00:03, 42.82it/s] 20%|██        | 40/200 [00:00<00:03, 42.74it/s] 22%|██▎       | 45/200 [00:01<00:03, 42.71it/s] 25%|██▌       | 50/200 [00:01<00:03, 42.83it/s] 28%|██▊       | 55/200 [00:01<00:03, 42.63it/s] 30%|███       | 60/200 [00:01<00:03, 42.74it/s] 32%|███▎      | 65/200 [00:01<00:03, 42.97it/s] 35%|███▌      | 70/200 [00:01<00:03, 43.09it/s] 38%|███▊      | 75/200 [00:01<00:02, 43.22it/s] 40%|████      | 80/200 [00:01<00:02, 43.20it/s] 42%|████▎     | 85/200 [00:01<00:02, 43.15it/s] 45%|████▌     | 90/200 [00:02<00:02, 43.10it/s] 48%|████▊     | 95/200 [00:02<00:02, 43.13it/s] 50%|█████     | 100/200 [00:02<00:02, 42.97it/s] 52%|█████▎    | 105/200 [00:02<00:02, 42.95it/s] 55%|█████▌    | 110/200 [00:02<00:02, 42.95it/s] 57%|█████▊    | 115/200 [00:02<00:01, 42.74it/s] 60%|██████    | 120/200 [00:02<00:01, 42.54it/s] 62%|██████▎   | 125/200 [00:02<00:01, 42.47it/s] 65%|██████▌   | 130/200 [00:03<00:01, 42.68it/s] 68%|██████▊   | 135/200 [00:03<00:01, 42.66it/s] 70%|███████   | 140/200 [00:03<00:01, 42.85it/s] 72%|███████▎  | 145/200 [00:03<00:01, 42.83it/s] 75%|███████▌  | 150/200 [00:03<00:01, 42.99it/s] 78%|███████▊  | 155/200 [00:03<00:01, 43.18it/s] 80%|████████  | 160/200 [00:03<00:00, 43.15it/s] 82%|████████▎ | 165/200 [00:03<00:00, 43.18it/s] 85%|████████▌ | 170/200 [00:03<00:00, 43.26it/s] 88%|████████▊ | 175/200 [00:04<00:00, 43.32it/s] 90%|█████████ | 180/200 [00:04<00:00, 43.34it/s] 92%|█████████▎| 185/200 [00:04<00:00, 43.55it/s] 95%|█████████▌| 190/200 [00:04<00:00, 43.36it/s] 98%|█████████▊| 195/200 [00:04<00:00, 43.26it/s]100%|██████████| 200/200 [00:04<00:00, 43.35it/s]100%|██████████| 200/200 [00:04<00:00, 42.99it/s]
+Total time taken: 5.10249924659729
+--------------END RUN---------------------
+Maze application completed successfully.
+Job ended at Tue Dec 17 11:16:21 AM CET 2024
