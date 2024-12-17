@@ -8,8 +8,8 @@ from .constants import a0, density, kB, m_Cl, m_Na, t_au, ref_L, ref_N
 from .loggers import logger
 import argparse
 
-#N_from_batch = int(os.environ.get("N", 1))
-N_from_batch = 38
+N_from_batch = int(os.environ.get("N", 1))
+#N_from_batch =30
 
 ###################################################################################
 

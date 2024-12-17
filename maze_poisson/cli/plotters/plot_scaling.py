@@ -370,7 +370,8 @@ def weak_scaling_vs_threads():
     path_pdf = path + 'PDFs/'
 
     data1 = "time"
-    N_arr = [30, 38, 48, 60, 76, 95, 120]
+    data2 = "n_iters"
+    N_arr = [30, 36, 42, 50, 60, 71, 85]
     threads = np.array([1, 2, 4, 8, 16, 32, 64])
     one = [1,1,1,1,1,1,1]
 
@@ -381,13 +382,15 @@ def weak_scaling_vs_threads():
     for df in df_list_strong:
         avg1.append(np.mean(df[data1]))
         sd1.append(np.std(df[data1]))
-     
+    
+    print(avg1) 
     avg1 = np.array(avg1)
     sd1 = np.array(sd1)
     efficiency=[]
 
     for i in range(len(avg1)):
         efficiency.append(avg1[0]/avg1[i])
+    print(efficiency)
 
     x = threads
     poptMaZe, _ = curve_fit(g1, x, efficiency, absolute_sigma=True)

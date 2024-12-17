@@ -12,7 +12,7 @@
 
 # Define arrays for OMP_NUM_THREADS and N values
 OMP_NUM_THREADS_ARRAY=(1 2 4 8 16 32 64)
-N_ARRAY=(30 38 48 60 76 95 120)
+N_ARRAY=(30 36 42 50 60 71 85)
 
 # Use the job array index to select the corresponding values
 OMP_NUM_THREADS=${OMP_NUM_THREADS_ARRAY[$SLURM_ARRAY_TASK_ID]}
