@@ -144,7 +144,7 @@ def plot_scaling_particles_time_iters():
     N_vector = [80, 100, 120, 140, 160, 180]
     N_p=N_p_vector
     N_p = np.array(N_p)
-    df_list_MaZe = [pd.read_csv(path+filename_MaZe + str(i) +'_N_p_'+str(j)+ '.csv') for i,j in zip(N_vector, N_p)]
+    df_list_MaZe = [pd.read_csv(path+filename_MaZe + str(i) +'_'+str(j)+ '.csv') for i,j in zip(N_vector, N_p)]
     avg1 = []
     sd1 = []
 
@@ -187,7 +187,7 @@ def plot_scaling_particles_conv():
     data1 = "n_iters"
     N_vector = [80, 100, 120, 140, 160, 180]
     N_p = np.array(N_p_vector)
-    df_list_MaZe = [pd.read_csv(path+filename_MaZe + str(i) +'.csv') for i in N_vector]
+    df_list_MaZe = [pd.read_csv(path+filename_MaZe + str(i) +'_'+str(j)+'.csv') for i,j in zip(N_vector,N_p)]
     avg1 = []
     sd1 = []
 
@@ -210,7 +210,7 @@ def plot_scaling_particles_conv():
     plt.plot(x, f(x, a_optMaZe, b_optMaZe), label=f'fit $a\\log{{x}}^b$, b = {b_optMaZe:.2f}') 
     plt.xlabel('Number of particles', fontsize=label_fontsize)
     plt.ylabel('# Iterations', fontsize=label_fontsize)
-    plt.xscale('log')
+    #plt.xscale('log')
     plt.legend(frameon=False, loc='upper left', fontsize=legend_fontsize)
     plt.grid()
     title='iterations_vs_N_p'
@@ -289,7 +289,7 @@ def time_vs_threads():
     plt.xlabel('Number of threads', fontsize=label_fontsize)
     plt.ylabel('time per iteration (s)', fontsize=label_fontsize)
     #plt.xscale('log')
-    plt.legend(frameon=False, loc='upper left', fontsize=legend_fontsize)
+    plt.legend(frameon=False, loc='upper right', fontsize=legend_fontsize)
     plt.grid()
     title='time_vs_threads'
     name =  title + ".pdf"
@@ -325,10 +325,7 @@ def strong_scaling_vs_threads():
     poptMaZe, _ = curve_fit(g1, x, speedup, absolute_sigma=True)
     a_optMaZe, b_optMaZe = poptMaZe
 
-    #plt.figure(figsize=(10, 8))
-    #plt.errorbar(x, avg1, yerr=sd1, label = 'MaZe', color='r', marker='o', linestyle='', linewidth=1.5, markersize=6, capsize=5)
-    #plt.plot(x, g1(x, a_optMaZe, b_optMaZe), label=f'fit $ax^b$, b = {b_optMaZe:.2f} a = {a_optMaZe:.2f}') 
-    fig1, ax1 = plt.subplots()
+    fig1, ax1 = plt.subplots(figsize=(10, 8))
     ax1.plot(x,x, label= 'Ideal strong scaling')
     ax1.plot(x, speedup, color='red', marker='o', label='MaZe')
     ax1.set_xscale('log')
@@ -397,7 +394,7 @@ def weak_scaling_vs_threads():
     poptMaZe, _ = curve_fit(g1, x, efficiency, absolute_sigma=True)
     a_optMaZe, b_optMaZe = poptMaZe
 
-    fig1, ax1 = plt.subplots()
+    fig1, ax1 = plt.subplots(figsize=(10, 8))
     ax1.plot(x, one, label= 'Ideal weak scaling')
     ax1.plot(x, efficiency, color='red', marker='o', label='MaZe')
     ax1.set_xscale('log')

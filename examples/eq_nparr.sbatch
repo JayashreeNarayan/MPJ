@@ -5,22 +5,31 @@
 #SBATCH --time=2:00:00
 #SBATCH --mem=490GB
 #SBATCH --account=cecam_premium
-#SBATCH --output="log_temp_%j.out"  # Temporary log file
+#SBATCH --output="log_temp_%A_%a.out"  # Log output for each array task
 #SBATCH --mail-user=jayashree.narayan@epfl.ch
 #SBATCH --mail-type=END
+#SBATCH --array=0-5  # Array index from 0 to 6 (7 different jobs)
+
+# Define arrays for OMP_NUM_THREADS and N values
+NP_ARRAY=(128 250 432 686 1024 1458)
+
+# Use the job array index to select the corresponding values
+OMP_NUM_THREADS=32
+NP=${NP_ARRAY[$SLURM_ARRAY_TASK_ID]}
 
 # Print job information
 echo "Job started at $(date)"
 echo "Working directory: $(pwd)"
 echo "SLURM job ID: $SLURM_JOB_ID"
+echo "SLURM job array task ID: $SLURM_ARRAY_TASK_ID"
+echo "OMP_NUM_THREADS set to: $OMP_NUM_THREADS"
+echo "Np set to: $NP"
 
 # Dynamically set the log file name based on threads
-export OMP_NUM_THREADS=32
-LOG_FILE="log_threads${OMP_NUM_THREADS}_job${SLURM_JOB_ID}.out"
+LOG_FILE="log_Np${NP}_job${SLURM_JOB_ID}.out"
 exec >"$LOG_FILE" 2>&1
 
 echo "Output is being redirected to $LOG_FILE"
-echo "OMP_NUM_THREADS set to $OMP_NUM_THREADS"
 
 # Load necessary modules
 module load gcc libxc openmpi fftw openblas netlib-scalapack || { echo "Failed to load modules"; exit 1; }
@@ -33,6 +42,9 @@ echo "Compilation completed successfully."
 # Activate Python virtual environment
 echo "Activating Python virtual environment..."
 source ../venv/bin/activate || { echo "Failed to activate virtual environment"; exit 1; }
+
+# Export the variables to Python
+export NP
 
 # Run the code
 echo "Running the maze application..."
