@@ -66,21 +66,18 @@ def energy(filename, dt, therm):
     plot_Etot_trp(filename, dt, therm)
 
 @plot.command()
-@therm_option
 @Np_option
-def time_vs_N3(np, therm):
-    plot_time_iterNgrid(np, therm)
+def time_vs_N3(np):
+    plot_time_iterNgrid(np)
 
 @plot.command()
-@therm_option
 @Np_option
-def n_iter_vs_N3(np, therm):
-    plot_convNgrid(np, therm)
+def n_iter_vs_N3(np):
+    plot_convNgrid(np)
     
 @plot.command()
-@therm_option
-def time_vs_Np(therm):
-    plot_scaling_particles_time_iters(therm)
+def time_vs_Np():
+    plot_scaling_particles_time_iters()
 
 @plot.command()
 def iter_vs_Np():

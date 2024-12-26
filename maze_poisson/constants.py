@@ -16,3 +16,8 @@ m_Cl = m_Cl_amu * amu_to_kg
 density = 1.3793 # this is the new value, g/cm^3
 ref_L=20.64
 ref_N=100
+
+# for the graphs
+label_fontsize=14
+legend_fontsize=12
+
