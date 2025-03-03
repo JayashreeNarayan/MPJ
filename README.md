@@ -1,6 +1,6 @@
 # Project Instructions
 
-## Running the MPI Version
+## Running the MPI Version (branch `mpi-version`)
 To execute the MPI version of the code, follow these steps:
 
 1. Run the build script:
@@ -8,10 +8,10 @@ To execute the MPI version of the code, follow these steps:
    ./build.sh
    ```
 2. Ensure that the YAML configuration file is correctly set up.
-3. Verify that the required dependencies (e.g., Maze Poisson) are downloaded.
+3. Verify that the required dependencies (e.g., Maze Poisson) are downloaded. (You can check this by typing `maze` )
 4. Submit the batch file for execution.
 
-## Running the Non-MPI Version
+## Running the Non-MPI Version (all branches not labled with 'mpi')
 To execute the non-MPI version, follow these steps:
 
 1. Compile the code (only required once unless modifying the C functions):
