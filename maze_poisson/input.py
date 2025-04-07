@@ -21,13 +21,13 @@ class OutputSettings:
     print_performance = None # to move
     print_solute = None # to move
     print_energy = None # to move
-    print_temperature = None # to move
-    print_tot_force = None # to move
+    print_temperature = None 
+    print_tot_force = None 
     print_iters = False
     path = 'Outputs/'
     debug = False
     restart = None
-    generate_restart_file = None # to move
+    generate_restart_file = None 
     iter_restart = None
 
 ###################################################################################
@@ -42,9 +42,10 @@ class GridSetting:
         self._h = None
         self._input_file = None
         self._restart_file = None
+        self.cas = None # B-Spline or CIC
         
     # uncomment this block if you want to change N on your own
-    '''
+
     @property
     def N(self):
         return self._N
@@ -54,7 +55,7 @@ class GridSetting:
         self._N = value
         self._N_tot = int(value ** 3)
         self._h = None
-    '''
+
     @property
     def N_p(self):
         return self._N_p
@@ -63,9 +64,9 @@ class GridSetting:
     def N_p(self, value):
         self._N_p = value
         self.L_ang = np.round((((self._N_p*(m_Cl + m_Na)) / (2*density))  **(1/3)) *1.e9, 4) # in A
-        self.N = int(round((self.L_ang / ref_L )* ref_N))  # comment this line
+        #self.N = int(round((self.L_ang / ref_L )* ref_N))  # comment this line
         #self.N = N_from_batch
-        self._N_tot = int(self.N ** 3)                     # and this line when u want to change N on your own
+        #self._N_tot = int(self.N ** 3)                     # and this line when u want to change N on your own
         self.L = self.L_ang / a0 # in amu
     
     @property
@@ -89,7 +90,8 @@ class GridSetting:
         #if self.N!=100:
            #raise NotImplementedError("Only restart file for N_100 is available")
         if self._restart_file is None:
-            self._restart_file = 'restart_files/density_'+str(np.round(density, 3))+'/restart_N'+str(self.N)+'_N_p_'+str(self.N_p)+'_iter1.csv'
+            self._restart_file = 'restart_files/restart_N'+str(self.N)+'_step9999.csv'
+            #self._restart_file = 'restart_files/density_'+str(np.round(density, 3))+'/restart_N'+str(self.N)+'_N_p_'+str(self.N_p)+'_iter1.csv'
             #self._restart_file = 'restart_files/density_'+str(np.round(density, 3))+'/restart_N'+str(self.N)+'_N_p_'+str(self.N_p)+'_iter1.csv'
         return self._restart_file
 
@@ -142,7 +144,7 @@ class MDVariables:
         return self._dt
 
 required_inputs = {
-    'grid_setting': ['N_p'],
+    'grid_setting': ['N_p','cas'],
     'output_settings': ['restart'],
     'md_variables': ['N_steps', 'tol', 'rescale', 'T']
 }

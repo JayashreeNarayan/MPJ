@@ -24,6 +24,7 @@ def main(grid_setting, output_settings, md_variables):
     h = grid_setting.h
     L = grid_setting.L
     L_ang = grid_setting.L_ang
+    print('L=',L)
     N = grid_setting.N
     N_p = grid_setting.N_p
     h_ang = L_ang/N
@@ -52,6 +53,7 @@ def main(grid_setting, output_settings, md_variables):
     logger.info(f'Simulation with N_p = {N_p}, N = {N} with N_steps = {N_steps} and tol = {md_variables.tol}')
     logger.info(f'Initialization is done with CG and preconditioning: {preconditioning}')
     logger.info(f'Parameters: h = {h_ang} A \ndt = {dt_fs} fs \nstride = {stride} \nL = {L_ang} A \ngamma = {md_variables.gamma}')
+    logger.info(f'Charge assignment scheme: {grid_setting.cas}\n')
     logger.info(f'Potential: {md_variables.potential}')
     logger.info(f'Elec: {elec} \tNotElec: {not_elec}')
     logger.info(f'Temperature: {T} K \tDensity: {density} g/cm3.')
@@ -64,19 +66,24 @@ def main(grid_setting, output_settings, md_variables):
     #########################################################################################
 
     q_tot = 0
-    #compute 8 nearest neighbors for any particle
+    #compute 8 (CIC) or 64(B-Spline) nearest neighbors for any particle
     grid.particles.NearestNeighbors()
     q_tot = np.sum(grid.particles.charges)
     logger.info('Total charge q = '+str(q_tot))
 
     # set charges with the weight function
+    # init_t = time.time()
     grid.SetCharges()
+    # end_t = time.time()
+    # print('Time for charge assignment: ', end_t - init_t)
+
     #logger.info('Charges are set')
 
     # initialize the electrostatic field with CG                  
     if preconditioning == "Yes":
         #logger.info('Preconditioning being done for elec field')
         grid.phi_prev, _ = PrecondLinearConjGradPoisson(- 4 * np.pi * grid.q / h, tol=tol)
+
 
     if not_elec:
         grid.particles.ComputeForceNotElec()
@@ -85,7 +92,6 @@ def main(grid_setting, output_settings, md_variables):
     if elec:
         grid.particles.ComputeForce_FD(prev=True) 
         #logger.info('Elec force being computed')
-    
     else:
         logger.error("There is an error here")
         raise ValueError("There is an error here")

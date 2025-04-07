@@ -4,7 +4,7 @@ import pandas as pd
 from .constants import a0, conv_mass, kB
 from .loggers import logger
 from .output_md import generate_output_files
-from .particles import Particles, g
+from .particles import Particles, g, cubic_bspline, quadratic_bspline
 
 
 ### grid class to represent the grid and the fields operating on it ###
@@ -216,7 +216,18 @@ class Grid:
         
         # Version that works for Python 3.8.15
         indices = tuple(self.particles.neighbors.reshape(-1, 3).T)
-        updates = (self.particles.charges[:, np.newaxis] * np.prod(g(diff, L, h), axis=2)).flatten()
+        
+        if self.grid_setting.cas == 'CIC':
+            updates = (self.particles.charges[:, np.newaxis] * np.prod(g(diff, L, h), axis=2)).flatten()
+        elif self.grid_setting.cas == 'B-Spline':
+            updates = (self.particles.charges[:, np.newaxis] * np.prod(cubic_bspline(diff, L, h), axis=2)).flatten()
+        elif self.grid_setting.cas == 'Quadratic-B-Spline':
+            # w = quadratic_bspline(diff[0], L, h)
+            # print("Weights:", np.sum(np.prod(w, axis=1)))
+            updates = (self.particles.charges[:, np.newaxis] * np.prod(quadratic_bspline(diff, L, h), axis=2)).flatten()
+        else:
+            raise ValueError(f"Unknown grid setting: {self.grid_setting.cas}")
+        
         self.q[indices] += updates
   
         q_tot_expected = np.sum(self.particles.charges)
@@ -224,7 +235,7 @@ class Grid:
 
         if q_tot + 1e-6 < q_tot_expected:
             logger.error('Error: change initial position, charge is not preserved: q_tot ='+str(q_tot))
-            exit() # exits runinning otherwise it hangs the code
+            exit() # exits running otherwise it hangs the code
                 
     # returns only kinetic energy and not electrostatic one
     def Energy(self, iter, print_energy):

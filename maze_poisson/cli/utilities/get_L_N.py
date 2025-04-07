@@ -50,4 +50,4 @@ def get_L_N():
     for Np, (L, N, density) in results.items():
         print(f"Np = {Np}: L = {L:.2f} Å, N = {N} grid points, Density = {density:.5f} g/cm^3", Np / L**3, 'h = '+str(L/N) )
     
-#get_L_N()
+get_L_N()

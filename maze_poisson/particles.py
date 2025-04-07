@@ -37,9 +37,20 @@ class Particles:
             self.r_cutoff = 2.5 * self.sigma
             self.ComputeForceNotElec = self.ComputeLJForce
 
-        # Pre-allocate for nearest neighbor indices
-        self.neighbors = np.empty((self.N_p, 8, 3), dtype=int) # Shape: (N_p, 8, 3)
 
+        # Pre-allocate for nearest neighbor indices
+        if self.grid.grid_setting.cas == 'CIC':
+            self.neighbors = np.empty((self.N_p, 8, 3), dtype=int)
+        elif self.grid.grid_setting.cas == 'B-Spline':
+            self.neighbors = np.empty((self.N_p, 64, 3), dtype=int)
+        elif self.grid.grid_setting.cas == 'Quadratic-B-Spline':
+            h = self.grid.h
+            support_radius = 1.5 * h  # for Quadratic
+            cells_needed = int(np.ceil(support_radius / h))
+            print("Cells needed:", cells_needed)
+
+            self.neighbors = np.empty((self.N_p, 64, 3), dtype=int)
+      
         # Compute pairwise TF parameters
         charges_sum = self.charges[:, np.newaxis] + self.charges[np.newaxis, :]  # Shape: (N_p, N_p)
         A = self.A = np.vectorize(lambda q: self.tf_params[q][0])(charges_sum)
@@ -54,18 +65,31 @@ class Particles:
     def NearestNeighbors(self):
         N = self.grid.N
         h = self.grid.h
+        cas = self.grid.grid_setting.cas
 
         # Compute indices for all particles
         indices = np.floor(self.pos / h).astype(int) # Shape: (N_p, 3)
 
+        if cas == 'CIC':
+            delta_plus = 2
+            delta_minus = 0
+        elif cas == 'B-Spline':
+            delta_plus = 3
+            delta_minus = -1 #-3 FOR 5
+        elif cas == 'Quadratic-B-Spline':
+            delta_plus = 3
+            delta_minus = -1
+
         for n in range(self.N_p):
             neigh_indices = []
-            for i in range(indices[n][0], indices[n][0] + 2):
-                for j in range(indices[n][1], indices[n][1] + 2):
-                    for k in range(indices[n][2], indices[n][2] + 2):
+            for i in range(indices[n][0] + delta_minus, indices[n][0] + delta_plus):
+                for j in range(indices[n][1] + delta_minus, indices[n][1] + delta_plus):
+                    for k in range(indices[n][2] + delta_minus, indices[n][2] + delta_plus):
                         neigh_indices.append((i % N, j % N, k % N))
 
             self.neighbors[n] = neigh_indices
+        # print("Stencil size:", self.neighbors.shape[1])
+
             
     # Currently using this one
     @profile 
@@ -95,7 +119,7 @@ class Particles:
 
         # Compute total charge contribution (optional)
         self.grid.q_tot = np.sum(q_neighbors)  # Scalar
-    
+        
 
     def ComputeTFForces(self):
         # Get all pairwise differences
@@ -273,7 +297,7 @@ def BoxScale(diff, L):
     diff = diff - L * np.rint(diff / L)
     return diff
 
-# weight function as defined in the paper Im et al. (1998) - eqn 24
+# CIC weight function as defined in the paper Im et al. (1998) - eqn 24
 def g(x, L, h):
     x = x - L * np.rint(x / L)
     x = np.abs(x)
@@ -292,7 +316,40 @@ def g_prime(x, L, h):
         return 0
     else:
         return - 1 / h
-    
+
+
+def cubic_bspline(x, L, h):
+    """Vectorized Cubic B-spline weight function"""
+    x = x - L * np.rint(x / L)  # apply periodic BC
+    x = np.abs(x) / h           # normalize to grid spacing
+
+    w = np.zeros_like(x)
+
+    mask1 = x < 1
+    mask2 = (x >= 1) & (x < 2)
+
+    w[mask1] = (4 - 6 * x[mask1]**2 + 3 * x[mask1]**3) / 6
+    w[mask2] = ((2 - x[mask2])**3) / 6
+
+    return w
+
+
+def quadratic_bspline(x, L, h):
+    """Vectorized Quadratic B-spline weight function"""
+    x = x - L * np.rint(x / L)  # apply periodic boundary conditions
+    x = np.abs(x) / h           # normalize to grid spacing
+
+    w = np.zeros_like(x)
+
+    mask1 = x < 0.5
+    mask2 = (x >= 0.5) & (x < 1.5)
+
+    w[mask1] = 0.75 - x[mask1]**2
+    w[mask2] = 0.5 * (1.5 - x[mask2])**2
+
+    return w
+
+
 def LJPotential(r, epsilon, sigma):  
         V_mag = 4 * epsilon * ((sigma/r)**12 - (sigma/r)**6)
         return V_mag

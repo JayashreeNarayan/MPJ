@@ -180,3 +180,16 @@ examples/cluster_log_files/log_temp_28889863.out
 examples/cluster_log_files/log_temp_28890601.out
 
 rough.py
+examples/generate_input_restart.yml
+examples/restart_files/restart_field_N100_Np250_iter10001.csv
+examples/restart_files/restart_N100_Np250_iter10001.csv
+examples/restart_files/density_1.379/restart_field_N50_N_p_250_iter3999.csv
+examples/restart_files/density_1.379/restart_field_N80_N_p_250_iter3999.csv
+examples/restart_files/density_1.379/restart_field_N100_N_p_250_iter99.csv
+examples/restart_files/density_1.379/restart_field_N100_N_p_250_iter3999.csv
+examples/restart_files/density_1.379/restart_field_N120_N_p_250_iter3999.csv
+examples/restart_files/density_1.379/restart_N50_N_p_250_iter3999.csv
+examples/restart_files/density_1.379/restart_N80_N_p_250_iter3999.csv
+examples/restart_files/density_1.379/restart_N100_N_p_250_iter99.csv
+examples/restart_files/density_1.379/restart_N100_N_p_250_iter3999.csv
+examples/restart_files/density_1.379/restart_N120_N_p_250_iter3999.csv
