@@ -168,7 +168,8 @@ def VerletPoisson(grid, y):
     sigma_p = grid.q / h + matrixmult / (4 * np.pi) # M @ grid.phi for row-by-column product
 
     # apply LCG
-    y_new, iter_conv = PrecondLinearConjGradPoisson(sigma_p, x0=y, tol=tol) #riduce di 1/3 il numero di iterazioni necessarie a convergere
+    # y_new, iter_conv = PrecondLinearConjGradPoisson(sigma_p, x0=y, tol=tol) #riduce di 1/3 il numero di iterazioni necessarie a convergere
+    y_new, iter_conv = PrecondLinearConjGradPoisson(sigma_p, x0=y, tol=tol, print_iters=grid.output_settings.print_iters, output_file=grid.output_files.file_output_iters) #riduce di 1/3 il numero di iterazioni necessarie a convergere
     
     # scale the field with the constrained 'force' term
     grid.phi -= y_new * (4 * np.pi)
@@ -183,6 +184,7 @@ def VerletPoisson(grid, y):
         print('max of constraint: ', np.max(np.abs(sigma_p1)),'\n')
     
     return grid, y_new, iter_conv
+
 
 def PrecondLinearConjGradPoisson_scipy(b, x0 = None, tol=1e-7):
     if x0 is not None:
@@ -203,7 +205,7 @@ def PrecondLinearConjGradPoisson_C(b, x0 = None, tol=1e-7):
         raise ValueError('Conjugate gradient did not converge')
     return x, i
 
-def PrecondLinearConjGradPoisson_OLD(b, x0 = None, tol=1e-7):
+def PrecondLinearConjGradPoisson_OLD(b, x0 = None, tol=1e-10, print_iters=False, output_file=None):
     N_tot = b.size
     if x0 is None:
         x0 = np.zeros_like(b)
@@ -220,8 +222,11 @@ def PrecondLinearConjGradPoisson_OLD(b, x0 = None, tol=1e-7):
         iter = iter + 1
         if iter > N_tot:
             raise ValueError('Conjugate gradient did not converge')
-        if iter % 100 == 0:
-            print('iter=',iter, np.linalg.norm(r_new))
+        # if iter % 100 == 0:
+        #     print('iter=',iter, np.linalg.norm(r_new))
+        if print_iters:
+            output_file.write(str(iter) + ',' + str(np.max(np.abs(r_new))) + ',' + str(np.linalg.norm(np.abs(r_new))) + "\n") #+ ',' + str(end_Matrix - start_Matrix) + "\n")
+        
         Ap = MatrixVectorProduct(p) # A @ d for row-by-column product
         # r_dot_v = blas.ddot(r, v, N_tot)
         r_dot_v = np.sum(r * v)
@@ -254,12 +259,14 @@ def PrecondLinearConjGradPoisson_OLD(b, x0 = None, tol=1e-7):
         
         r = r_new
         v = v_new
+     
+    
 
     return x, iter
 
-PrecondLinearConjGradPoisson = PrecondLinearConjGradPoisson_C
+# PrecondLinearConjGradPoisson = PrecondLinearConjGradPoisson_C
 # PrecondLinearConjGradPoisson = PrecondLinearConjGradPoisson_scipy
-# PrecondLinearConjGradPoisson = PrecondLinearConjGradPoisson_OLD
+PrecondLinearConjGradPoisson = PrecondLinearConjGradPoisson_OLD
 
 # alternative function for matrix-vector product
 def MatrixVectorProduct_7entries(M, v, index):

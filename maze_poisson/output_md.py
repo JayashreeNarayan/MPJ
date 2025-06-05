@@ -54,7 +54,7 @@ def generate_output_files(grid, md_variables):
 
     if output_settings.print_iters:
         os.makedirs(path, exist_ok=True)
-        output_iters = os.path.join(path, 'iters_N' + str(N) +'_'+str(num_threads)+'.csv')
+        output_iters = os.path.join(path, 'iters_N' + str(N) +'.csv')
         output_files.file_output_iters = generate_output_file(output_iters)
         output_files.file_output_iters.write("iter,max_sigma,norm\n")
 
