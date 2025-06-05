@@ -61,6 +61,7 @@ def main(grid_setting, output_settings, md_variables):
     logger.info(f'Print energy: {output_settings.print_energy} \tPrint temperature: {output_settings.print_temperature}')
     logger.info(f'Print performance: {output_settings.print_performance} \tRestart: {output_settings.restart}')
     logger.info(f'Thermostat: {thermostat} \tRescaling of the velocities: {rescale}')
+    logger.info(f'Rescaling of the forces: {grid_setting.rescale_force}')
 
     ################################ STEP 0 Verlet ##########################################
     #########################################################################################

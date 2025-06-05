@@ -43,6 +43,7 @@ class GridSetting:
         self._input_file = None
         self._restart_file = None
         self.cas = None # B-Spline or CIC
+        self.rescale_force = None
         
     # uncomment this block if you want to change N on your own
 
@@ -63,15 +64,34 @@ class GridSetting:
     @N_p.setter
     def N_p(self, value):
         self._N_p = value
-        self.L_ang = np.round((((self._N_p*(m_Cl + m_Na)) / (2*density))  **(1/3)) *1.e9, 4) # in A
+        # Compute L_ang and log/print it if L is set
+        if hasattr(self, 'L_ang') and self.L_ang is not None:
+            return  # avoid overwriting if L_ang already set
+        if self._L is not None:
+            self.L_ang = np.round(self._L * a0, 4)  # convert from a.u. to Å for logging
+            # Print or log L and L_ang for traceability
+            print(f"L = {self._L} a.u. (L_ang = {self.L_ang} Å)")
+        else:
+            self.L_ang = np.round((((self._N_p * (m_Cl + m_Na)) / (2 * density)) ** (1 / 3)) * 1.e9, 4)  # in Å
+            self._L = self.L_ang / a0  # in a.u.
+            print(f"L = {self._L} a.u. (L_ang = {self.L_ang} Å)")
         #self.N = int(round((self.L_ang / ref_L )* ref_N))  # comment this line
         #self.N = N_from_batch
         #self._N_tot = int(self.N ** 3)                     # and this line when u want to change N on your own
-        self.L = self.L_ang / a0 # in amu
     
     @property
     def N_tot(self):
         return self._N_tot
+
+    @property
+    def L(self):
+        return self._L
+
+    @L.setter
+    def L(self, value):
+        self.L_ang = value  # input is assumed in Å
+        self._L = value / a0  # convert to a.u.
+        self._h = None
 
     @property
     def h(self):
@@ -144,7 +164,7 @@ class MDVariables:
         return self._dt
 
 required_inputs = {
-    'grid_setting': ['N_p','cas'],
+    'grid_setting': ['N_p','cas', 'rescale_force', 'L'],
     'output_settings': ['restart'],
     'md_variables': ['N_steps', 'tol', 'rescale', 'T']
 }
@@ -172,7 +192,11 @@ def initialize_from_yaml(filename):
         ptr = data.get(key, {})
         req = required_inputs.get(key, [])
         missing += [f'{key}.{r}' for r in req if r not in ptr]
-        for k, v in data[key].items():
+        items = list(data[key].items())
+        if key == 'grid_setting':
+            # Ensure L is set before N_p
+            items.sort(key=lambda item: 0 if item[0] == 'L' else 1)
+        for k, v in items:
             setattr(eval(key), k, v)
 
     if missing:

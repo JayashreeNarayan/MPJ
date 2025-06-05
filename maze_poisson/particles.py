@@ -117,10 +117,15 @@ class Particles:
         # Compute the forces (sum contributions from 8 neighbors)
         self.forces = -np.sum(q_neighbors[:, :, np.newaxis] * E_neighbors, axis=1)  # Shape: (n_particles, 3)
 
+        # Subtract mean force to remove net self-force
+        if self.grid.grid_setting.rescale_force:
+            net_force = np.sum(self.forces, axis=0)
+            if np.any(net_force):
+                self.forces -= net_force / self.forces.shape[0]
+
         # Compute total charge contribution (optional)
         self.grid.q_tot = np.sum(q_neighbors)  # Scalar
         
-
     def ComputeTFForces(self):
         # Get all pairwise differences
         r_diff = self.pos[:, np.newaxis, :] - self.pos[np.newaxis, :, :]  # Shape: (N_p, N_p, 3)
